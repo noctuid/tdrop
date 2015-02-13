@@ -126,8 +126,13 @@ wid_toggle() {
 	# get saved window id if already created
 	wid=$(< /tmp/tdrop/"$term$num")
 	exists=true
+	if [[ -n $wid ]]; then
 	visibility=$(xwininfo -id "$wid" | awk '/Map State/ {print $3}')
-	if [[ -z $wid ]] || [[ -z $visibility ]]; then
+		if [[ -z $visibility ]]; then
+			# window no longer exists
+			exists=false
+		fi
+	else
 		exists=false
 	fi
 	if $exists && [[ $visibility != IsUnviewable ]]; then
