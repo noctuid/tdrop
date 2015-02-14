@@ -20,6 +20,7 @@ options:
 	-P cmd       provide a post command to float the window if necessary
 	-O cmd       provide a one time command only for when a dropdown is created/initiated (useful for 'tdrop -c')
 	-W           the given program is not a terminal (or lacks an -e flag) (default: assume it IS a terminal)
+	--clear      clear saved window id; useful accidentally make a window a dropdown (e.g. '$ tdrop --clear current')
 	--no-cancel  don't cancel auto-showing
 	             (default is to prevent this when manually toggling a term after it is auto-hidden)
 	--help       print help
@@ -44,6 +45,7 @@ oneshot_post=""
 session_name=""
 num=""
 normal_window=false
+clearwid=false
 cancel_auto_show=true
 term=${*:0-1}
 while getopts :h:w:x:y:s:n:p:P:O:-:W opt
@@ -73,6 +75,7 @@ do
 		post-command) float_post=$OPTARG;;
 		oneshot-post) oneshot_post=$OPTARG;;
 		normal-window) normal_window=true;;
+		clear) clearwid=true;;
 		no-cancel) cancel_auto_show=false;;
 		help) print_help;;
 		esac;;
@@ -219,7 +222,9 @@ toggle_auto_hide() {
 }
 
 if [[ -n $1 ]]; then
-	if [[ $term == toggle_auto_hide ]]; then
+	if $clearwid; then
+		> /tmp/tdrop/"$term$num"
+	elif [[ $term == toggle_auto_hide ]]; then
 		toggle_auto_hide
 	elif [[ $term == auto_hide ]]; then
 		auto_hide
