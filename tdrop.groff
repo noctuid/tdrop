@@ -1,0 +1,133 @@
+.\" Manpage for tdrop.
+.\" Contact <nocturnalartifice at gmail dot com> to correct errors or typos.
+.TH TDROP 1 "11 February 2015" "tdrop 0.1" "tdrop man page"
+.SH NAME
+Tdrop \- make dropdown terminals and windows
+.SH SYNOPSIS
+tdrop [\fIOPTIONS\fR] [program name or cmd]
+.SH DESCRIPTION
+	Tdrop is used for hiding/unhiding programs to acheive quake-dropdown-like-functionality. It can create a dropdown window if one does not already exist or turn the current window into a dropdown on the fly. It provides options to control the intial size and position of dropdowns, e.g. to leave panels visible or deal with window borders. When used with a terminal, it provides the option to specify the name of a tmuxinator or tmux session to automatically start. It uses window ids as opposed to class names, so it can be used with multiple windows of the same program.
+
+	It also has the ability to auto-hide and auto-show dropdowns. For example, it can be used to automatically hide a terminal when opening something from it, e.g. an image viewer, video player, etc., and then re-show the terminal whenever the image view, video player, etc. is closed. See the Examples section for more information.
+.SH Commands
+Tdrop expects the name of a program or 'current' (to turn the current window into a dropdown) as the last argument. Alternatively, it can take one of auto_show, auto_hide, or toggle_auto_hide. Neither is particularly useful called directly from the command line; the former should be bound to a key, and the latter should be used in shell functions/aliases or for a file opener (e.g. in the rifle.conf).
+.SH OPTIONS
+Note: longopts that take an arg require using =.
+.br
+E.g.
+.br
+$ tdrop --y-offset=15 termite
+.TP
+\fB\-h\fR, \fB \-\-height\fR
+Specify a height for a created window as a number or percentage. (default: 45%)
+.TP
+\fB\-w\fR, \fB \-\-width\fR
+Specify a width for a created window as a number or percentage. (default: 100%)
+.TP
+\fB\-x\fR, \fB \-\-x-offset\fR
+Specify the x position for a created window as a number or percentage. (default: 0)
+.TP
+\fB\-y\fR, \fB \-\-y-offset\fR
+Specify the y position for a created window as a number or percentage. (default: 1, see Bugs)
+.TP
+\fB\-s\fR, \fB \-\-session\fR
+Specify a tmuxinator or tmux session name to start. An existing tmux session has highest precedence and will be connected to with '-d', detaching other attached clients. If a there is no tmuxinator session of the given name, a normal tmux session with the name will be created. If this option is not given, tmux will not be used. (default: none)
+.TP
+\fB\-n\fR, \fB \-\-number\fR
+Specify a number to add when saving dropdown information. Only needed if multiple dropdowns of the same program are wanted. Can also be used for creating multiple different dropdowns on the fly. (default: none)
+.TP
+\fB\-p\fR, \fB \-\-pre-command\fR
+Specify a command to execute before showing a dropdown. This may be useful when setting a rule to float all windows of a given type is undesirable. If 'bspwm' is given, the command will be a oneshot bspwm rule to float the specified program and will also work with 'current' and 'auto_show'. (default: none)
+.TP
+\fB\-P\fR, \fB \-\-post-command\fR
+Specify a command to execute after showing a dropdown. This may be useful in the case where a window manager does not support floating rules or floating altogether. It can be used, for example, to fake a key combo to float the current window. (default: none)
+.TP
+\fB\-O\fR, \fB \-\-oneshot-post\fR
+Specify a post command to execute only when first creating or initiating a dropdown. This can be used when turning the current window into a dropdown to float and resize it. (default: none)
+.TP
+\fB\-W\fR, \fB \-\-normal-window\fR
+Specifies that the program is not a terminal or does not have the '-e' flag; takes no argument. If using 'tdrop current', this option will have no effect either way. (default: false)
+.TP
+\fB \-\-clear\fR
+Used to clear a saved window id for the given program or 'current' instead of creating a dropdown; takes no argument.
+.TP
+\fB \-\-no-cancel\fR
+Specifies that manually re-showing an auto-hidden window with tdrop should not cancel an auto_show; takes no argument. See examples.
+.TP
+\fB \-\-help\fR
+Print help that is less awesome than this manpage; takes no argument.
+.SH EXAMPLES
+.SS Making Dropdowns
+Use a key binding program such as sxhkd to bind keys to these commands.
+
+The simplest example. Make a dropdown for an xterm.
+.br
+$ tdrop xterm
+
+When using a tiling window manager like bspwm, dropdowns like guake will by default be tiled instead of floated. One can create a rule to float every instance of guake or another dropdown. However, one may not want to float every instance of a terminal used with tdrop. Tdrop allows for having a "pre command" that will run before showing a dropdown:
+.br
+$ tdrop -p "bspc rule -a xterm -o floating=on" xterm
+
+Tdrop also has a short command for bspwm. Note that '-p bspwm' does not require specifying the program name and will also work for creating oneshot floating rules with 'tdrop current' and 'tdrop auto_show'.
+.br
+$ tdrop -p bspwm xterm
+
+Tdrop supports controlling the initial size and placement of a terminal. The border of a window may need to be taken into an account. For example, I use a border size of 2, so I use 4 less than my screen size. I also use a y-offset of 14 so that the dropdown doesn't hide my panel:
+.br
+$ tdrop -p bspwm -w 1362 -y 14 termite
+
+Tdrop can also create a tmux or tmuxinator session if it does not exist:
+.br
+$ tdrop -p bspwm -w 1362 -y 14 -s dropdown termite
+
+Tdrop allows for having multiple dropdowns of the same type:
+.br
+$ tdrop xterm
+.br
+$ tdrop -n 1 xterm
+.br
+$ tdrop -n 2 xterm
+.br
+...
+
+Tdrop works with normal windows (with some potential visual annoyance, see BUGS):
+.br
+$ tdrop zathura
+
+Tdrop can also turn the current window into a dropdown. '-O' is useful in this case to execute a command only once when turning the active window into a dropdown.
+.br
+$ tdrop -p bspwm -O "bspc window -t floating=on && xdotool getactivewindow windowmove 0 14 windowsize 1362 45%" current
+
+Once a window is turned into a dropdown, the key bound to 'tdrop ... current' will continue to toggle that window until it is closed. Then the key can be used to create a new dropdown. '-n' can also be used to have multiple 'current' keys. If an active window is accidentally turned into a dropdown, it can be cleared:
+.br
+$ tdrop --clear current
+.SS Auto-hiding/showing
+These example will work even for non-dropdown terminals.
+
+Tdrop provides the functionality to get programs/terminals out of the way when opening other programs. For example, when opening an image viewer from a normal floating dropdown, the dropdown will be over the image viewer. This requires an extra hotkey press to hide the dropdown. If one wants to return to the dropdown after looking at images, the hotkey must be once again invoked. Tdrop allows for this process to be automated.
+
+For example, this functionality can be used in a function:
+.br
+hide_on_open() { tdrop auto_hide; "$@" && tdrop auto_show }
+
+To use it in an alias when writing a commit message in an $EDITOR from a terminal:
+.br
+alias gc='hide_on_open git commit'
+
+This will hide the terminal window when opening the editor and then show it once the editor is closed. If primarily used from floating dropdowns instead, something like 'tdrop -p bspwm auto_show' can be used instead to float the window when re-showing.
+
+This might lead to some unwanted "re-shows" of dropdown. Consider a situation in which one opens an image viewer from a dropdown and leaves it open for a while, resuming normal use of the dropdown. When the image viewer is closed, the dropdown appears, unwanted. Tdrop is smart about this, and won't "re-show" a dropdown if it has been manually toggled since an auto-hide. If you don't want this check to happen, use '--no-cancel' in your dropdown key binding.
+
+Auto-hiding functionality is particularly nice to use with a file opener like rifle:
+.br
+mime ^image, has sxiv, X, flag f = tdrop auto_hide ; sxiv -a -- "$@" && tdrop -p bspwm auto_show
+.SH SEE ALSO
+xdotool(1), sxhkd(1), xprop(1), xwininfo(1), tmux(1)
+.SH BUGS
+With terminals, it is easy to use the -e flag to reliably get window id and perform actions such as resizing. When using tdrop with a normal window (-W), the window id is gotten from the program's pid. This can be problematic when the pid has multiple window ids and the first one is not the desired one (I have yet to encounter this problem). More importantly, this means that tdrop has to wait to get the window id, resulting in a delay before it is floated/resized. This may cause visual annoyance when first creating a dropdown. There is a fork of xtoolwait that starts a program and returns its window id when created, but this has not been merged. Note that this only matters if the user wants to resize/float a normal window; it won't cause problems with a tiled dropdown.
+
+Also, if -y is set to 0, a window may be subsequently moved to the middle when showing/mapping it with xdotool. This may have to do with the window border.
+.SH AUTHOR
+Lit Wakefield <nocturnalartifice at gmail dot com>
+.br
+Source: https://github.com/angelic-sedition/tdrop
