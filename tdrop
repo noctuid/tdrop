@@ -80,6 +80,10 @@ do
     esac
 done
 
+get_class_name() {
+	xprop -id "$(xprop -root _NET_ACTIVE_WINDOW | awk '{print $5}')" WM_CLASS | awk '{ gsub(/"/, ""); print $4}'
+}
+
 float_pre_command() {
 	if [[ -n $float_pre ]]; then
 		if [[ $float_pre == bspwm ]]; then
@@ -131,7 +135,7 @@ current_create() {
 	# turns active window into a dropdown
 	wid=$(xdotool getactivewindow)
 	echo "$wid" > /tmp/tdrop/current"$num"
-	xprop -id "$(xprop -root _NET_ACTIVE_WINDOW | awk '{print $5}')" WM_CLASS | awk '{ gsub(/"/, ""); print $4}' > /tmp/tdrop/current"$num"_type
+	get_class_name > /tmp/tdrop/current"$num"_type
 }
 
 wid_toggle() {
@@ -179,10 +183,9 @@ auto_hide() {
 	no_hide=$(< /tmp/tdrop/auto_hidden/no_hide)
 	if [[ -z $no_hide ]]; then
 		wid=$(xdotool getactivewindow)
-		class_name=$(xprop -id "$(xprop -root _NET_ACTIVE_WINDOW | awk '{print $5}')" WM_CLASS | awk '{ gsub(/"/, ""); print $4}')
 		mkdir -p /tmp/tdrop/auto_hidden
 		echo "$wid" > /tmp/tdrop/auto_hidden/wid
-		echo "$class_name" > /tmp/tdrop/auto_hidden/class
+		get_class_name > /tmp/tdrop/auto_hidden/class
 		xdotool windowunmap "$wid"
 	fi
 }
