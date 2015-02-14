@@ -127,7 +127,7 @@ term_create() {
 win_create() {
 	$term &
 	# need to wait for window to be created
-	sleep 0.2
+	sleep 0.5
 	# often pids have two wids; first one has always been the right one for what I've tested
 	wid=$(xdotool search --pid $! | head -n 1)
 	echo "$wid" > /tmp/tdrop/"$term$num"
