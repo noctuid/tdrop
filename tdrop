@@ -164,9 +164,9 @@ wid_toggle() {
 			fi
 			xdotool windowmap "$wid"
 			float_post_command
+			maybe_cancel_auto_show "$wid"
 		else
 			xdotool windowunmap "$wid"
-			maybe_cancel_auto_show "$wid"
 		fi
 	else
 		# make it
@@ -205,9 +205,8 @@ auto_show() {
 }
 
 maybe_cancel_auto_show() {
-	auto_hidden_wid=$(< /tmp/tdrop/auto_hidden/wid)
-	if $cancel_auto_show && [[ $1 == "$auto_hidden_wid" ]]; then
-		> /tmp/auto_hidden_terminal/wid
+	if $cancel_auto_show && [[ $1 == "$(< /tmp/tdrop/auto_hidden/wid)" ]]; then
+		> /tmp/tdrop/auto_hidden/wid
 	fi
 }
 
