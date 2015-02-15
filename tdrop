@@ -90,9 +90,10 @@ get_class_name() {
 float_pre_command() {
 	if [[ -n $float_pre ]]; then
 		if [[ $float_pre == bspwm ]]; then
-			float_pre="bspc rule -a '$1' -o floating=on"
+			bspc rule -a "$1" -o floating=on
+		else
+			eval "$float_pre"
 		fi
-		eval "$float_pre"
 	fi
 }
 
@@ -100,7 +101,11 @@ float_post_command() {
 	if [[ -n $oneshot_post ]] && [[ $1 == oneshot ]]; then
 		eval "$oneshot_post"
 	elif [[ -n $float_post ]]; then
-		eval "$float_post"
+		if [[ $float_post == openbox ]]; then
+			xdotool getactivewindow windowmove "$wid" "$xoff" "$yoff" windowsize "$wid" "$width" "$height"
+		else
+			eval "$float_post"
+		fi
 	fi
 }
 
@@ -163,7 +168,7 @@ wid_toggle() {
 				float_pre_command "$term"
 			fi
 			xdotool windowmap "$wid"
-			float_post_command
+			float_post_command "$wid"
 			maybe_cancel_auto_show "$wid"
 		else
 			xdotool windowunmap "$wid"
@@ -200,7 +205,7 @@ auto_show() {
 		class=$(< /tmp/tdrop/auto_hidden/class)
 		float_pre_command "$class"
 		xdotool windowmap "$wid"
-		float_post_command
+		float_post_command "$wid"
 	fi
 }
 
