@@ -139,7 +139,7 @@ current_create() {
 	# turns active window into a dropdown
 	wid=$(xdotool getactivewindow)
 	echo "$wid" > /tmp/tdrop/current"$num"
-	get_class_name > /tmp/tdrop/current"$num"_type
+	get_class_name "$wid" > /tmp/tdrop/current"$num"_type
 }
 
 wid_toggle() {
@@ -184,7 +184,7 @@ wid_toggle() {
 }
 
 get_class_name() {
-	xprop -id "$(xprop -root _NET_ACTIVE_WINDOW | awk '{print $5}')" WM_CLASS | awk '{ gsub(/"/, ""); print $4}'
+	xprop -id "$1" WM_CLASS | awk '{ gsub(/"/, ""); print $4}'
 }
 
 get_geometry() {
@@ -213,7 +213,7 @@ auto_hide() {
 		wid=$(xdotool getactivewindow)
 		mkdir -p /tmp/tdrop/auto_hidden
 		echo "$wid" > /tmp/tdrop/auto_hidden/wid
-		get_class_name > /tmp/tdrop/auto_hidden/class
+		get_class_name "$wid" > /tmp/tdrop/auto_hidden/class
 		get_geometry "$wid" > /tmp/tdrop/auto_hidden/geometry
 		xdotool windowunmap "$wid"
 	fi
