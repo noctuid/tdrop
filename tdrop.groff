@@ -113,13 +113,13 @@ For example, this functionality can be used in a function:
 .br
 hide_on_open() { tdrop auto_hide; "$@" && tdrop auto_show }
 
-To use it in an alias when writing a commit message in an $EDITOR from a terminal:
+To use it in an alias when writing a commit message in an graphical $EDITOR started from a terminal:
 .br
 alias gc='hide_on_open git commit'
 
 This will hide the terminal window when opening the editor and then show it once the editor is closed. If primarily used from floating dropdowns instead, something like 'tdrop -p bspwm auto_show' can be used instead to float the window when re-showing.
 
-This might lead to some unwanted "re-shows" of dropdown. Consider a situation in which one opens an image viewer from a dropdown and leaves it open for a while, resuming normal use of the dropdown. When the image viewer is closed, the dropdown appears, unwanted. Tdrop is smart about this, and won't "re-show" a dropdown if it has been manually toggled since an auto-hide. If you don't want this check to happen, use '--no-cancel' in your dropdown key binding.
+This functionality might lead to some unwanted "re-shows" of dropdown. Consider a situation in which one opens an image viewer from a dropdown and leaves it open for a while, resuming normal use of the dropdown. When the image viewer is closed, the dropdown appears, unwanted. Tdrop is smart about this and won't "re-show" a dropdown if it has been manually toggled since an auto-hide. If you don't want this check to happen, use '--no-cancel' in your dropdown key binding.
 
 Auto-hiding functionality is particularly nice to use with a file opener like rifle:
 .br
