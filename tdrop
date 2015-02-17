@@ -13,13 +13,14 @@ options:
 	-h height    specify a height for a newly created term (default: 100%)
 	-w width     specify a width for a newly created term (default: 45%)
 	-x pos       specify x offset for a newly created term (default: 0)
-	-y pos       specify y offset for a newly created term (default: 1)
+	-y pos       specify y offset for a newly created term (default: 0)
 	-s name      name for tmux or tmuxinator session (if not given, will not use tmux)
 	-n num       num or extra text; only needed if want multiple dropdowns of same program (default: "")
 	-p cmd       provide a pre command to float the window if necessary
 	-P cmd       provide a post command to float the window if necessary
 	-O cmd       provide a one time command only for when a dropdown is created/initiated (useful for 'tdrop -c')
 	-d XxY       give decoration/border size to accurately save position; only applicable with auto_show; on applicable with a few window managers (e.g. blackbox)
+	-a           automatically detect window manager and if settings exist for it, automatically set -p, -P, and -d values as necessary (default: false)
 	-W           the given program is not a terminal (or lacks an -e flag) (default: assume it IS a terminal)
 	--clear      clear saved window id; useful accidentally make a window a dropdown (e.g. '$ tdrop --clear current')
 	--no-cancel  don't cancel auto-showing
@@ -39,7 +40,7 @@ See man page for more details.
 width="100%"
 height="45%"
 xoff=0
-yoff=1
+yoff=0
 float_pre=""
 float_post=""
 oneshot_post=""
@@ -49,13 +50,15 @@ normal_window=false
 clearwid=false
 cancel_auto_show=true
 term=${*:0-1}
-while getopts :h:w:x:y:s:n:p:P:O:d:-:W opt
+auto_detect_wm=false
+while getopts :h:w:x:y:s:n:p:P:O:d:-:Wa opt
 do
 	case $opt in
 	h) height=$OPTARG;;
 	w) width=$OPTARG;;
 	x) xoff=$OPTARG;;
-	y) yoff=$OPTARG;;
+	y) yoff=$OPTARG
+	   user_set_yoff=true;;
 	s) session_name=$OPTARG;;
 	n) num=$OPTARG;;
 	p) float_pre=$OPTARG;;
@@ -63,6 +66,7 @@ do
 	O) oneshot_post=$OPTARG;;
 	d) dec_fix=$OPTARG;;
 	W) normal_window=true;;
+	a) auto_detect_wm=true;;
 	-)
 		OPTION=$(echo "$OPTARG" | awk -F '=' '{print $1}')
 		OPTARG=$(echo "$OPTARG" | awk -F '=' '{print $2}')
@@ -70,7 +74,8 @@ do
 		height) height=$OPTARG;;
 		width) width=$OPTARG;;
 		x-offset) xoff=$OPTARG;;
-		y-offset) yoff=$OPTARG;;
+		y-offset) yoff=$OPTARG
+		          user_set_yoff=true;;
 		session) session_name=$OPTARG;;
 		number) num=$OPTARG;;
 		pre-command) float_pre=$OPTARG;;
@@ -78,6 +83,7 @@ do
 		oneshot-post) oneshot_post=$OPTARG;;
 		decoration-fix) dec_fix=$OPTARG;;
 		normal-window) normal_window=true;;
+		auto-detect-wm) auto_detect_wm=true;;
 		clear) clearwid=true;;
 		no-cancel) cancel_auto_show=false;;
 		help) print_help;;
@@ -86,13 +92,47 @@ do
     esac
 done
 
-float_pre_command() {
-	if [[ -n $float_pre ]]; then
-		if [[ $float_pre == bspwm ]]; then
-			bspc rule -a "$1" -o floating=on
-		else
-			eval "$float_pre"
+wm_autodetect_settings() {
+	wm=$(xprop -notype -id "$(xprop -root -notype | awk '$1=="_NET_SUPPORTING_WM_CHECK:"{print $5}')" -f _NET_WM_NAME 8u | awk -F "\"" '/WM_NAME/ {print $2}')
+
+	# floating or position saving setup
+	if [[ $wm == bspwm ]]; then
+		# change yoff only if not set by user
+		# deals with potential bug where window will be moved to middle
+		if ! $user_set_yoff; then
+			yoff=1
 		fi
+		float_pre() {
+			bspc rule -a "$1" -o floating=on
+		}
+	# floating window managers that may both move and resize a window after unmapping then mapping it
+	elif [[ $wm == Openbox ]]; then
+		float_post() {
+			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
+		}
+	# floating window managers that may both move a window after unmapping then mapping it
+	elif [[ $wm ==  pekwm ]] || [[ $wm == fluxbox ]]; then
+		float_post() {
+			xdotool windowmove "$1" "$xoff" "$yoff"
+		}
+	fi
+
+	# for auto_show proper positioning
+	if [[ $wm ==  Blackbox ]]; then
+		dec_fix_auto="1x22"
+	fi
+}
+
+if $auto_detect_wm; then
+	wm_autodetect_settings
+fi
+float_pre_command() {
+	# a user set option has higher priority
+	if [[ -n $float_pre ]]; then
+		eval "$float_pre"
+	# use automatically set function if exists
+	elif [[ -n $(type float_pre) ]]; then
+		float_pre "$1"
 	fi
 }
 
@@ -100,11 +140,9 @@ float_post_command() {
 	if [[ -n $oneshot_post ]] && [[ $1 == oneshot ]]; then
 		eval "$oneshot_post"
 	elif [[ -n $float_post ]]; then
-		if [[ $float_post == openbox ]]; then
-			xdotool getactivewindow windowmove "$wid" "$xoff" "$yoff" windowsize "$wid" "$width" "$height"
-		else
-			eval "$float_post"
-		fi
+		eval "$float_post"
+	elif [[ -n $(type float_post) ]]; then
+		float_post "$1"
 	fi
 }
 
@@ -210,6 +248,11 @@ set_geometry() {
 	if [[ -n $dec_fix ]]; then
 		x_fix=$(echo "$dec_fix" | awk -F "x" '{print $1}')
 		y_fix=$(echo "$dec_fix" | awk -F "x" '{print $2}')
+		X=$((X-x_fix))
+		Y=$((Y-y_fix))
+	elif [[ -n $dec_fix_auto ]]; then
+		x_fix=$(echo "$dec_fix_auto" | awk -F "x" '{print $1}')
+		y_fix=$(echo "$dec_fix_auto" | awk -F "x" '{print $2}')
 		X=$((X-x_fix))
 		Y=$((Y-y_fix))
 	fi

@@ -28,7 +28,7 @@ Specify a width for a created window as a number or percentage. (default: 100%)
 Specify the x position for a created window as a number or percentage. (default: 0)
 .TP
 \fB\-y\fR, \fB \-\-y-offset\fR
-Specify the y position for a created window as a number or percentage. (default: 1, see Bugs)
+Specify the y position for a created window as a number or percentage. (default: 0)
 .TP
 \fB\-s\fR, \fB \-\-session\fR
 Specify a tmuxinator or tmux session name to start. An existing tmux session has highest precedence and will be connected to with '-d', detaching other attached clients. If a there is no tmuxinator session of the given name, a normal tmux session with the name will be created. If this option is not given, tmux will not be used. (default: none)
@@ -51,6 +51,9 @@ Specify a window decoration/border size in the form <x decoration size>x<y decor
 \fB\-W\fR, \fB \-\-normal-window\fR
 Specifies that the program is not a terminal or does not have the '-e' flag; takes no argument. If using 'tdrop current', this option will have no effect either way. (default: false)
 .TP
+\fB\-a\fR, \fB \-\-auto-detect-wm\fR
+If there are available settings for the detected window manager for the -p, -P, and/or -d options, automatically set them; takes no argument. User set settings will still override these. (default: false)
+.TP
 \fB \-\-clear\fR
 Used to clear a saved window id for the given program or 'current' instead of creating a dropdown; takes no argument.
 .TP
@@ -63,7 +66,7 @@ Print help that is less awesome than this manpage; takes no argument.
 .SS Making Dropdowns
 Use a key binding program such as sxhkd to bind keys to these commands.
 
-The simplest example. Make a dropdown for an xterm.
+The simplest example to make a dropdown for an xterm:
 .br
 $ tdrop xterm
 
@@ -71,17 +74,17 @@ When using a tiling window manager like bspwm, dropdowns like guake will by defa
 .br
 $ tdrop -p "bspc rule -a xterm -o floating=on" xterm
 
-Tdrop also has a short command for bspwm. Note that '-p bspwm' does not require specifying the program name and will also work for creating oneshot floating rules with 'tdrop current' and 'tdrop auto_show'.
+Tdrop also provides tested settings for certain window managers. One can use the '-a' flag if settings exist for the current window manager. For example, if bspwm is the window manager, the following command is the same as the above command and will work for whatever terminal/program is specified and will also work with 'tdrop auto_show'. For a list of window managers with tested settings see the readme or the script itself.
 .br
-$ tdrop -p bspwm xterm
+$ tdrop -a xterm
 
 Tdrop supports controlling the initial size and placement of a terminal. The border of a window may need to be taken into an account. For example, I use a border size of 2, so I use 4 less than my screen size. I also use a y-offset of 14 so that the dropdown doesn't hide my panel:
 .br
-$ tdrop -p bspwm -w 1362 -y 14 termite
+$ tdrop -a -w 1362 -y 14 xterm
 
 Tdrop can also create a tmux or tmuxinator session if it does not exist:
 .br
-$ tdrop -p bspwm -w 1362 -y 14 -s dropdown termite
+$ tdrop -a -w 1362 -y 14 -s dropdown xterm
 
 Tdrop allows for having multiple dropdowns of the same type:
 .br
@@ -99,7 +102,7 @@ $ tdrop zathura
 
 Tdrop can also turn the current window into a dropdown. '-O' is useful in this case to execute a command only once when turning the active window into a dropdown.
 .br
-$ tdrop -p bspwm -O "bspc window -t floating=on && xdotool getactivewindow windowmove 0 14 windowsize 1362 45%" current
+$ tdrop -a -O "bspc window -t floating=on && xdotool getactivewindow windowmove 0 14 windowsize 1362 45%" current
 
 Once a window is turned into a dropdown, the key bound to 'tdrop ... current' will continue to toggle that window until it is closed. Then the key can be used to create a new dropdown. '-n' can also be used to have multiple 'current' keys. If an active window is accidentally turned into a dropdown, it can be cleared:
 .br
@@ -117,13 +120,13 @@ To use it in an alias when writing a commit message in an graphical $EDITOR star
 .br
 alias gc='hide_on_open git commit'
 
-This will hide the terminal window when opening the editor and then show it once the editor is closed. If primarily used from floating dropdowns instead, something like 'tdrop -p bspwm auto_show' can be used instead to float the window when re-showing.
+This will hide the terminal window when opening the editor and then show it once the editor is closed. It should also maintain the window's position and size when showing it. If the window moves down and to the right every time it is auto-hidden and then shown again, the user may need to specify a '-d' value. Alternatively, if one already exists for the user's window manager, '-a' can be used to automatically set it. The '-p' and '-P' options are also used with auto_show and can be set automatically with '-a' if tested settings exist for the current window manager
 
 This functionality might lead to some unwanted "re-shows" of dropdown. Consider a situation in which one opens an image viewer from a dropdown and leaves it open for a while, resuming normal use of the dropdown. When the image viewer is closed, the dropdown appears, unwanted. Tdrop is smart about this and won't "re-show" a dropdown if it has been manually toggled since an auto-hide. If you don't want this check to happen, use '--no-cancel' in your dropdown key binding.
 
 Auto-hiding functionality is particularly nice to use with a file opener like rifle:
 .br
-mime ^image, has sxiv, X, flag f = tdrop auto_hide ; sxiv -a -- "$@" && tdrop -p bspwm auto_show
+mime ^image, has sxiv, X, flag f = tdrop auto_hide ; sxiv -a -- "$@" && tdrop -a auto_show
 .SH SEE ALSO
 xdotool(1), sxhkd(1), xprop(1), xwininfo(1), tmux(1)
 .SH BUGS
