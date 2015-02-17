@@ -214,7 +214,7 @@ auto_hide() {
 		mkdir -p /tmp/tdrop/auto_hidden
 		echo "$wid" > /tmp/tdrop/auto_hidden/wid
 		get_class_name > /tmp/tdrop/auto_hidden/class
-		geometry_get "$wid" > /tmp/tdrop/auto_hidden/geometry
+		get_geometry "$wid" > /tmp/tdrop/auto_hidden/geometry
 		xdotool windowunmap "$wid"
 	fi
 }
