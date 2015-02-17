@@ -13,7 +13,7 @@ options:
 	-h height    specify a height for a newly created term (default: 100%)
 	-w width     specify a width for a newly created term (default: 45%)
 	-x pos       specify x offset for a newly created term (default: 0)
-	-y pos       specify y offset for a newly created term (default: 0)
+	-y pos       specify y offset for a newly created term (default: 1, see BUGS in man)
 	-s name      name for tmux or tmuxinator session (if not given, will not use tmux)
 	-n num       num or extra text; only needed if want multiple dropdowns of same program (default: "")
 	-p cmd       provide a pre command to float the window if necessary
@@ -40,7 +40,7 @@ See man page for more details.
 width="100%"
 height="45%"
 xoff=0
-yoff=0
+yoff=1
 float_pre=""
 float_post=""
 oneshot_post=""
@@ -57,8 +57,7 @@ do
 	h) height=$OPTARG;;
 	w) width=$OPTARG;;
 	x) xoff=$OPTARG;;
-	y) yoff=$OPTARG
-	   user_set_yoff=true;;
+	y) yoff=$OPTARG;;
 	s) session_name=$OPTARG;;
 	n) num=$OPTARG;;
 	p) float_pre=$OPTARG;;
@@ -74,8 +73,7 @@ do
 		height) height=$OPTARG;;
 		width) width=$OPTARG;;
 		x-offset) xoff=$OPTARG;;
-		y-offset) yoff=$OPTARG
-		          user_set_yoff=true;;
+		y-offset) yoff=$OPTARG;;
 		session) session_name=$OPTARG;;
 		number) num=$OPTARG;;
 		pre-command) float_pre=$OPTARG;;
@@ -97,11 +95,6 @@ wm_autodetect_settings() {
 
 	# floating or position saving setup
 	if [[ $wm == bspwm ]]; then
-		# change yoff only if not set by user
-		# deals with potential bug where window will be moved to middle
-		if ! $user_set_yoff; then
-			yoff=1
-		fi
 		float_pre() {
 			bspc rule -a "$1" -o floating=on
 		}

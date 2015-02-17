@@ -28,7 +28,7 @@ Specify a width for a created window as a number or percentage. (default: 100%)
 Specify the x position for a created window as a number or percentage. (default: 0)
 .TP
 \fB\-y\fR, \fB \-\-y-offset\fR
-Specify the y position for a created window as a number or percentage. (default: 0)
+Specify the y position for a created window as a number or percentage. (default: 1, see BUGS)
 .TP
 \fB\-s\fR, \fB \-\-session\fR
 Specify a tmuxinator or tmux session name to start. An existing tmux session has highest precedence and will be connected to with '-d', detaching other attached clients. If a there is no tmuxinator session of the given name, a normal tmux session with the name will be created. If this option is not given, tmux will not be used. (default: none)
