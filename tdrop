@@ -215,6 +215,7 @@ get_geometry() {
 }
 
 geometry_set() {
+set_geometry() {
 	eval "$(< /tmp/tdrop/auto_hidden/geometry)"
 	xdotool windowmove "$1" "$X" "$Y"
 }
@@ -227,7 +228,7 @@ auto_show() {
 		float_pre_command "$class"
 		xdotool windowmap "$wid"
 		float_post_command "$wid"
-		geometry_set "$wid"
+		set_geometry "$wid"
 	fi
 }
 
