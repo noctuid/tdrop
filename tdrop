@@ -19,6 +19,7 @@ options:
 	-p cmd       provide a pre command to float the window if necessary
 	-P cmd       provide a post command to float the window if necessary
 	-O cmd       provide a one time command only for when a dropdown is created/initiated (useful for 'tdrop -c')
+	-d XxY       give decoration/border size to accurately save position; only applicable with auto_show; on applicable with a few window managers (e.g. blackbox)
 	-W           the given program is not a terminal (or lacks an -e flag) (default: assume it IS a terminal)
 	--clear      clear saved window id; useful accidentally make a window a dropdown (e.g. '$ tdrop --clear current')
 	--no-cancel  don't cancel auto-showing
@@ -48,7 +49,7 @@ normal_window=false
 clearwid=false
 cancel_auto_show=true
 term=${*:0-1}
-while getopts :h:w:x:y:s:n:p:P:O:-:W opt
+while getopts :h:w:x:y:s:n:p:P:O:d:-:W opt
 do
 	case $opt in
 	h) height=$OPTARG;;
@@ -60,6 +61,7 @@ do
 	p) float_pre=$OPTARG;;
 	P) float_post=$OPTARG;;
 	O) oneshot_post=$OPTARG;;
+	d) dec_fix=$OPTARG;;
 	W) normal_window=true;;
 	-)
 		OPTION=$(echo "$OPTARG" | awk -F '=' '{print $1}')
@@ -74,6 +76,7 @@ do
 		pre-command) float_pre=$OPTARG;;
 		post-command) float_post=$OPTARG;;
 		oneshot-post) oneshot_post=$OPTARG;;
+		decoration-fix) dec_fix=$OPTARG;;
 		normal-window) normal_window=true;;
 		clear) clearwid=true;;
 		no-cancel) cancel_auto_show=false;;
@@ -204,6 +207,12 @@ get_geometry() {
 
 set_geometry() {
 	eval "$(< /tmp/tdrop/auto_hidden/geometry)"
+	if [[ -n $dec_fix ]]; then
+		x_fix=$(echo "$dec_fix" | awk -F "x" '{print $1}')
+		y_fix=$(echo "$dec_fix" | awk -F "x" '{print $2}')
+		X=$((X-x_fix))
+		Y=$((Y-y_fix))
+	fi
 	xdotool windowmove "$1" "$X" "$Y"
 }
 
