@@ -36,6 +36,10 @@ See man page for more details.
 	fi
 }
 
+#
+# Default Options
+#
+
 # xdotool can take percentages; cannot take decimal percentages though
 width="100%"
 height="45%"
@@ -90,6 +94,10 @@ do
     esac
 done
 
+#
+# WM Detection
+#
+
 wm_autodetect_settings() {
 	wm=$(xprop -notype -id "$(xprop -root -notype | awk '$1=="_NET_SUPPORTING_WM_CHECK:"{print $5}')" -f _NET_WM_NAME 8u | awk -F "\"" '/WM_NAME/ {print $2}')
 
@@ -100,18 +108,20 @@ wm_autodetect_settings() {
 		}
 	# floating window managers that may both move and resize a window after unmapping then mapping it
 	elif [[ $wm == Openbox ]]; then
+		# openbox will resize window to be slightly less than the width of the screen when mapping
+		# this is necessary when want width to be 100%
 		float_post() {
 			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
 		}
 	# floating window managers that may both move a window after unmapping then mapping it
-	elif [[ $wm ==  pekwm ]] || [[ $wm == fluxbox ]]; then
+	elif [[ $wm == pekwm ]] || [[ $wm == fluxbox ]] || [[ $wm == Blackbox ]]; then
 		float_post() {
 			xdotool windowmove "$1" "$xoff" "$yoff"
 		}
 	fi
 
 	# for auto_show proper positioning
-	if [[ $wm ==  Blackbox ]]; then
+	if [[ $wm == Blackbox ]]; then
 		dec_fix_auto="1x22"
 	fi
 }
@@ -119,6 +129,15 @@ wm_autodetect_settings() {
 if $auto_detect_wm; then
 	wm_autodetect_settings
 fi
+
+#
+# Helper Functions for Specific Dropdowns and Auto Hide/Show
+#
+
+get_class_name() {
+	xprop -id "$1" WM_CLASS | awk '{gsub(/"/, ""); print $4}'
+}
+
 float_pre_command() {
 	# a user set option has higher priority
 	if [[ -n $float_pre ]]; then
@@ -138,6 +157,16 @@ float_post_command() {
 		float_post "$1"
 	fi
 }
+
+maybe_cancel_auto_show() {
+	if $cancel_auto_show && [[ $1 == "$(< /tmp/tdrop/auto_hidden/wid)" ]]; then
+		> /tmp/tdrop/auto_hidden/wid
+	fi
+}
+
+#
+# Dropdown Initialization
+#
 
 term_create() {
 	if [[ -n $session_name ]]; then
@@ -217,9 +246,9 @@ wid_toggle() {
 	fi
 }
 
-get_class_name() {
-	xprop -id "$1" WM_CLASS | awk '{ gsub(/"/, ""); print $4}'
-}
+#
+# Helper Functions for Auto Hiding/Showing
+#
 
 get_geometry() {
 	wininfo=$(xwininfo -id "$1")
@@ -252,6 +281,20 @@ set_geometry() {
 	xdotool windowmove "$1" "$X" "$Y"
 }
 
+toggle_auto_hide() {
+	no_hide=$(< /tmp/tdrop/auto_hidden/no_hide)
+	mkdir -p /tmp/tdrop/auto_hidden
+	if [[ -z $no_hide ]]; then
+		echo "true" > /tmp/tdrop/auto_hidden/no_hide
+	else
+		> /tmp/tdrop/auto_hidden/no_hide
+	fi
+}
+
+#
+# Auto Hiding/Showing
+#
+
 auto_hide() {
 	no_hide=$(< /tmp/tdrop/auto_hidden/no_hide)
 	if [[ -z $no_hide ]]; then
@@ -276,21 +319,9 @@ auto_show() {
 	fi
 }
 
-maybe_cancel_auto_show() {
-	if $cancel_auto_show && [[ $1 == "$(< /tmp/tdrop/auto_hidden/wid)" ]]; then
-		> /tmp/tdrop/auto_hidden/wid
-	fi
-}
-
-toggle_auto_hide() {
-	no_hide=$(< /tmp/tdrop/auto_hidden/no_hide)
-	mkdir -p /tmp/tdrop/auto_hidden
-	if [[ -z $no_hide ]]; then
-		echo "true" > /tmp/tdrop/auto_hidden/no_hide
-	else
-		> /tmp/tdrop/auto_hidden/no_hide
-	fi
-}
+#
+# Main
+#
 
 if [[ -n $1 ]]; then
 	if $clearwid; then
