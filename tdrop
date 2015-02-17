@@ -194,8 +194,13 @@ auto_hide() {
 		mkdir -p /tmp/tdrop/auto_hidden
 		echo "$wid" > /tmp/tdrop/auto_hidden/wid
 		get_class_name > /tmp/tdrop/auto_hidden/class
-		wininfo=$(xwininfo -id "$wid")
-		# save window position
+		get_geometry "$wid" > /tmp/tdrop/auto_hidden/geometry
+		xdotool windowunmap "$wid"
+	fi
+}
+
+get_geometry() {
+	wininfo=$(xwininfo -id "$1")
 		x=$(echo "$wininfo" | awk '/Absolute.*X/ {print $4}')
 		y=$(echo "$wininfo" | awk '/Absolute.*Y/ {print $4}')
 		rel_x=$(echo "$wininfo" | awk '/Relative.*X/ {print $4}')
@@ -206,9 +211,7 @@ auto_hide() {
 		if [[ $y -ne $rel_y ]]; then
 			y=$((y-rel_y))
 		fi
-		echo -e "X=$x\nY=$y" > /tmp/tdrop/auto_hidden/geometry
-		xdotool windowunmap "$wid"
-	fi
+	echo -e "X=$x\nY=$y"
 }
 
 geometry_set() {
