@@ -83,10 +83,6 @@ do
     esac
 done
 
-get_class_name() {
-	xprop -id "$(xprop -root _NET_ACTIVE_WINDOW | awk '{print $5}')" WM_CLASS | awk '{ gsub(/"/, ""); print $4}'
-}
-
 float_pre_command() {
 	if [[ -n $float_pre ]]; then
 		if [[ $float_pre == bspwm ]]; then
@@ -187,6 +183,30 @@ wid_toggle() {
 	fi
 }
 
+get_class_name() {
+	xprop -id "$(xprop -root _NET_ACTIVE_WINDOW | awk '{print $5}')" WM_CLASS | awk '{ gsub(/"/, ""); print $4}'
+}
+
+get_geometry() {
+	wininfo=$(xwininfo -id "$1")
+	x=$(echo "$wininfo" | awk '/Absolute.*X/ {print $4}')
+	y=$(echo "$wininfo" | awk '/Absolute.*Y/ {print $4}')
+	rel_x=$(echo "$wininfo" | awk '/Relative.*X/ {print $4}')
+	rel_y=$(echo "$wininfo" | awk '/Relative.*Y/ {print $4}')
+	if [[ $x -ne $rel_x ]]; then
+		x=$((x-rel_x))
+	fi
+	if [[ $y -ne $rel_y ]]; then
+		y=$((y-rel_y))
+	fi
+	echo -e "X=$x\nY=$y"
+}
+
+set_geometry() {
+	eval "$(< /tmp/tdrop/auto_hidden/geometry)"
+	xdotool windowmove "$1" "$X" "$Y"
+}
+
 auto_hide() {
 	no_hide=$(< /tmp/tdrop/auto_hidden/no_hide)
 	if [[ -z $no_hide ]]; then
@@ -194,30 +214,9 @@ auto_hide() {
 		mkdir -p /tmp/tdrop/auto_hidden
 		echo "$wid" > /tmp/tdrop/auto_hidden/wid
 		get_class_name > /tmp/tdrop/auto_hidden/class
-		get_geometry "$wid" > /tmp/tdrop/auto_hidden/geometry
+		geometry_get "$wid" > /tmp/tdrop/auto_hidden/geometry
 		xdotool windowunmap "$wid"
 	fi
-}
-
-get_geometry() {
-	wininfo=$(xwininfo -id "$1")
-		x=$(echo "$wininfo" | awk '/Absolute.*X/ {print $4}')
-		y=$(echo "$wininfo" | awk '/Absolute.*Y/ {print $4}')
-		rel_x=$(echo "$wininfo" | awk '/Relative.*X/ {print $4}')
-		rel_y=$(echo "$wininfo" | awk '/Relative.*Y/ {print $4}')
-		if [[ $x -ne $rel_x ]]; then
-			x=$((x-rel_x))
-		fi
-		if [[ $y -ne $rel_y ]]; then
-			y=$((y-rel_y))
-		fi
-	echo -e "X=$x\nY=$y"
-}
-
-geometry_set() {
-set_geometry() {
-	eval "$(< /tmp/tdrop/auto_hidden/geometry)"
-	xdotool windowmove "$1" "$X" "$Y"
 }
 
 auto_show() {
