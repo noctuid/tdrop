@@ -154,7 +154,12 @@ float_pre_command() {
 		eval "$float_pre"
 	# use automatically set function if exists
 	elif [[ -n $(type float_pre) ]]; then
-		float_pre "$1"
+		# needed when creating oneshot rules for programs where cmd differs from actual class name
+		if [[ $1 == "gnome-terminal" ]]; then
+			float_pre "Gnome-terminal"
+		else
+			float_pre "$1"
+		fi
 	fi
 }
 

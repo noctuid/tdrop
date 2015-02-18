@@ -37,6 +37,7 @@ I will add examples and better instructions. For now, refer to the manpage.
 - URxvt
 - Xterm
 - Termite
+- Gnome-terminal
 
 ### Window Managers
 The primary goal of tdrop is to "just work" with any window manager. The primary differences between how tdrop deals with different window managers is the strategy it takes for floating only the dropdown (as opposed to all instances of the class that the dropdown is) and how it deals with window managers that resize or move a window after mapping then unmapping it. There are three types of window managers as far as tdrop is concerned.
