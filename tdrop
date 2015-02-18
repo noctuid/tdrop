@@ -110,6 +110,15 @@ wm_autodetect_settings() {
 		map_pre() {
 			bspc rule -a "$1" -o floating=on
 		}
+	# tiling window manager with no support for floating; can toggle fullscreen instead for the dropdown
+	elif [[ $wm == herbstluftwm ]]; then
+		map_post() {
+			herbstclient fullscreen on
+			echo "yes" > /tmp/tdrop/herb
+		}
+		unmap_post() {
+			herbstclient fullscreen off
+		}
 	# floating window managers that may both move and resize a window after unmapping then mapping it
 	elif [[ $wm == Openbox ]]; then
 		# openbox will resize window to be slightly less than the width of the screen when mapping
@@ -180,6 +189,8 @@ map_post_command() {
 unmap_post_command() {
 	if [[ -n $unmap_post ]]; then
 		eval "$unmap_post"
+	elif [[ -n $(type unmap_post) ]]; then
+		unmap_post
 	fi
 }
 
