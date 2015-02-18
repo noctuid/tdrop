@@ -118,6 +118,11 @@ wm_autodetect_settings() {
 		float_post() {
 			xdotool windowmove "$1" "$xoff" "$yoff"
 		}
+	elif [[ $wm == i3 ]]; then
+		float_post() {
+			i3-msg floating enable && \
+			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
+		}
 	fi
 
 	# for auto_show proper positioning
