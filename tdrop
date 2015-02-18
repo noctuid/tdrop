@@ -57,7 +57,7 @@ clearwid=false
 cancel_auto_show=true
 term=${*:0-1}
 auto_detect_wm=false
-while getopts :h:w:x:y:s:n:p:P:O:d:-:Wa opt
+while getopts :h:w:x:y:s:n:p:P:M:O:d:-:Wa opt
 do
 	case $opt in
 	h) height=$OPTARG;;
