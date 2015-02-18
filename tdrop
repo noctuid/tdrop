@@ -18,6 +18,7 @@ options:
 	-n num       num or extra text; only needed if want multiple dropdowns of same program (default: "")
 	-p cmd       provide a pre-map command to float the window if necessary
 	-P cmd       provide a post-map command to float the window if necessary
+	-M cmd       provide a post-unmap command; can be used for example with a window manager that doesn't support floating to turn fullscreen on when mapping a terminal then off when unmapping it
 	-O cmd       provide a one time command only for when a dropdown is created/initiated (useful for 'tdrop -c')
 	-d XxY       give decoration/border size to accurately save position; only applicable with auto_show; on applicable with a few window managers (e.g. blackbox)
 	-a           automatically detect window manager and if settings exist for it, automatically set -p, -P, and -d values as necessary; this can have affect when used with a terminal or with auto_show or auto_hide (default: false)
@@ -47,6 +48,7 @@ xoff=0
 yoff=1
 map_pre=""
 map_post=""
+unmap_post=""
 oneshot_post=""
 session_name=""
 num=""
@@ -66,6 +68,7 @@ do
 	n) num=$OPTARG;;
 	p) map_pre=$OPTARG;;
 	P) map_post=$OPTARG;;
+	M) unmap_post=$OPTARG;;
 	O) oneshot_post=$OPTARG;;
 	d) dec_fix=$OPTARG;;
 	W) normal_window=true;;
@@ -82,6 +85,7 @@ do
 		number) num=$OPTARG;;
 		pre-command) map_pre=$OPTARG;;
 		post-command) map_post=$OPTARG;;
+		post-unmap) unmap_post=$OPTARG;;
 		oneshot-post) oneshot_post=$OPTARG;;
 		decoration-fix) dec_fix=$OPTARG;;
 		normal-window) normal_window=true;;
@@ -170,6 +174,12 @@ map_post_command() {
 		eval "$map_post"
 	elif [[ -n $(type map_post) ]]; then
 		map_post "$1"
+	fi
+}
+
+unmap_post_command() {
+	if [[ -n $unmap_post ]]; then
+		eval "$unmap_post"
 	fi
 }
 

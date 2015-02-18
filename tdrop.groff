@@ -42,6 +42,9 @@ Specify a command to execute before showing/mapping a dropdown. This may be usef
 \fB\-P\fR, \fB \-\-post-command\fR
 Specify a command to execute after showing/mapping a dropdown. This may be useful in the case where a window manager does not support floating rules or floating altogether. It can be used, for example, to fake a key combo to float the current window. (default: none)
 .TP
+\fB\-M\fR, \fB \-\-post-unmap\fR
+Specify a command to execute after unmapping a dropdown. This can be used with window managers that don't support floating in conjunction with '--pre-command' to, for example, change the layout to fullscreen when mapping a dropdown and then revert it when umapping it. (default: none)
+.TP
 \fB\-O\fR, \fB \-\-oneshot-post\fR
 Specify a post command to execute only when first creating or initiating a dropdown. This can be used when turning the current window into a dropdown to float and resize it. (default: none)
 .TP
@@ -52,7 +55,7 @@ Specify a window decoration/border size in the form <x decoration size>x<y decor
 Specifies that the program is not a terminal or does not have the '-e' flag; takes no argument. If using 'tdrop current', this option will have no effect either way. (default: false)
 .TP
 \fB\-a\fR, \fB \-\-auto-detect-wm\fR
-If there are available settings for the detected window manager for the -p, -P, and/or -d options, automatically set them; takes no argument. User set settings will still override these. This can be used with 'tdrop <terminal>', 'tdrop auto_hide', and 'tdrop auto_show'. For 'auto_hide', if the window manager is supported, it will check if the current window is tiled so that it is not changed to floating when auto-showing. (default: false)
+If there are available settings for the detected window manager for the -p, -P, -M, and/or -d options, automatically set them; takes no argument. User set settings will still override these. This can be used with 'tdrop <terminal>', 'tdrop auto_hide', and 'tdrop auto_show'. For 'auto_hide', if the window manager is supported, it will check if the current window is tiled so that it is not changed to floating when auto-showing. (default: false)
 .TP
 \fB \-\-clear\fR
 Used to clear a saved window id for the given program or 'current' instead of creating a dropdown; takes no argument.
