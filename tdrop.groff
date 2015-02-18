@@ -52,7 +52,7 @@ Specify a window decoration/border size in the form <x decoration size>x<y decor
 Specifies that the program is not a terminal or does not have the '-e' flag; takes no argument. If using 'tdrop current', this option will have no effect either way. (default: false)
 .TP
 \fB\-a\fR, \fB \-\-auto-detect-wm\fR
-If there are available settings for the detected window manager for the -p, -P, and/or -d options, automatically set them; takes no argument. User set settings will still override these. (default: false)
+If there are available settings for the detected window manager for the -p, -P, and/or -d options, automatically set them; takes no argument. User set settings will still override these. This can be used with 'tdrop <terminal>', 'tdrop auto_hide', and 'tdrop auto_show'. For 'auto_hide', if the window manager is supported, it will check if the current window is tiled so that it is not changed to floating when auto-showing. (default: false)
 .TP
 \fB \-\-clear\fR
 Used to clear a saved window id for the given program or 'current' instead of creating a dropdown; takes no argument.
@@ -114,13 +114,15 @@ Tdrop provides the functionality to get programs/terminals out of the way when o
 
 For example, this functionality can be used in a function:
 .br
-hide_on_open() { tdrop auto_hide; "$@" && tdrop auto_show }
+hide_on_open() { tdrop -a auto_hide; "$@" && tdrop -a auto_show }
 
 To use it in an alias when writing a commit message in an graphical $EDITOR started from a terminal:
 .br
 alias gc='hide_on_open git commit'
 
-This will hide the terminal window when opening the editor and then show it once the editor is closed. It should also maintain the window's position and size when showing it. If the window moves down and to the right every time it is auto-hidden and then shown again, the user may need to specify a '-d' value. Alternatively, if one already exists for the user's window manager, '-a' can be used to automatically set it. The '-p' and '-P' options are also used with auto_show and can be set automatically with '-a' if tested settings exist for the current window manager
+This will hide the terminal window when opening the editor and then show it once the editor is closed. It should also maintain the window's position and size when showing it. If the window moves down and to the right every time it is auto-hidden and then shown again, the user may need to specify a '-d' value. Alternatively, if one already exists for the user's window manager, '-a' can be used to automatically set it. The '-p' and '-P' options are also used with auto_show and can be set automatically with '-a' if tested settings exist for the current window manager.
+
+Note that for tiled window managers that support 'tdrop -a auto_show' there will be problems when auto-hiding from a tiled window. When re-showing the window, it will be floating (since geometry is by default saved and restored). To keep it tiled, also use 'tdrop -a auto_hide' if your window manager is supported. This will check if a window is floating or tiled and keep it that way.
 
 This functionality might lead to some unwanted "re-shows" of dropdown. Consider a situation in which one opens an image viewer from a dropdown and leaves it open for a while, resuming normal use of the dropdown. When the image viewer is closed, the dropdown appears, unwanted. Tdrop is smart about this and won't "re-show" a dropdown if it has been manually toggled since an auto-hide. If you don't want this check to happen, use '--no-cancel' in your dropdown key binding.
 

@@ -1,4 +1,10 @@
 # Demos
+
+
+
+
+
+
 A basic demo using tdrop to create a dropdown/scratchpad on the fly with a hotkey. I set the height to be less than max with tdrop to make it more obvious which is the dropdown at which time. First apvlv is turned into a dropdown. Then it is cleared and zathura is turned into a dropdown. One can also have multiple hotkeys to create multiple dropdowns on the fly at a time.
 ![Alt text](http://angelic-sedition.github.io/tdrop/assets/on_the_fly.gif "On the fly creation")
 
@@ -58,7 +64,7 @@ It is a simple matter to add new ones to this list. If your dropdown moves out o
 ### Tiling with Floating Support
 These window managers currently will work with '-a'. I will add a lot more.
 - bspwm
-- i3 (partially)
+- i3
 
 # Why not use wmctrl?
 Necessary features don't work on many window managers, including mine.

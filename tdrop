@@ -20,7 +20,7 @@ options:
 	-P cmd       provide a post command to float the window if necessary
 	-O cmd       provide a one time command only for when a dropdown is created/initiated (useful for 'tdrop -c')
 	-d XxY       give decoration/border size to accurately save position; only applicable with auto_show; on applicable with a few window managers (e.g. blackbox)
-	-a           automatically detect window manager and if settings exist for it, automatically set -p, -P, and -d values as necessary (default: false)
+	-a           automatically detect window manager and if settings exist for it, automatically set -p, -P, and -d values as necessary; this can have affect when used with a terminal or with auto_show or auto_hide (default: false)
 	-W           the given program is not a terminal (or lacks an -e flag) (default: assume it IS a terminal)
 	--clear      clear saved window id; useful accidentally make a window a dropdown (e.g. '$ tdrop --clear current')
 	--no-cancel  don't cancel auto-showing
@@ -122,6 +122,11 @@ wm_autodetect_settings() {
 		float_post() {
 			i3-msg floating enable && \
 			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
+		}
+		# function to check if floating when auto-hiding so restores properly (prevent floating a previously tiled window)
+		is_floating() {
+			# do you even sed?
+			i3-msg -t get_tree | awk 'gsub(/{"id"/, "\n{\"id\"")' | awk '/focused":true.*floating":"user_on/ {print $1}'
 		}
 	fi
 
@@ -256,18 +261,25 @@ wid_toggle() {
 #
 
 get_geometry() {
-	wininfo=$(xwininfo -id "$1")
-	x=$(echo "$wininfo" | awk '/Absolute.*X/ {print $4}')
-	y=$(echo "$wininfo" | awk '/Absolute.*Y/ {print $4}')
-	rel_x=$(echo "$wininfo" | awk '/Relative.*X/ {print $4}')
-	rel_y=$(echo "$wininfo" | awk '/Relative.*Y/ {print $4}')
-	if [[ $x -ne $rel_x ]]; then
-		x=$((x-rel_x))
+	# so that won't float a tiled window later when showing
+	if [[ -n $(type is_floating) ]] && [[ -z $(is_floating) ]]; then
+		# window is not floating; don't bother saving geometry
+		# this is going to be eval'd in set_geometry.. maybe not best/ most explicit way to do this but funny to me
+		echo "false"
+	else
+		wininfo=$(xwininfo -id "$1")
+		x=$(echo "$wininfo" | awk '/Absolute.*X/ {print $4}')
+		y=$(echo "$wininfo" | awk '/Absolute.*Y/ {print $4}')
+		rel_x=$(echo "$wininfo" | awk '/Relative.*X/ {print $4}')
+		rel_y=$(echo "$wininfo" | awk '/Relative.*Y/ {print $4}')
+		if [[ $x -ne $rel_x ]]; then
+			x=$((x-rel_x))
+		fi
+		if [[ $y -ne $rel_y ]]; then
+			y=$((y-rel_y))
+		fi
+		echo -e "X=$x\nY=$y"
 	fi
-	if [[ $y -ne $rel_y ]]; then
-		y=$((y-rel_y))
-	fi
-	echo -e "X=$x\nY=$y"
 }
 
 set_geometry() {
@@ -317,10 +329,15 @@ auto_show() {
 	if [[ -z $no_hide ]]; then
 		wid=$(< /tmp/tdrop/auto_hidden/wid)
 		class=$(< /tmp/tdrop/auto_hidden/class)
-		float_pre_command "$class"
+		was_floating=$(< /tmp/tdrop/auto_hidden/geometry)
+		if [[ $was_floating != false ]]; then
+			float_pre_command "$class"
+		fi
 		xdotool windowmap "$wid"
-		float_post_command "$wid"
-		set_geometry "$wid"
+		if [[ $was_floating != false ]]; then
+			float_post_command "$wid"
+			set_geometry "$wid"
+		fi
 	fi
 }
 
