@@ -16,8 +16,8 @@ options:
 	-y pos       specify y offset for a newly created term (default: 1, see BUGS in man)
 	-s name      name for tmux or tmuxinator session (if not given, will not use tmux)
 	-n num       num or extra text; only needed if want multiple dropdowns of same program (default: "")
-	-p cmd       provide a pre command to float the window if necessary
-	-P cmd       provide a post command to float the window if necessary
+	-p cmd       provide a pre-map command to float the window if necessary
+	-P cmd       provide a post-map command to float the window if necessary
 	-O cmd       provide a one time command only for when a dropdown is created/initiated (useful for 'tdrop -c')
 	-d XxY       give decoration/border size to accurately save position; only applicable with auto_show; on applicable with a few window managers (e.g. blackbox)
 	-a           automatically detect window manager and if settings exist for it, automatically set -p, -P, and -d values as necessary; this can have affect when used with a terminal or with auto_show or auto_hide (default: false)
@@ -45,8 +45,8 @@ width="100%"
 height="45%"
 xoff=0
 yoff=1
-float_pre=""
-float_post=""
+map_pre=""
+map_post=""
 oneshot_post=""
 session_name=""
 num=""
@@ -64,8 +64,8 @@ do
 	y) yoff=$OPTARG;;
 	s) session_name=$OPTARG;;
 	n) num=$OPTARG;;
-	p) float_pre=$OPTARG;;
-	P) float_post=$OPTARG;;
+	p) map_pre=$OPTARG;;
+	P) map_post=$OPTARG;;
 	O) oneshot_post=$OPTARG;;
 	d) dec_fix=$OPTARG;;
 	W) normal_window=true;;
@@ -80,8 +80,8 @@ do
 		y-offset) yoff=$OPTARG;;
 		session) session_name=$OPTARG;;
 		number) num=$OPTARG;;
-		pre-command) float_pre=$OPTARG;;
-		post-command) float_post=$OPTARG;;
+		pre-command) map_pre=$OPTARG;;
+		post-command) map_post=$OPTARG;;
 		oneshot-post) oneshot_post=$OPTARG;;
 		decoration-fix) dec_fix=$OPTARG;;
 		normal-window) normal_window=true;;
@@ -103,23 +103,23 @@ wm_autodetect_settings() {
 
 	# floating or position saving setup
 	if [[ $wm == bspwm ]]; then
-		float_pre() {
+		map_pre() {
 			bspc rule -a "$1" -o floating=on
 		}
 	# floating window managers that may both move and resize a window after unmapping then mapping it
 	elif [[ $wm == Openbox ]]; then
 		# openbox will resize window to be slightly less than the width of the screen when mapping
 		# this is necessary when want width to be 100%
-		float_post() {
+		map_post() {
 			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
 		}
 	# floating window managers that may both move a window after unmapping then mapping it
 	elif [[ $wm == pekwm ]] || [[ $wm == fluxbox ]] || [[ $wm == Blackbox ]]; then
-		float_post() {
+		map_post() {
 			xdotool windowmove "$1" "$xoff" "$yoff"
 		}
 	elif [[ $wm == i3 ]]; then
-		float_post() {
+		map_post() {
 			i3-msg floating enable && \
 			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
 		}
@@ -148,28 +148,28 @@ get_class_name() {
 	xprop -id "$1" WM_CLASS | awk '{gsub(/"/, ""); print $4}'
 }
 
-float_pre_command() {
+map_pre_command() {
 	# a user set option has higher priority
-	if [[ -n $float_pre ]]; then
-		eval "$float_pre"
+	if [[ -n $map_pre ]]; then
+		eval "$map_pre"
 	# use automatically set function if exists
-	elif [[ -n $(type float_pre) ]]; then
+	elif [[ -n $(type map_pre) ]]; then
 		# needed when creating oneshot rules for programs where cmd differs from actual class name
 		if [[ $1 == "gnome-terminal" ]]; then
-			float_pre "Gnome-terminal"
+			map_pre "Gnome-terminal"
 		else
-			float_pre "$1"
+			map_pre "$1"
 		fi
 	fi
 }
 
-float_post_command() {
+map_post_command() {
 	if [[ -n $oneshot_post ]] && [[ $1 == oneshot ]]; then
 		eval "$oneshot_post"
-	elif [[ -n $float_post ]]; then
-		eval "$float_post"
-	elif [[ -n $(type float_post) ]]; then
-		float_post "$1"
+	elif [[ -n $map_post ]]; then
+		eval "$map_post"
+	elif [[ -n $(type map_post) ]]; then
+		map_post "$1"
 	fi
 }
 
@@ -237,19 +237,19 @@ wid_toggle() {
 	if $exists && [[ $visibility != IsUnviewable ]]; then
 		if [[ $visibility == IsUnMapped ]]; then
 			if [[ $term == current ]]; then
-				float_pre_command "$(< /tmp/tdrop/current"$num"_type)"
+				map_pre_command "$(< /tmp/tdrop/current"$num"_type)"
 			else
-				float_pre_command "$term"
+				map_pre_command "$term"
 			fi
 			xdotool windowmap "$wid"
-			float_post_command "$wid"
+			map_post_command "$wid"
 			maybe_cancel_auto_show "$wid"
 		else
 			xdotool windowunmap "$wid"
 		fi
 	else
 		# make it
-		float_pre_command "$term"
+		map_pre_command "$term"
 		if [[ $term == current ]]; then
 			current_create
 		elif $normal_window; then
@@ -257,7 +257,7 @@ wid_toggle() {
 		else
 			term_create
 		fi
-		float_post_command oneshot
+		map_post_command oneshot
 	fi
 }
 
@@ -336,11 +336,11 @@ auto_show() {
 		class=$(< /tmp/tdrop/auto_hidden/class)
 		was_floating=$(< /tmp/tdrop/auto_hidden/geometry)
 		if [[ $was_floating != false ]]; then
-			float_pre_command "$class"
+			map_pre_command "$class"
 		fi
 		xdotool windowmap "$wid"
 		if [[ $was_floating != false ]]; then
-			float_post_command "$wid"
+			map_post_command "$wid"
 			set_geometry "$wid"
 		fi
 	fi
