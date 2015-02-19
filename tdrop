@@ -290,7 +290,6 @@ get_geometry() {
 	# so that won't float a tiled window later when showing
 	if [[ -n $(type is_floating) ]] && [[ -z $(is_floating) ]]; then
 		# window is not floating; don't bother saving geometry
-		# this is going to be eval'd in set_geometry.. maybe not best/ most explicit way to do this but funny to me
 		echo "false"
 	else
 		wininfo=$(xwininfo -id "$1")
