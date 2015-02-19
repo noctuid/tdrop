@@ -110,6 +110,9 @@ wm_autodetect_settings() {
 		map_pre() {
 			bspc rule -a "$1" -o floating=on
 		}
+		is_floating() {
+			bspc query -T | grep "$(printf 0x%x "$1").*f-"
+		}
 	# tiling window manager with no support for floating; can toggle fullscreen instead for the dropdown
 	elif [[ $wm == herbstluftwm ]]; then
 		map_post() {
@@ -288,7 +291,7 @@ wid_toggle() {
 
 get_geometry() {
 	# so that won't float a tiled window later when showing
-	if [[ -n $(type is_floating) ]] && [[ -z $(is_floating) ]]; then
+	if [[ -n $(type is_floating) ]] && [[ -z $(is_floating "$1") ]]; then
 		# window is not floating; don't bother saving geometry
 		echo "false"
 	else
