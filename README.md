@@ -57,12 +57,17 @@ If your window manager does not support floating, there's nothing to worry about
 For floating window managers, tdrop should also generally "just work", but you will need to add the '-a' option. Many floating window managers will either center or resize a window when mapping then unmapping it. Tdrop provides for a `--post-commmand` to deal with this. '-a' will automatically determine the proper post command to use for your window manager if one exists. The '-a' option will also set things up so that window geometry/position will be properly restored on an `auto_show`.
 
 That said, these are the floating window managers that currently have '-a' settings:
+- xfwm4
+- metacity
 - openbox
 - pekwm
 - fluxbox
 - blackbox
+- fvwm
+- sawfish
+- goomwwm
 
-It is a simple matter to add new ones to this list. If your dropdown moves out of place when being shown, make an issue, and I will add settings for it.
+Usually, it is a simple matter to add new ones to this list. If your dropdown moves out of place when being shown, make an issue, and I will add settings for it.
 
 #### Tiling with Floating Support
 These window managers currently will work with '-a'. I will add a lot more.

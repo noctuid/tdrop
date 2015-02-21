@@ -103,7 +103,8 @@ done
 #
 
 get_window_manager() {
-	xprop -notype -id "$(xprop -root -notype | awk '$1=="_NET_SUPPORTING_WM_CHECK:"{print $5}')" -f _NET_WM_NAME 8u | awk -F "\"" '/WM_NAME/ {print $2}'
+	# xfwm4 and fvwm at least will give two names (hence piping into head)
+	xprop -notype -id "$(xprop -root -notype | awk '$1=="_NET_SUPPORTING_WM_CHECK:"{print $5}')" -f _NET_WM_NAME 8u | awk -F "\"" '/WM_NAME/ {print $2}' | head -n 1
 }
 
 # tilers w/ floating support: settings for floating a window when mapping it
@@ -177,12 +178,14 @@ wm_autoset_for_window() {
 			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
 		}
 	# floating window managers that may move a window after unmapping then mapping it
-	elif [[ $wm == pekwm ]] || [[ $wm == fluxbox ]] || [[ $wm == Blackbox ]]; then
+	elif [[ $wm =~ ^(pekwm|fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW)$ ]]; then
+		# most will center
+		# xfwm4 will normally move to top left; metacity will move close to top left
+		# sawfish just moves all over the place
 		map_post() {
 			xdotool windowmove "$1" "$xoff" "$yoff"
 		}
 	fi
-
 }
 
 #
