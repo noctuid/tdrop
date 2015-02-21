@@ -99,16 +99,30 @@ do
 done
 
 #
-# WM Detection
+# WM Detection and Settings
 #
 
-wm_autodetect_settings() {
-	wm=$(xprop -notype -id "$(xprop -root -notype | awk '$1=="_NET_SUPPORTING_WM_CHECK:"{print $5}')" -f _NET_WM_NAME 8u | awk -F "\"" '/WM_NAME/ {print $2}')
+get_window_manager() {
+	xprop -notype -id "$(xprop -root -notype | awk '$1=="_NET_SUPPORTING_WM_CHECK:"{print $5}')" -f _NET_WM_NAME 8u | awk -F "\"" '/WM_NAME/ {print $2}'
+}
 
-	# floating or position saving setup
+# tilers w/ floating support: settings for floating a window when mapping it
+# can set up a rule for always floating a window or term type/class
+# alternatively, can use these settings to float just the dropdown
+# for both tdrop <term> and tdrop <auto_..>
+wm_autoset_for_both() {
+	wm=$(get_window_manager)
+	# bspwm will use previous size when floating already
 	if [[ $wm == bspwm ]]; then
 		map_pre() {
 			bspc rule -a "$1" -o floating=on
+		}
+	
+	# tilers that won't remember sizing
+	elif [[ $wm == i3 ]]; then
+		map_post() {
+			i3-msg floating enable && \
+			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
 		}
 		is_floating() {
 			bspc query -T | grep "$(printf 0x%x "$1").*f-"
@@ -117,11 +131,44 @@ wm_autodetect_settings() {
 	elif [[ $wm == herbstluftwm ]]; then
 		map_post() {
 			herbstclient fullscreen on
-			echo "yes" > /tmp/tdrop/herb
+	fi
+}
+
+# settings for maintining previous size/placement of windows when unhiding them
+wm_autoset_for_hide_show() {
+	# tilers: is_floating function so that hidden tiling windows don't become floating
+	if [[ $wm == bspwm ]]; then
+		is_floating() {
+			# checking if the window id (converted from decimal to hex) is floating; empty if not floating
+			bspc query -T | grep "$(printf 0x%x "$1").*f-"
+		}
+	elif [[ $wm == i3 ]]; then
+		is_floating() {
+			# do you even sed?
+			i3-msg -t get_tree | awk 'gsub(/{"id"/, "\n{\"id\"")' | awk '/focused":true.*floating":"user_on/ {print $1}'
+		}
+
+	# settings for stacking/floating wms where can't get right position easily from xwininfo
+	# take borders into account
+	elif [[ $wm == Blackbox ]]; then
+		dec_fix_auto="1x22"
+	fi
+}
+
+wm_autoset_for_window() {
+	wm=$(get_window_manager)
+
+	# tilers without floating support: can toggle fullscreen instead for the dropdown
+	if [[ $wm == herbstluftwm ]]; then
+		map_post() {
+			herbstclient fullscreen on
 		}
 		unmap_post() {
 			herbstclient fullscreen off
 		}
+
+	# stacking/floating wms: settings for maintaining geometry after mapping
+
 	# floating window managers that may both move and resize a window after unmapping then mapping it
 	elif [[ $wm == Openbox ]]; then
 		# openbox will resize window to be slightly less than the width of the screen when mapping
@@ -129,32 +176,14 @@ wm_autodetect_settings() {
 		map_post() {
 			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
 		}
-	# floating window managers that may both move a window after unmapping then mapping it
+	# floating window managers that may move a window after unmapping then mapping it
 	elif [[ $wm == pekwm ]] || [[ $wm == fluxbox ]] || [[ $wm == Blackbox ]]; then
 		map_post() {
 			xdotool windowmove "$1" "$xoff" "$yoff"
 		}
-	elif [[ $wm == i3 ]]; then
-		map_post() {
-			i3-msg floating enable && \
-			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
-		}
-		# function to check if floating when auto-hiding so restores properly (prevent floating a previously tiled window)
-		is_floating() {
-			# do you even sed?
-			i3-msg -t get_tree | awk 'gsub(/{"id"/, "\n{\"id\"")' | awk '/focused":true.*floating":"user_on/ {print $1}'
-		}
 	fi
 
-	# for auto_show proper positioning
-	if [[ $wm == Blackbox ]]; then
-		dec_fix_auto="1x22"
-	fi
 }
-
-if $auto_detect_wm; then
-	wm_autodetect_settings
-fi
 
 #
 # Helper Functions for Specific Dropdowns and Auto Hide/Show
@@ -372,6 +401,15 @@ auto_show() {
 #
 # Main
 #
+
+if $auto_detect_wm; then
+	wm_autoset_for_both
+	if [[ $term == auto_show ]] || [[ $term == auto_hide ]]; then
+		wm_autoset_for_hide_show
+	else
+		wm_autoset_for_window
+	fi
+fi
 
 if [[ -n $1 ]]; then
 	if $clearwid; then
