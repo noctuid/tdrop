@@ -134,7 +134,7 @@ wm_autoset_for_hide_show() {
 	if [[ $wm == bspwm ]]; then
 		is_floating() {
 			# checking if the window id (converted from decimal to hex) is floating; empty if not floating
-			bspc query -T | grep "$(printf 0x%x "$1").*f-"
+			bspc query -T | grep -i "$(printf 0x%x "$1").*f-"
 		}
 	elif [[ $wm == i3 ]]; then
 		is_floating() {
