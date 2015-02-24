@@ -125,13 +125,6 @@ wm_autoset_for_both() {
 			i3-msg floating enable && \
 			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
 		}
-		is_floating() {
-			bspc query -T | grep "$(printf 0x%x "$1").*f-"
-		}
-	# tiling window manager with no support for floating; can toggle fullscreen instead for the dropdown
-	elif [[ $wm == herbstluftwm ]]; then
-		map_post() {
-			herbstclient fullscreen on
 	fi
 }
 
