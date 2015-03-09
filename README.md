@@ -78,7 +78,7 @@ These window managers currently will work with '-a'. I will add a lot more.
 Necessary features don't work on many window managers, including mine.
 
 ## Why Not Use wmutils?
-It doesn't have absolute sizing (or sizing by percentage). The commands names are also less clear. The only advantage I can see over xdotool is that it can toggle mapping (`mapw -t`), but this wouldn't be used in this script anyway since different code is executed depending on whether or not 
+Maybe in the future. The only advantage I can see over xdotool is that it can toggle mapping (`mapw -t`), but this wouldn't be used in this script anyway since different code is executed depending on whether or not 
 
 ## Similar:
 - [drawer](https://github.com/lharding/lsh-bin/blob/master/drawer)
