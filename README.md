@@ -70,9 +70,12 @@ That said, these are the floating window managers that currently have '-a' setti
 Usually, it is a simple matter to add new ones to this list. If your dropdown moves out of place when being shown, make an issue, and I will add settings for it.
 
 #### Tiling with Floating Support
-These window managers currently will work with '-a'. I will add a lot more.
+These window managers currently will work with '-a' for a floating (instead of tiled) dropdown.
 - bspwm
 - i3
+- awesome
+
+Awesome support may be buggy; if you encounter problems, please report them. Unmapping behaviour is different on awesome for some reason, so tdrop will act different when the dropdown is open on another workspace/tag (first call will unmap it and the second will map it on the current tag).
 
 ## Why Not Use wmctrl?
 Necessary features don't work on many window managers, including mine.
