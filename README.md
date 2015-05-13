@@ -23,14 +23,14 @@ A demo showing tdrop's ability to auto-hide windows when opening things from the
 - tmuxinator (optional)
 
 ## Installation Instructions and Usage
-I will add a PKGBUILD and put this in the aur as soon as I've tested and added support for more window managers. For now, you can `git clone https://github.com/angelic-sedition/tdrop`, move the script into a dir that is in your `$PATH`, and then bind a key to it, e.g. with sxhkd:
+Tdrop is in the AUR as `tdrop-git`. It can also be installed by cloning this repo and running `sudo make install`. One can then bind a key to it, e.g. with sxhkd:
 
 ```
 alt + s
 	tdrop -a -w 1362 -y 14 -s dropdown termite
 ```
 
-I will add examples and better instructions. For now, refer to the manpage.
+Refer to `tdrop --help` and the manpage for more complete instructions.
 
 ## Tested With
 ### Terminals
