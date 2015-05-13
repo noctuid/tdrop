@@ -43,7 +43,7 @@ Specify a command to execute before showing/mapping a dropdown. This may be usef
 Specify a command to execute after showing/mapping a dropdown. This may be useful in the case where a window manager does not support floating rules or floating altogether. It can be used, for example, to fake a key combo to float the current window. (default: none)
 .TP
 \fB\-M\fR, \fB \-\-post-unmap\fR
-Specify a command to execute after unmapping a dropdown. This can be used with window managers that don't support floating in conjunction with '--pre-command' to, for example, change the layout to fullscreen when mapping a dropdown and then revert it when umapping it. (default: none)
+Specify a command to execute after unmapping a dropdown. This can be used with window managers that don't support floating in conjunction with '-p' or '-P' to, for example, change the layout to fullscreen when mapping a dropdown and then revert it when umapping it. (default: none)
 .TP
 \fB\-O\fR, \fB \-\-oneshot-post\fR
 Specify a post command to execute only when first creating or initiating a dropdown. This can be used when turning the current window into a dropdown to float and resize it. (default: none)
