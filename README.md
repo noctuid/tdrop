@@ -30,7 +30,11 @@ alt + s
 	tdrop -a -w 1362 -y 14 -s dropdown termite
 ```
 
-`-s` should only be used for terminals if the user wants to start a tmux or tmuxinator session. `-W` should be used if the program to start is not a terminal with an `-e` flag. `-a` should be used to set up WM specific rules (which are required for the -w and -y flags to work properly; see below for supported WMs). Refer to `tdrop --help` and the manpage for more complete instructions.
+### Basic Flags
+### Flicker
+For window managers that will require a window to be repositioned after re-mapping it, some flicker may be noticeable. It is usually worse on tiling managers where the window must be re-floated every time it is mapped. The way around this is to use rules to either always have the class floated or one-time rules to only float the next instance of a class. Since bspwm has oneshot rules and won't alter the size/position of a window, there isn't any flicker for it, and you don't you can still use tiled windows of the same class as your dropdown.
+
+However, the consistent way to eliminate visual flickering due to moving/resizing for any window manager is to enable fade-in for the compositor. For compton this can be done by setting `fading = true;` and adjusting the `fade-delta` in the .compton.conf accordingly.
 
 ## Tested With
 ### Terminals
