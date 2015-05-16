@@ -30,7 +30,7 @@ alt + s
 	tdrop -a -w 1362 -y 14 -s dropdown termite
 ```
 
-Refer to `tdrop --help` and the manpage for more complete instructions.
+`-s` should only be used for terminals if the user wants to start a tmux or tmuxinator session. `-W` should be used if the program to start is not a terminal with an `-e` flag. `-a` should be used to set up WM specific rules (which are required for the -w and -y flags to work properly; see below for supported WMs). Refer to `tdrop --help` and the manpage for more complete instructions.
 
 ## Tested With
 ### Terminals

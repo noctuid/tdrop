@@ -19,7 +19,7 @@ options:
 	-p cmd       provide a pre-map command to float the window if necessary
 	-P cmd       provide a post-map command to float the window if necessary
 	-M cmd       provide a post-unmap command; can be used for example with a window manager that doesn't support floating to turn fullscreen on when mapping a terminal then off when unmapping it
-	-O cmd       provide a one time command only for when a dropdown is created/initiated (useful for 'tdrop -c')
+	-O cmd       provide a one time command only for when a dropdown is created/initiated (useful for 'tdrop current')
 	-d XxY       give decoration/border size to accurately save position; only applicable with auto_show; on applicable with a few window managers (e.g. blackbox)
 	-a           automatically detect window manager and if settings exist for it, automatically set -p, -P, and -d values as necessary; this can have affect when used with a terminal or with auto_show or auto_hide (default: false)
 	-W           the given program is not a terminal (or lacks an -e flag) (default: assume it IS a terminal)
