@@ -295,6 +295,7 @@ current_create() {
 	wid=$(xdotool getactivewindow)
 	echo "$wid" > /tmp/tdrop/current"$num"
 	get_class_name "$wid" > /tmp/tdrop/current"$num"_type
+	echo "$wid"
 }
 
 wid_toggle() {
@@ -329,13 +330,24 @@ wid_toggle() {
 		# make it
 		map_pre_command "$term"
 		if [[ $term == current ]]; then
-			current_create
-		elif $normal_window; then
-			win_create
+			wid=$(current_create)
+			xdotool windowunmap "$wid"
 		else
-			term_create
+			if $normal_window; then
+				win_create
+			else
+				term_create
+			fi
+			# get saved wid of newly created dropdown
+			wid=""
+			count=0
+			while [[ -z $wid ]] && [[ $count -lt 100 ]]; do
+				wid=$(< /tmp/tdrop/"$term$num")
+				sleep 0.01
+				((count++))
+			done
+			map_post_command oneshot "$wid"
 		fi
-		map_post_command oneshot "$wid"
 	fi
 }
 
