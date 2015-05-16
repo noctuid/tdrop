@@ -131,8 +131,14 @@ wm_autoset_for_both() {
 	
 	# tilers that won't remember sizing
 	elif [[ $wm == i3 ]]; then
+		# need to sleep first time to wait for window to be created
+		map_post_oneshot() {
+			sleep 0.1 && \
+			i3-msg "[id=$1] floating enable" && \
+			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
+		}
 		map_post() {
-			i3-msg floating enable && \
+			i3-msg "[id=$1] floating enable" && \
 			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
 		}
 	fi
