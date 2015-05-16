@@ -199,6 +199,10 @@ get_class_name() {
 	xprop -id "$1" WM_CLASS | awk '{gsub(/"/, ""); print $4}'
 }
 
+get_visibility() {
+	xwininfo -id "$1" | awk '/Map State/ {print $3}'
+}
+
 map_pre_command() {
 	# a user set option has higher priority
 	if [[ -n $map_pre ]]; then
@@ -268,10 +272,22 @@ win_create() {
 	$term &
 	# need to wait for window to be created
 	sleep 0.5
-	# often pids have two wids; first one has always been the right one for what I've tested
-	wid=$(xdotool search --pid $! | head -n 1)
-	echo "$wid" > /tmp/tdrop/"$term$num"
+	# often pids have two wids
+	wids=$(xdotool search --pid $!)
+	wid1=$(echo "$wids" | head -n 1)
+	wid2=$(echo "$wids" | tail -n 1)
+	if [[ -n $wid2 ]]; then
+		if [[ $(get_visibility "$wid2") == IsUnMapped ]]; then
+			wid=$wid1
+		else
+			wid=$wid2
+		fi
+	else
+		wid=$wid1
+	fi
+	# only works with pre-command
 	xdotool windowmove "$wid" "$xoff" "$yoff" windowsize "$wid" "$width" "$height"
+	echo "$wid" > /tmp/tdrop/"$term$num"
 }
 
 current_create() {
@@ -287,7 +303,7 @@ wid_toggle() {
 	wid=$(< /tmp/tdrop/"$term$num")
 	exists=true
 	if [[ -n $wid ]]; then
-		visibility=$(xwininfo -id "$wid" | awk '/Map State/ {print $3}')
+		visibility=$(get_visibility "$wid")
 		# sometimes xwininfo will still report a window as existing hence xprop check
 		if [[ -z $visibility ]] || [[ -z $(xprop -id "$wid") ]]; then
 			# window no longer exists
