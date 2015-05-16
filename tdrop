@@ -288,7 +288,8 @@ wid_toggle() {
 	exists=true
 	if [[ -n $wid ]]; then
 		visibility=$(xwininfo -id "$wid" | awk '/Map State/ {print $3}')
-		if [[ -z $visibility ]]; then
+		# sometimes xwininfo will still report a window as existing hence xprop check
+		if [[ -z $visibility ]] || [[ -z $(xprop -id "$wid") ]]; then
 			# window no longer exists
 			exists=false
 		fi
