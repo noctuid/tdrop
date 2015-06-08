@@ -36,6 +36,21 @@ For window managers that will require a window to be repositioned after re-mappi
 
 However, the consistent way to eliminate visual flickering due to moving/resizing for any window manager is to enable fade-in for the compositor. For compton this can be done by setting `fading = true;` and adjusting the `fade-delta` in the .compton.conf accordingly.
 
+### Auto-hiding
+In addition to creating dropdowns, tdrop can automatically hide a window and later un-hide it. For example, if gvim is opened to write a git commit message from the terminal, tdrop can automatically hide the terminal (dropdown or not) and restore it after the user is finished writing the commit message:
+
+```
+hide_on_open() {
+	tdrop -a auto_hide && "$@" && tdrop -a auto_show
+}
+alias gc='hide_on_open git commit'
+```
+
+The most useful application of this functionality is probably when opening videos, images, etc. in an external program from a file manager like ranger. For example, in the `rifle.conf`:
+```
+mime ^video, has mpv, X, flag f = tdrop -a auto_hide && mpv -- "$@" && tdrop -a auto_show
+```
+
 ## Tested With
 ### Terminals
 - Termite
