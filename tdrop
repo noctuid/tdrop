@@ -187,7 +187,7 @@ wm_autoset_for_window() {
 			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
 		}
 	# floating window managers that may move a window after unmapping then mapping it
-	elif [[ $wm =~ ^(pekwm|fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW)$ ]]; then
+	elif [[ $wm =~ ^(pekwm|fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter \(Muffin\))$ ]]; then
 		# most will center
 		# xfwm4 will normally move to top left; metacity will move close to top left
 		# sawfish just moves all over the place
