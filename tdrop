@@ -112,11 +112,11 @@ get_window_manager() {
 	xprop -notype -id "$(xprop -root -notype | awk '$1=="_NET_SUPPORTING_WM_CHECK:"{print $5}')" -f _NET_WM_NAME 8u | awk -F "\"" '/WM_NAME/ {print $2}' | head -n 1
 }
 
-# tilers w/ floating support: settings for floating a window when mapping it
+# settings that apply for both tdrop <term> and tdrop auto_(hide|show)
+# e.g. tilers w/ floating support: settings for floating a window when mapping it
 # can set up a rule for always floating a window or term type/class
 # alternatively, can use these settings to float just the dropdown
-# for both tdrop <term> and tdrop <auto_..>
-wm_autoset_for_both() {
+wm_autoset_for_all() {
 	wm=$(get_window_manager)
 	# bspwm will use previous size when floating already
 	if [[ $wm == bspwm ]]; then
@@ -179,7 +179,7 @@ wm_autoset_for_hide_show() {
 	fi
 }
 
-wm_autoset_for_window() {
+wm_autoset_for_dropdown() {
 	wm=$(get_window_manager)
 
 	# tilers without floating support: can toggle fullscreen instead for the dropdown
@@ -468,11 +468,11 @@ auto_show() {
 #
 
 if $auto_detect_wm; then
-	wm_autoset_for_both
+	wm_autoset_for_all
 	if [[ $term == auto_show ]] || [[ $term == auto_hide ]]; then
 		wm_autoset_for_hide_show
 	else
-		wm_autoset_for_window
+		wm_autoset_for_dropdown
 	fi
 fi
 
