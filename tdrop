@@ -139,7 +139,7 @@ wm_autoset_for_both() {
 		}
 		map_post() {
 			i3-msg "[id=$1] floating enable" > /dev/null && \
-			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
+			xdotool windowmove "$1" "$xoff" "$yoff"
 		}
 	fi
 }
