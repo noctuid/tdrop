@@ -175,7 +175,7 @@ wm_autoset_for_all() {
 		}
 
 	# floating WMs that need extra sleep time to wait for dropdown to spawn initially
-	elif [[ $wm =~ ^(Fluxbox|Mutter|GNOME Shell|Mutter \(Muffin\))$ ]]; then
+	elif [[ $wm =~ ^(Fluxbox|Mutter|GNOME Shell|Mutter \(Muffin\)|KWin)$ ]]; then
 		if ! $sleep_term_user_set; then
 			sleep_term_time=0.05
 		fi
@@ -215,7 +215,7 @@ wm_autoset_for_hide_show() {
 		subtract_when_same=false
 	fi
 
-	if [[ $wm =~ ^(pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter|GNOME Shell|Mutter \(Muffin\))$ ]]; then
+	if [[ $wm =~ ^(pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter|GNOME Shell|Mutter \(Muffin\)|KWin)$ ]]; then
 		combine_map_post=true
 		map_post() {
 			xdotool windowmap "$1" windowmove "$1" "$2" "$3"
@@ -245,7 +245,7 @@ wm_autoset_for_dropdown() {
 				windowsize "$1" "$width" "$height"
 		}
 	# floating window managers that may move a window after unmapping then mapping it
-	elif [[ $wm =~ ^(pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter|GNOME Shell|Mutter \(Muffin\))$ ]]; then
+	elif [[ $wm =~ ^(pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter|GNOME Shell|Mutter \(Muffin\)|KWin)$ ]]; then
 		# most will center
 		# mutter/gnome shell will move to top centerish (just below panel on gnome shell)
 		# xfwm4 will normally move to top left; metacity will move close to top left
