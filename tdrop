@@ -171,7 +171,7 @@ wm_autoset_for_all() {
 		}
 
 	# floating WMs that need extra sleep time to wait for dropdown to spawn initially
-	elif [[ $wm == Fluxbox ]]; then
+	elif [[ $wm =~ ^(Fluxbox|Mutter|GNOME Shell)$ ]]; then
 		if ! $sleep_term_user_set; then
 			sleep_term_time=0.05
 		fi
@@ -198,6 +198,9 @@ wm_autoset_for_hide_show() {
 	# take borders into account
 	elif [[ $wm == Blackbox ]]; then
 		dec_fix_auto="1x22"
+	elif [[ $wm =~ ^(Mutter|GNOME Shell)$ ]]; then
+		dec_fix_auto="-10x-8"
+		subtract_when_same=false
 	
 	# NOTE:
 	# pekwm, xfwm4, sawfish, openbox need subtract_when_same to be true (default)
@@ -230,8 +233,9 @@ wm_autoset_for_dropdown() {
 			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
 		}
 	# floating window managers that may move a window after unmapping then mapping it
-	elif [[ $wm =~ ^(pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter \(Muffin\))$ ]]; then
+	elif [[ $wm =~ ^(pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter|GNOME Shell|Mutter \(Muffin\))$ ]]; then
 		# most will center
+		# mutter/gnome shell will move to top centerish (just below panel on gnome shell)
 		# xfwm4 will normally move to top left; metacity will move close to top left
 		# sawfish just moves all over the place
 		map_post() {

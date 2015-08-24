@@ -76,6 +76,7 @@ If your window manager does not support floating, there's nothing to worry about
 For floating window managers, tdrop should also generally "just work", but you will need to add the '-a' option. Many floating window managers will either center or resize a window when mapping then unmapping it. Tdrop provides for a `--post-commmand` to deal with this. '-a' will automatically determine the proper post command to use for your window manager if one exists. The '-a' option will also set things up so that window geometry/position will be properly restored on an `auto_show`.
 
 That said, these are the floating window managers that currently have '-a' settings:
+- mutter (gnome shell)
 - xfwm4
 - metacity
 - openbox
