@@ -31,6 +31,8 @@ alt + s
 ```
 
 ### Basic Flags
+`-s` should only be used for terminals if the user wants to start a tmux or tmuxinator session. `-W` should be used if the program to start is not a terminal with an `-e` flag. `-a` should be used to set up WM specific rules (which are required for the --width, --height, --xoff, and --yoff flags to work properly; see below for supported WMs). Long options require using `--opt=<arg>` as opposed to leaving a space. Refer to `tdrop --help` and the manpage for more complete instructions.
+
 ### Flicker
 For some window managers that require a window to be repositioned after re-mapping it, some flicker may be noticeable. With a recent change, this flicker is pretty much gone for some window managers (e.g. in the Gnome Shell and Cinnamon DEs) and slightly better than before in other
 s. It is usually worse on tiling managers where the window must be re-floated every time it is mapped. The way around this is to use rules to either always have the class floated or one-time rules to only float the next instance of a class. For example, since bspwm has oneshot rules and won't alter the size/position of a window, this flicker is not a problem.
@@ -79,8 +81,8 @@ For floating window managers, tdrop should also generally "just work", but you w
 That said, these are the floating window managers that currently have '-a' settings:
 - mutter (gnome shell)
 - muffin (cinnamon)
-- xfwm4
-- metacity
+- xfwm4 (xfce)
+- metacity (gnome 2)
 - openbox
 - pekwm
 - fluxbox
@@ -103,7 +105,7 @@ Awesome support may be buggy; if you encounter problems, please report them. Unm
 Necessary features don't work on many window managers, including mine.
 
 ## Why Not Use wmutils?
-Maybe in the future. The only advantage I can see over xdotool is that it can toggle mapping (`mapw -t`), but this wouldn't be used in this script anyway since different code is executed depending on whether or not the window is mapped or unmapped. Also the command names are somewhat cryptc and resizing to a percentage isn't supported (would have to convert percentages to pixels).
+Maybe in the future. The only advantage I can see over xdotool is that it can toggle mapping (`mapw -t`), but this wouldn't be used in this script anyway since different code is executed depending on whether or not the window is mapped or unmapped. Also the command names are somewhat cryptic and resizing to a percentage isn't supported (would have to convert percentages to pixels).
 
 ## Similar:
 - [drawer](https://github.com/lharding/lsh-bin/blob/master/drawer)
