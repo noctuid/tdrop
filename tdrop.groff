@@ -51,6 +51,12 @@ Specify a post command to execute only when first creating or initiating a dropd
 \fB\-d\fR, \fB \-\-decoration-fix\fR
 Specify a window decoration/border size in the form <x decoration size>x<y decoration size> to be taken into account when saving window position. This should not be necessary for most window managers and is only used with 'auto_show', e.g. 'tdrop -d 1x22 auto_show' for blackbox. (default: none)
 .TP
+\fB\-z\fR, \fB \-\-sleep-terminal\fR
+Specify an alternate sleep time to wait for a terminal emulator to be completed. Only use this option if tdrop ends up capturing a different window as the dropdown when you press a dropdown key. You probably won't need to change this, and if you do, please report it. I hope to remove the need for sleeping entirely in the future. (default: 0.1)
+.TP
+\fB\-Z\fR, \fB \-\-sleep-window\fR
+Specify an alternate sleep time to wait for a window to be completed. This is for use with -W  or for -a with tiling window managers that cannot pre-float the next instance of a window (e.g. awesome and i3 if no rule to always float a specific class). Only use this option if tdrop ends up capturing a different window as the dropdown when you press a dropdown key. You probably won't need to change this, and if you do, please report it. I hope to remove the need for sleeping entirely in the future. (default: 0.5)
+.TP
 \fB\-W\fR, \fB \-\-normal-window\fR
 Specifies that the program is not a terminal or does not have the '-e' flag; takes no argument. If using 'tdrop current', this option will have no effect either way. (default: false)
 .TP

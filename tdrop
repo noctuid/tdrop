@@ -21,6 +21,8 @@ options:
 	-M cmd       provide a post-unmap command; can be used for example with a window manager that doesn't support floating to turn fullscreen on when mapping a terminal then off when unmapping it
 	-O cmd       provide a one time command only for when a dropdown is created/initiated (useful for 'tdrop current')
 	-d XxY       give decoration/border size to accurately save position; only applicable with auto_show; on applicable with a few window managers (e.g. blackbox)
+	-z           use a different sleep time to wait for terminal to be created (advanced; see man page)
+	-Z           use a different sleep time for -W program to be created (advanced; see man page)
 	-a           automatically detect window manager and if settings exist for it, automatically set -p, -P, and -d values as necessary; this can have affect when used with a terminal or with auto_show or auto_hide (default: false)
 	-W           the given program is not a terminal (or lacks an -e flag) (default: assume it IS a terminal)
 	--clear      clear saved window id; useful accidentally make a window a dropdown (e.g. '$ tdrop --clear current')
@@ -46,18 +48,23 @@ width="100%"
 height="45%"
 xoff=0
 yoff=2
+session_name=""
+num=""
 map_pre=""
 map_post=""
 unmap_post=""
 oneshot_post=""
-session_name=""
-num=""
+dec_fix=""
+sleep_term_time=0.01
+sleep_term_user_set=false
+sleep_win_time=0.5
+sleep_win_user_set=false
 normal_window=false
 clearwid=false
 cancel_auto_show=true
 term=${*:0-1}
 auto_detect_wm=false
-while getopts :h:w:x:y:s:n:p:P:M:O:d:-:Wa opt
+while getopts :h:w:x:y:s:n:p:P:M:O:d:z:Z:-:Wa opt
 do
 	case $opt in
 	h) height=$OPTARG;;
@@ -71,6 +78,10 @@ do
 	M) unmap_post=$OPTARG;;
 	O) oneshot_post=$OPTARG;;
 	d) dec_fix=$OPTARG;;
+	z) sleep_term_time=$OPTARG
+		sleep_term_user_set=true;;
+	Z) sleep_win_time=$OPTARG
+		sleep_win_user_set=true;;
 	W) normal_window=true;;
 	a) auto_detect_wm=true;;
 	-)
@@ -88,6 +99,10 @@ do
 		post-unmap) unmap_post=$OPTARG;;
 		oneshot-post) oneshot_post=$OPTARG;;
 		decoration-fix) dec_fix=$OPTARG;;
+		sleep-terminal) sleep_term_time=$OPTARG
+			sleep_term_user_set=true;;
+		sleep-window) sleep_win_time=$OPTARG
+			sleep_win_user_set=true;;
 		normal-window) normal_window=true;;
 		auto-detect-wm) auto_detect_wm=true;;
 		clear) clearwid=true;;
@@ -127,7 +142,11 @@ wm_autoset_for_all() {
 		# awesome remembers size, but need to float and then set size first
 		map_post_oneshot() {
 			# need sleep time to wait for window be created or will float wrong one.. not sure if way to float by window id
-			sleep 0.1 && echo 'local awful = require("awful") ; awful.client.floating.set(c, true)' | awesome-client && \
+			if ! $sleep_win_user_set; then
+				# what I've had best results with
+				sleep_win_time=0.1
+			fi
+			sleep $sleep_win_time && echo 'local awful = require("awful") ; awful.client.floating.set(c, true)' | awesome-client && \
 			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
 		}
 		map_post() {
@@ -138,7 +157,11 @@ wm_autoset_for_all() {
 	elif [[ $wm == i3 ]]; then
 		# need to sleep first time to wait for window to be created
 		map_post_oneshot() {
-			sleep 0.1 && \
+			if ! $sleep_win_user_set; then
+				# what I've had best results with
+				sleep_win_time=0.1
+			fi
+			sleep $sleep_win_time && \
 			i3-msg "[id=$1] floating enable" > /dev/null && \
 			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
 		}
@@ -146,6 +169,12 @@ wm_autoset_for_all() {
 			i3-msg "[id=$1] floating enable" > /dev/null && \
 			xdotool windowmove "$1" "$xoff" "$yoff"
 		}
+
+	# floating WMs that need extra sleep time to wait for dropdown to spawn initially
+	elif [[ $wm == Fluxbox ]]; then
+		if ! $sleep_term_user_set; then
+			sleep_term_time=0.05
+		fi
 	fi
 }
 
@@ -201,7 +230,7 @@ wm_autoset_for_dropdown() {
 			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
 		}
 	# floating window managers that may move a window after unmapping then mapping it
-	elif [[ $wm =~ ^(pekwm|fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter \(Muffin\))$ ]]; then
+	elif [[ $wm =~ ^(pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter \(Muffin\))$ ]]; then
 		# most will center
 		# xfwm4 will normally move to top left; metacity will move close to top left
 		# sawfish just moves all over the place
@@ -272,18 +301,18 @@ term_create() {
 	if [[ -n $session_name ]]; then
 		# ugly workarounds due to how different terms different -e flags work
 		if [[ $term == urxvt ]]; then
-			$term -e bash -c "sleep 0.01 && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && tmux attach-session -dt $session_name || tmuxinator start $session_name || tmux new-session -s $session_name" &
+			$term -e bash -c "sleep $sleep_term_time && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && tmux attach-session -dt $session_name || tmuxinator start $session_name || tmux new-session -s $session_name" &
 		else
 			# starting with '/bin/bash -c' because required by termite
-			$term -e "/bin/bash -c 'sleep 0.01 && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && tmux attach-session -dt $session_name || tmuxinator start $session_name || tmux new-session -s $session_name'" &
+			$term -e "/bin/bash -c 'sleep $sleep_term_time && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && tmux attach-session -dt $session_name || tmuxinator start $session_name || tmux new-session -s $session_name'" &
 		fi
 	else
 		# not using hold, because flag is different for different terminals
 		if [[ $term == urxvt ]]; then
-			$term -e bash -c "sleep 0.01 && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && $SHELL" &
+			$term -e bash -c "sleep $sleep_term_time && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && $SHELL" &
 		else
 			# not using hold, because flag is different for different terminals
-			$term -e "/bin/bash -c 'sleep 0.01 && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && $SHELL'" &
+			$term -e "/bin/bash -c 'sleep $sleep_term_time && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && $SHELL'" &
 		fi
 	fi
 }
@@ -291,7 +320,7 @@ term_create() {
 win_create() {
 	$term &
 	# need to wait for window to be created
-	sleep 0.5
+	sleep $sleep_win_time
 	# often pids have two wids
 	wids=$(xdotool search --pid $!)
 	wid1=$(echo "$wids" | head -n 1)
