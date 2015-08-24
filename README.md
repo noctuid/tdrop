@@ -32,7 +32,8 @@ alt + s
 
 ### Basic Flags
 ### Flicker
-For window managers that will require a window to be repositioned after re-mapping it, some flicker may be noticeable. It is usually worse on tiling managers where the window must be re-floated every time it is mapped. The way around this is to use rules to either always have the class floated or one-time rules to only float the next instance of a class. Since bspwm has oneshot rules and won't alter the size/position of a window, there isn't any flicker for it, and you don't you can still use tiled windows of the same class as your dropdown.
+For some window managers that require a window to be repositioned after re-mapping it, some flicker may be noticeable. With a recent change, this flicker is pretty much gone for some window managers (e.g. in the Gnome Shell and Cinnamon DEs) and slightly better than before in other
+s. It is usually worse on tiling managers where the window must be re-floated every time it is mapped. The way around this is to use rules to either always have the class floated or one-time rules to only float the next instance of a class. For example, since bspwm has oneshot rules and won't alter the size/position of a window, this flicker is not a problem.
 
 However, the consistent way to eliminate visual flickering due to moving/resizing for any window manager is to enable fade-in for the compositor. For compton this can be done by setting `fading = true;` and adjusting the `fade-delta` in the .compton.conf accordingly.
 
@@ -77,6 +78,7 @@ For floating window managers, tdrop should also generally "just work", but you w
 
 That said, these are the floating window managers that currently have '-a' settings:
 - mutter (gnome shell)
+- muffin (cinnamon)
 - xfwm4
 - metacity
 - openbox

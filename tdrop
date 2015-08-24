@@ -117,6 +117,10 @@ done
 # necessary to account for differences in geometry/positioning output from xwininfo
 # for different WMs (matters when a window is in a corner or on the side)
 subtract_when_same=true
+# will be set to true to eliminate or reduce flicker for WMs that alter window
+# position when remapping; when true, windowmap and windowmove are combined, so that
+# the window is correctly positioned earlier
+combine_map_post=false
 
 #
 # WM Detection and Settings
@@ -171,7 +175,7 @@ wm_autoset_for_all() {
 		}
 
 	# floating WMs that need extra sleep time to wait for dropdown to spawn initially
-	elif [[ $wm =~ ^(Fluxbox|Mutter|GNOME Shell)$ ]]; then
+	elif [[ $wm =~ ^(Fluxbox|Mutter|GNOME Shell|Mutter \(Muffin\))$ ]]; then
 		if ! $sleep_term_user_set; then
 			sleep_term_time=0.05
 		fi
@@ -201,13 +205,21 @@ wm_autoset_for_hide_show() {
 	elif [[ $wm =~ ^(Mutter|GNOME Shell)$ ]]; then
 		dec_fix_auto="-10x-8"
 		subtract_when_same=false
+	elif [[ $wm =~ ^(Mutter \(Muffin\))$ ]]; then
+		dec_fix_auto="-9x-8"
 	
 	# NOTE:
 	# pekwm, xfwm4, sawfish, openbox need subtract_when_same to be true (default)
 	# for fluxbox, blackbox, fvwm, and metacity, the value does not matter
 	elif [[ $wm == GoomwW ]]; then
 		subtract_when_same=false
-	
+	fi
+
+	if [[ $wm =~ ^(pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter|GNOME Shell|Mutter \(Muffin\))$ ]]; then
+		combine_map_post=true
+		map_post() {
+			xdotool windowmap "$1" windowmove "$1" "$2" "$3"
+		}
 	fi
 }
 
@@ -223,14 +235,14 @@ wm_autoset_for_dropdown() {
 			herbstclient fullscreen off
 		}
 
-	# stacking/floating wms: settings for maintaining geometry after mapping
-
 	# floating window managers that may both move and resize a window after unmapping then mapping it
 	elif [[ $wm == Openbox ]]; then
 		# openbox will resize window to be slightly less than the width of the screen when mapping
 		# this is necessary when want width to be 100%
+		combine_map_post=true
 		map_post() {
-			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
+			xdotool windowmap "$1" windowmove "$1" "$xoff" "$yoff" \
+				windowsize "$1" "$width" "$height"
 		}
 	# floating window managers that may move a window after unmapping then mapping it
 	elif [[ $wm =~ ^(pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter|GNOME Shell|Mutter \(Muffin\))$ ]]; then
@@ -238,8 +250,9 @@ wm_autoset_for_dropdown() {
 		# mutter/gnome shell will move to top centerish (just below panel on gnome shell)
 		# xfwm4 will normally move to top left; metacity will move close to top left
 		# sawfish just moves all over the place
+		combine_map_post=true
 		map_post() {
-			xdotool windowmove "$1" "$xoff" "$yoff"
+			xdotool windowmap "$1" windowmove "$1" "$xoff" "$yoff"
 		}
 	fi
 }
@@ -279,7 +292,7 @@ map_post_command() {
 	elif [[ -n $map_post ]]; then
 		eval "$map_post"
 	elif [[ -n $(type map_post 2> /dev/null) ]]; then
-		map_post "$1"
+		map_post "$@"
 	fi
 }
 
@@ -373,8 +386,13 @@ wid_toggle() {
 			else
 				map_pre_command "$term"
 			fi
-			xdotool windowmap "$wid"
-			map_post_command "$wid"
+			if ! $combine_map_post; then
+				xdotool windowmap "$wid"
+				map_post_command "$wid"
+			else
+				# combine mapping with resizing/moving when possible to reduce flicker
+				map_post_command "$wid"
+			fi
 			maybe_cancel_auto_show "$wid"
 		else
 			xdotool windowunmap "$wid"
@@ -437,7 +455,7 @@ get_geometry() {
 	fi
 }
 
-set_geometry() {
+give_geometry() {
 	eval "$(< /tmp/tdrop/auto_hidden/geometry)"
 	if [[ -n $dec_fix ]]; then
 		x_fix=$(echo "$dec_fix" | awk -F "x" '{print $1}')
@@ -450,7 +468,11 @@ set_geometry() {
 		X=$((X-x_fix))
 		Y=$((Y-y_fix))
 	fi
-	xdotool windowmove "$1" "$X" "$Y"
+	echo "$X $Y"
+}
+
+set_geometry() {
+	xdotool windowmove "$1" "$(give_geometry)"
 }
 
 toggle_auto_hide() {
@@ -488,10 +510,21 @@ auto_show() {
 		if [[ $was_floating != false ]]; then
 			map_pre_command "$class"
 		fi
-		xdotool windowmap "$wid"
+		if ! $combine_map_post; then
+			xdotool windowmap "$wid"
+		fi
 		if [[ $was_floating != false ]]; then
-			map_post_command "$wid"
-			set_geometry "$wid"
+			if $combine_map_post; then
+				XY=$(give_geometry "$wid")
+				X=$(echo "$XY" | awk '{print $1}')
+				Y=$(echo "$XY" | awk '{print $2}')
+				map_post_command "$wid" "$X" "$Y"
+			else
+				map_post_command "$wid"
+				set_geometry "$wid"
+			fi
+		else
+			xdotool windowmap "$wid"
 		fi
 	fi
 }
