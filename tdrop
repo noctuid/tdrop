@@ -97,6 +97,11 @@ do
 	*) print_help illegal_opt;;
     esac
 done
+# non-user-settable global vars
+
+# necessary to account for differences in geometry/positioning output from xwininfo
+# for different WMs (matters when a window is in a corner or on the side)
+subtract_when_same=true
 
 #
 # WM Detection and Settings
@@ -148,11 +153,13 @@ wm_autoset_for_both() {
 wm_autoset_for_hide_show() {
 	# tilers: is_floating function so that hidden tiling windows don't become floating
 	if [[ $wm == bspwm ]]; then
+		subtract_when_same=false
 		is_floating() {
 			# checking if the window id (converted from decimal to hex) is floating; empty if not floating
 			bspc query -T | grep -i "$(printf 0x%x "$1").*f-"
 		}
 	elif [[ $wm == i3 ]]; then
+		subtract_when_same=false
 		is_floating() {
 			# do you even sed?
 			i3-msg -t get_tree | awk 'gsub(/{"id"/, "\n{\"id\"")' | awk '/focused":true.*floating":"user_on/ {print $1}'
@@ -162,6 +169,13 @@ wm_autoset_for_hide_show() {
 	# take borders into account
 	elif [[ $wm == Blackbox ]]; then
 		dec_fix_auto="1x22"
+	
+	# NOTE:
+	# pekwm, xfwm4, sawfish, openbox need subtract_when_same to be true (default)
+	# for fluxbox, blackbox, fvwm, and metacity, the value does not matter
+	elif [[ $wm == GoomwW ]]; then
+		subtract_when_same=false
+	
 	fi
 }
 
@@ -372,11 +386,19 @@ get_geometry() {
 		y=$(echo "$wininfo" | awk '/Absolute.*Y/ {print $4}')
 		rel_x=$(echo "$wininfo" | awk '/Relative.*X/ {print $4}')
 		rel_y=$(echo "$wininfo" | awk '/Relative.*Y/ {print $4}')
-		if [[ $x -ne $rel_x ]]; then
+		if $subtract_when_same; then
+			# behaviour works for most WMs (at least floating ones)
 			x=$((x-rel_x))
-		fi
-		if [[ $y -ne $rel_y ]]; then
 			y=$((y-rel_y))
+		else
+			# don't subtract when abs and rel values are the same
+			# necessary for WMs like bspwm and i3
+			if [[ $x -ne $rel_x ]]; then
+				x=$((x-rel_x))
+			fi
+			if [[ $y -ne $rel_y ]]; then
+				y=$((y-rel_y))
+			fi
 		fi
 		echo -e "X=$x\nY=$y"
 	fi
