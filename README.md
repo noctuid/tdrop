@@ -83,8 +83,9 @@ That said, these are the floating window managers that currently have '-a' setti
 - muffin (cinnamon)
 - xfwm4 (xfce)
 - metacity (gnome 2)
+- marco (mate)
 - kwin (kde)
-- openbox
+- openbox (lxde)
 - pekwm
 - fluxbox
 - blackbox
