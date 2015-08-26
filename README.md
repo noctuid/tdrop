@@ -1,9 +1,9 @@
 ## Demos
 A basic demo using tdrop to create a dropdown/scratchpad on the fly with a hotkey. I set the height to be less than max with tdrop to make it more obvious which is the dropdown at which time. First apvlv is turned into a dropdown. Then it is cleared and zathura is turned into a dropdown. One can also have multiple hotkeys to create multiple dropdowns on the fly at a time.
-![Alt text](http://angelic-sedition.github.io/tdrop/assets/on_the_fly.gif "On the fly creation")
+![Alt text](http://noctuid.github.io/tdrop/assets/on_the_fly.gif "On the fly creation")
 
 A demo showing tdrop's ability to auto-hide windows when opening things from them. First an image is opened in sxiv from ranger in the dropdown. When sxiv is closed, the dropdown automatically re-appears. The image is opened once again, but this time the dropdown is manually toggled before closing sxiv. This cancels the "re-show".
-![Alt text](http://angelic-sedition.github.io/tdrop/assets/auto_hide.gif "Auto Hiding")
+![Alt text](http://noctuid.github.io/tdrop/assets/auto_hide.gif "Auto Hiding")
 
 ## Advantages Over Other Dropdown Terminals
 - Can be used with any terminal or other program of your choice
@@ -69,7 +69,7 @@ mime ^video, has mpv, X, flag f = tdrop -a auto_hide && mpv -- "$@" && tdrop -a 
 If your terminal doesn't work with tdrop, feel free to make an issue.
 
 ### Window Managers
-The primary goal of tdrop is to "just work" with any window manager. The primary differences between how tdrop deals with different window managers is the strategy it takes for floating only the dropdown (as opposed to all instances of the class that the dropdown is) and how it deals with window managers that resize or move a window after mapping then unmapping it. There are three types of window managers as far as tdrop is concerned.
+The primary goal of tdrop is to "just work" with any window manager. The primary differences between how tdrop deals with different window managers is the strategy it takes for floating only the dropdown (as opposed to all instances of the class that the dropdown is) and how it deals with window managers that resize or move a window after unmapping then mapping it. There are three types of window managers as far as tdrop is concerned.
 
 #### Tiling without Floating Support
 If your window manager does not support floating, there's nothing to worry about. Binding a key to `tdrop <settings> term` should work. Options for resizing and movement that work only with floating window managers are not supported. One can, however, add post-map and post-unmap commands to do something like change the layout to fullscreen when showing a dropdown then revert the layout when hiding the dropdown. Automatic settings exist to do this for the following (use '-a'):
