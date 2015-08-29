@@ -1,5 +1,5 @@
 .\" Manpage for tdrop.
-.\" Contact <nocturnalartifice at gmail dot com> to correct errors or typos.
+.\" Contact <noct at openmailbox dot org> to correct errors or typos.
 .TH TDROP 1 "11 February 2015" "tdrop 0.1" "tdrop man page"
 .SH NAME
 Tdrop \- make dropdown terminals and windows
@@ -147,4 +147,4 @@ Also, if -y is set to 0, a window may be subsequently moved to the middle when s
 .SH AUTHOR
 Lit Wakefield <nocturnalartifice at gmail dot com>
 .br
-Source: https://github.com/angelic-sedition/tdrop
+Source: https://github.com/noct/tdrop
