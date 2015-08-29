@@ -134,7 +134,7 @@ monitor_changed=false
 # Multiple Monitor Automatic Re-Sizing
 #
 
-maybe_set_new_size_for_monitor() {
+update_geometry_settings_for_monitor() {
 	# 1. Correctly interpret width/height percentages when there exist multiple
 	#    monitors so an initially created dropdown is the correct size (xdotool
 	#    would create a dropdown the width of all screens for 100% width)
@@ -162,6 +162,11 @@ maybe_set_new_size_for_monitor() {
 		fi
 	done <<< "$monitors_info"
 
+	# update x and y offsets, so that will appear on correct screen
+	# (required for some WMs apparently, but not for others)
+	((xoff+=x_begin))
+	((yoff+=y_begin))
+
 	# convert w/h percentages to pixels based on size of current screen
 	if [[ $height =~ %$ ]]; then
 		height=$(awk "BEGIN {printf(\"%.0f\", 0.01*${height%\%}*$y_height)}")
@@ -184,8 +189,8 @@ maybe_set_new_size_for_monitor() {
 	fi
 }
 
-resize_for_monitor() {
-	xdotool windowsize "$1" "$width" "$height"
+set_geometry_for_monitor() {
+	xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
 }
 
 #
@@ -463,9 +468,9 @@ wid_toggle() {
 			# would be much too messy to integrate a resize into existing map_post commands
 			# or add for those WMs that don't even need an xdotool command
 			# cleaner to do after any map_post command with the downside of potential
-			# for minimal flicker
+			# for minimal flicker or redundancy
 			if $monitor_changed; then
-				resize_for_monitor "$wid"
+				set_geometry_for_monitor "$wid"
 			fi
 		else
 			xdotool windowunmap "$wid"
@@ -607,7 +612,7 @@ auto_show() {
 #
 
 if $multiple_monitors; then
-	maybe_set_new_size_for_monitor
+	update_geometry_settings_for_monitor
 fi
 
 if $auto_detect_wm; then
