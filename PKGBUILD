@@ -9,9 +9,10 @@ arch=('any')
 url="https://github.com/noctuid/tdrop"
 license=('Simplified BSD')
 depends=('bash' 'xdotool' 'xorg-xwininfo' 'xorg-xprop')
-optdepends=('tmux: session starting support' 
+optdepends=('tmux: session starting support'
             'tmuxinator: session starting support'
-            'sxhkd: for a tdrop keybinding')
+            'sxhkd: for a tdrop keybinding'
+            'xorg-xrandr: multiple monitor resizing support')
 makedepends=('git')
 provides=("${_pkgname}")
 md5sums=('SKIP')

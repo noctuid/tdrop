@@ -24,6 +24,7 @@ options:
 	-z           use a different sleep time to wait for terminal to be created (advanced; see man page)
 	-Z           use a different sleep time for -W program to be created (advanced; see man page)
 	-a           automatically detect window manager and if settings exist for it, automatically set -p, -P, and -d values as necessary; this can have affect when used with a terminal or with auto_show or auto_hide (default: false)
+	-m           for use with multiple monitors and only with dropdowns (not for auto_show or auto_hide); convert percentages used for width or height to values relative to the size of the current monitor and force reszing of the dropdown when the monitor changes (default: false)
 	-W           the given program is not a terminal (or lacks an -e flag) (default: assume it IS a terminal)
 	--clear      clear saved window id; useful accidentally make a window a dropdown (e.g. '$ tdrop --clear current')
 	--no-cancel  don't cancel auto-showing
@@ -64,7 +65,8 @@ clearwid=false
 cancel_auto_show=true
 term=${*:0-1}
 auto_detect_wm=false
-while getopts :h:w:x:y:s:n:p:P:M:O:d:z:Z:-:Wa opt
+multiple_monitors=false
+while getopts :h:w:x:y:s:n:p:P:M:O:d:-:Wam opt
 do
 	case $opt in
 	h) height=$OPTARG;;
@@ -84,6 +86,7 @@ do
 		sleep_win_user_set=true;;
 	W) normal_window=true;;
 	a) auto_detect_wm=true;;
+	m) multiple_monitors=true;;
 	-)
 		OPTION=$(echo "$OPTARG" | awk -F '=' '{print $1}')
 		OPTARG=$(echo "$OPTARG" | awk -F '=' '{print $2}')
@@ -105,6 +108,7 @@ do
 			sleep_win_user_set=true;;
 		normal-window) normal_window=true;;
 		auto-detect-wm) auto_detect_wm=true;;
+		multiple-monitors) multiple_monitors=true;;
 		clear) clearwid=true;;
 		no-cancel) cancel_auto_show=false;;
 		help) print_help;;
@@ -121,6 +125,68 @@ subtract_when_same=true
 # position when remapping; when true, windowmap and windowmove are combined, so that
 # the window is correctly positioned earlier
 combine_map_post=false
+# set to true if the -m option is being used and the monitor has changed
+# in order to force resize the dropdown to the given width/height percentages
+# for the current monitor
+monitor_changed=false
+
+#
+# Multiple Monitor Automatic Re-Sizing
+#
+
+maybe_set_new_size_for_monitor() {
+	# 1. Correctly interpret width/height percentages when there exist multiple
+	#    monitors so an initially created dropdown is the correct size (xdotool
+	#    would create a dropdown the width of all screens for 100% width)
+	# 2. Force resize the dropdown to the correct percentage of the current
+	#    monitor IF the monitor has changed since the last time the dropdown
+	#    was used
+
+	# determine curent monitor
+	wininfo=$(xwininfo -id "$(xdotool getactivewindow)")
+	window_x=$(echo "$wininfo" | awk '/Absolute.*X/ {print $4}')
+	window_y=$(echo "$wininfo" | awk '/Absolute.*Y/ {print $4}')
+	monitors_info=$(xrandr --query | grep " connected")
+	while read -r monitor; do
+		monitor_geo=$(echo "$monitor" | awk '{print $3}')
+		x_begin=$(echo "$monitor_geo" | awk -F '+' '{print $2}')
+		y_begin=$(echo "$monitor_geo" | awk -F '+' '{print $3}')
+		x_width=$(echo "$monitor_geo" | awk -F 'x' '{print $1}')
+		y_height=$(echo "$monitor_geo" | awk -F 'x|+' '{print $2}')
+		x_end=$((x_begin+x_width))
+		y_end=$((y_begin+y_height))
+		if [[ $window_x -ge $x_begin ]] && [[ $window_x -lt $x_end ]] && \
+			[[ $window_y -ge $y_begin ]] && [[ $window_y -lt $y_end ]]; then
+			current_monitor=$(echo "$monitor" | awk '{print $1}')
+			break
+		fi
+	done <<< "$monitors_info"
+
+	# convert w/h percentages to pixels based on size of current screen
+	if [[ $height =~ %$ ]]; then
+		height=$(awk "BEGIN {printf(\"%.0f\", 0.01*${height%\%}*$y_height)}")
+	elif [[ $height =~ ^- ]]; then
+		minus_height=${height#-}
+		height=$((y_height-minus_height))
+	fi
+	if [[ $width =~ %$ ]]; then
+		width=$(awk "BEGIN {printf(\"%.0f\", 0.01*${width%\%}*$x_width)}")
+	elif [[ $width =~ ^- ]]; then
+		minus_width=${width#-}
+		width=$((x_width-minus_width))
+	fi
+
+	# determine if monitor has changed and save current monitor
+	last_monitor=$(< /tmp/tdrop/last_monitor)
+	echo "$current_monitor" > /tmp/tdrop/last_monitor
+	if [[ $current_monitor != $last_monitor ]]; then
+		monitor_changed=true
+	fi
+}
+
+resize_for_monitor() {
+	xdotool windowsize "$1" "$width" "$height"
+}
 
 #
 # WM Detection and Settings
@@ -394,6 +460,13 @@ wid_toggle() {
 				map_post_command "$wid"
 			fi
 			maybe_cancel_auto_show "$wid"
+			# would be much too messy to integrate a resize into existing map_post commands
+			# or add for those WMs that don't even need an xdotool command
+			# cleaner to do after any map_post command with the downside of potential
+			# for minimal flicker
+			if $monitor_changed; then
+				resize_for_monitor "$wid"
+			fi
 		else
 			xdotool windowunmap "$wid"
 		fi
@@ -532,6 +605,10 @@ auto_show() {
 #
 # Main
 #
+
+if $multiple_monitors; then
+	maybe_set_new_size_for_monitor
+fi
 
 if $auto_detect_wm; then
 	wm_autoset_for_all
