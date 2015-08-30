@@ -146,7 +146,7 @@ update_geometry_settings_for_monitor() {
 	wininfo=$(xwininfo -id "$(xdotool getactivewindow)")
 	window_x=$(echo "$wininfo" | awk '/Absolute.*X/ {print $4}')
 	window_y=$(echo "$wininfo" | awk '/Absolute.*Y/ {print $4}')
-	monitors_info=$(xrandr --query | grep " connected")
+	monitors_info=$(xrandr --query | awk '/ connected/ {gsub("primary ",""); print}')
 	while read -r monitor; do
 		monitor_geo=$(echo "$monitor" | awk '{print $3}')
 		x_begin=$(echo "$monitor_geo" | awk -F '+' '{print $2}')
