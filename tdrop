@@ -66,7 +66,7 @@ cancel_auto_show=true
 term=${*:0-1}
 auto_detect_wm=false
 multiple_monitors=false
-while getopts :h:w:x:y:s:n:p:P:M:O:d:-:Wam opt
+while getopts :h:w:x:y:s:n:p:P:M:O:d:z:Z:-:Wam opt
 do
 	case $opt in
 	h) height=$OPTARG;;
