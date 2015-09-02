@@ -211,7 +211,6 @@ get_window_manager() {
 # can set up a rule for always floating a window or term type/class
 # alternatively, can use these settings to float just the dropdown
 wm_autoset_for_all() {
-	wm=$(get_window_manager)
 	# bspwm will use previous size when floating already
 	if [[ $wm == bspwm ]]; then
 		map_pre() {
@@ -299,8 +298,6 @@ wm_autoset_for_hide_show() {
 }
 
 wm_autoset_for_dropdown() {
-	wm=$(get_window_manager)
-
 	# tilers without floating support: can toggle fullscreen instead for the dropdown
 	if [[ $wm == herbstluftwm ]]; then
 		map_post() {
@@ -626,6 +623,7 @@ auto_show() {
 #
 
 if $auto_detect_wm; then
+	wm=$(get_window_manager)
 	wm_autoset_for_all
 	if [[ $term == auto_show ]] || [[ $term == auto_hide ]]; then
 		wm_autoset_for_hide_show
