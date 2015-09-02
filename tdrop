@@ -625,10 +625,6 @@ auto_show() {
 # Main
 #
 
-if $multiple_monitors; then
-	update_geometry_settings_for_monitor
-fi
-
 if $auto_detect_wm; then
 	wm_autoset_for_all
 	if [[ $term == auto_show ]] || [[ $term == auto_hide ]]; then
@@ -648,6 +644,9 @@ if [[ -n $1 ]]; then
 	elif [[ $term == auto_show ]]; then
 		auto_show
 	else
+		if $multiple_monitors; then
+			update_geometry_settings_for_monitor
+		fi
 		wid_toggle
 	fi
 else
