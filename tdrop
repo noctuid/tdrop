@@ -155,12 +155,14 @@ update_geometry_settings_for_monitor() {
 		current_monitor=$(bspc query -m -M)
 	elif [[ $wm == i3 ]]; then
 		# I'd rather not make jq a dependency
-		current_monitor=$(i3-msg -t get_workspaces | sed 's/{"num"/\n/g' | awk -F ',' '/focused":true/ {sub(".*output",""); gsub("[:\"]",""); print $1}')
+		current_monitor=$(i3-msg -t get_workspaces | sed 's/{"num"/\n/g' | \
+			awk -F ',' '/focused":true/ {sub(".*output",""); gsub("[:\"]",""); print $1}')
 	fi
 
 	local monitor_geo x_begin y_begin x_width y_height
 	if [[ -n $current_monitor ]]; then
-		monitor_geo=$(xrandr --query | awk "/$current_monitor/ {gsub(\"primary \",\"\"); print \$3}")
+		monitor_geo=$(xrandr --query | \
+			awk "/$current_monitor/ {gsub(\"primary \",\"\"); print \$3}")
 		x_begin=$(echo "$monitor_geo" | awk -F '+' '{print $2}')
 		y_begin=$(echo "$monitor_geo" | awk -F '+' '{print $3}')
 		x_width=$(echo "$monitor_geo" | awk -F 'x' '{print $1}')
@@ -226,7 +228,9 @@ set_geometry_for_monitor() {
 
 get_window_manager() {
 	# xfwm4 and fvwm at least will give two names (hence piping into head)
-	xprop -notype -id "$(xprop -root -notype | awk '$1=="_NET_SUPPORTING_WM_CHECK:"{print $5}')" -f _NET_WM_NAME 8u | awk -F "\"" '/WM_NAME/ {print $2}' | head -n 1
+	xprop -notype -id "$(xprop -root -notype | \
+		awk '$1=="_NET_SUPPORTING_WM_CHECK:"{print $5}')" \
+		-f _NET_WM_NAME 8u | awk -F "\"" '/WM_NAME/ {print $2}' | head -n 1
 }
 
 # settings that apply for both tdrop <term> and tdrop auto_(hide|show)
@@ -242,16 +246,21 @@ wm_autoset_for_all() {
 	elif [[ $wm == awesome ]]; then
 		# awesome remembers size, but need to float and then set size first
 		map_post_oneshot() {
-			# need sleep time to wait for window be created or will float wrong one.. not sure if way to float by window id
+			# need sleep time to wait for window be created or will float wrong one..
+			# not sure if there is a way to float by window id
 			if ! $sleep_win_user_set; then
 				# what I've had best results with
 				sleep_win_time=0.1
 			fi
-			sleep $sleep_win_time && echo 'local awful = require("awful") ; awful.client.floating.set(c, true)' | awesome-client && \
-			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
+			sleep $sleep_win_time && \
+				echo 'local awful = require("awful") ; awful.client.floating.set(c, true)' | \
+				awesome-client && \
+				xdotool windowmove "$1" "$xoff" "$yoff" \
+				windowsize "$1" "$width" "$height"
 		}
 		map_post() {
-			echo 'local awful = require("awful") ; awful.client.floating.set(c, true)' | awesome-client
+			echo 'local awful = require("awful") ; awful.client.floating.set(c, true)' | \
+				awesome-client
 		}
 	
 	# tilers that won't remember sizing
@@ -264,11 +273,12 @@ wm_autoset_for_all() {
 			fi
 			sleep $sleep_win_time && \
 			i3-msg "[id=$1] floating enable" > /dev/null && \
-			xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
+			xdotool windowmove "$1" "$xoff" "$yoff" \
+				windowsize "$1" "$width" "$height"
 		}
 		map_post() {
 			i3-msg "[id=$1] floating enable" > /dev/null && \
-			xdotool windowmove "$1" "$xoff" "$yoff"
+				xdotool windowmove "$1" "$xoff" "$yoff"
 		}
 
 	# floating WMs that need extra sleep time to wait for dropdown to spawn initially
@@ -292,7 +302,8 @@ wm_autoset_for_hide_show() {
 		subtract_when_same=false
 		is_floating() {
 			# do you even sed?
-			i3-msg -t get_tree | awk 'gsub(/{"id"/, "\n{\"id\"")' | awk '/focused":true.*floating":"user_on/ {print $1}'
+			i3-msg -t get_tree | awk 'gsub(/{"id"/, "\n{\"id\"")' | \
+				awk '/focused":true.*floating":"user_on/ {print $1}'
 		}
 
 	# settings for stacking/floating wms where can't get right position easily from xwininfo
@@ -340,7 +351,7 @@ wm_autoset_for_dropdown() {
 				windowsize "$1" "$width" "$height"
 		}
 	# floating window managers that may move a window after unmapping then mapping it
-elif [[ $wm =~ ^(pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter|GNOME Shell|Mutter \(Muffin\)|KWin|Metacity \(Marco\))$ ]]; then
+	elif [[ $wm =~ ^(pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter|GNOME Shell|Mutter \(Muffin\)|KWin|Metacity \(Marco\))$ ]]; then
 		# most will center
 		# mutter/gnome shell will move to top centerish (just below panel on gnome shell)
 		# xfwm4 will normally move to top left; metacity will move close to top left
@@ -382,7 +393,8 @@ map_pre_command() {
 map_post_command() {
 	if [[ -n $oneshot_post ]] && [[ $1 == oneshot ]]; then
 		eval "$oneshot_post"
-	elif [[ -n $(type map_post_oneshot 2> /dev/null) ]] && [[ $1 == oneshot ]]; then
+	elif [[ -n $(type map_post_oneshot 2> /dev/null) ]] && \
+		[[ $1 == oneshot ]]; then
 		map_post_oneshot "$2"
 	elif [[ -n $map_post ]]; then
 		eval "$map_post"
@@ -400,7 +412,8 @@ unmap_post_command() {
 }
 
 maybe_cancel_auto_show() {
-	if $cancel_auto_show && [[ $1 == "$(cat /tmp/tdrop/auto_hidden/wid 2> /dev/null)" ]]; then
+	if $cancel_auto_show && \
+		[[ $1 == $(cat /tmp/tdrop/auto_hidden/wid 2> /dev/null) ]]; then
 		> /tmp/tdrop/auto_hidden/wid
 	fi
 }
@@ -460,7 +473,8 @@ win_create() {
 		wid=$wid1
 	fi
 	# only works with pre-command
-	xdotool windowmove "$wid" "$xoff" "$yoff" windowsize "$wid" "$width" "$height"
+	xdotool windowmove "$wid" "$xoff" "$yoff" \
+		windowsize "$wid" "$width" "$height"
 	echo "$wid" > /tmp/tdrop/"$term$num"
 }
 
@@ -547,7 +561,8 @@ wid_toggle() {
 
 get_geometry() {
 	# so that won't float a tiled window later when showing
-	if [[ -n $(type is_floating 2> /dev/null) ]] && [[ -z $(is_floating "$1") ]]; then
+	if [[ -n $(type is_floating 2> /dev/null) ]] && \
+		[[ -z $(is_floating "$1") ]]; then
 		# window is not floating; don't bother saving geometry
 		echo "false"
 	else
