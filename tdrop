@@ -149,6 +149,7 @@ update_geometry_settings_for_monitor() {
 	# it is conceivable that a user may want to use -m but not -a, so
 	# get the wm from with
 	# in this function
+	local wm current_monitor
 	wm=$(get_window_manager)
 	if [[ $wm == bspwm ]]; then
 		current_monitor=$(bspc query -m -M)
@@ -157,6 +158,7 @@ update_geometry_settings_for_monitor() {
 		current_monitor=$(i3-msg -t get_workspaces | sed 's/{"num"/\n/g' | awk -F ',' '/focused":true/ {sub(".*output",""); gsub("[:\"]",""); print $1}')
 	fi
 
+	local monitor_geo x_begin y_begin x_width y_height
 	if [[ -n $current_monitor ]]; then
 		monitor_geo=$(xrandr --query | awk "/$current_monitor/ {gsub(\"primary \",\"\"); print \$3}")
 		x_begin=$(echo "$monitor_geo" | awk -F '+' '{print $2}')
@@ -164,6 +166,7 @@ update_geometry_settings_for_monitor() {
 		x_width=$(echo "$monitor_geo" | awk -F 'x' '{print $1}')
 		y_height=$(echo "$monitor_geo" | awk -F 'x|+' '{print $2}')
 	else
+		local wininfo window_x window_y monitors_info x_end y_end
 		# determine current monitor in generic (hacky) way
 		wininfo=$(xwininfo -id "$(xdotool getactivewindow)")
 		window_x=$(echo "$wininfo" | awk '/Absolute.*X/ {print $4}')
@@ -205,6 +208,7 @@ update_geometry_settings_for_monitor() {
 	fi
 
 	# determine if monitor has changed and save current monitor
+	local last_monitor
 	last_monitor=$(< /tmp/tdrop/last_monitor)
 	echo "$current_monitor" > /tmp/tdrop/last_monitor
 	if [[ $current_monitor != $last_monitor ]]; then
@@ -406,6 +410,7 @@ maybe_cancel_auto_show() {
 #
 
 term_create() {
+	local term_command
 	if [[ -n $program_flags ]]; then
 		term_command="$term $program_flags"
 	else
@@ -431,6 +436,7 @@ term_create() {
 }
 
 win_create() {
+	local win_command
 	if [[ -n $program_flags ]]; then
 		win_command="$term $program_flags"
 	else
@@ -440,6 +446,7 @@ win_create() {
 	# need to wait for window to be created
 	sleep $sleep_win_time
 	# often pids have two wids
+	local wid wid1 wid2
 	wids=$(xdotool search --pid $!)
 	wid1=$(echo "$wids" | head -n 1)
 	wid2=$(echo "$wids" | tail -n 1)
@@ -459,6 +466,7 @@ win_create() {
 
 current_create() {
 	# turns active window into a dropdown
+	local wid
 	wid=$(xdotool getactivewindow)
 	echo "$wid" > /tmp/tdrop/current"$num"
 	get_class_name "$wid" > /tmp/tdrop/current"$num"_type
@@ -468,6 +476,7 @@ current_create() {
 wid_toggle() {
 	mkdir -p /tmp/tdrop
 	# get saved window id if already created
+	local wid exists visibility
 	wid=$(< /tmp/tdrop/"$term$num")
 	exists=true
 	if [[ -n $wid ]]; then
@@ -508,6 +517,7 @@ wid_toggle() {
 	else
 		# make it
 		map_pre_command "$term"
+		local wid
 		if [[ $term == current ]]; then
 			wid=$(current_create)
 			xdotool windowunmap "$wid"
@@ -519,6 +529,7 @@ wid_toggle() {
 			fi
 			# get saved wid of newly created dropdown
 			wid=""
+			local count
 			count=0
 			while [[ -z $wid ]] && [[ $count -lt 100 ]]; do
 				wid=$(< /tmp/tdrop/"$term$num")
@@ -540,6 +551,7 @@ get_geometry() {
 		# window is not floating; don't bother saving geometry
 		echo "false"
 	else
+		local wininfo x y rel_x rel_y
 		wininfo=$(xwininfo -id "$1")
 		x=$(echo "$wininfo" | awk '/Absolute.*X/ {print $4}')
 		y=$(echo "$wininfo" | awk '/Absolute.*Y/ {print $4}')
@@ -565,6 +577,7 @@ get_geometry() {
 
 give_geometry() {
 	eval "$(< /tmp/tdrop/auto_hidden/geometry)"
+	local x_fix y_fix X Y
 	if [[ -n $dec_fix ]]; then
 		x_fix=$(echo "$dec_fix" | awk -F "x" '{print $1}')
 		y_fix=$(echo "$dec_fix" | awk -F "x" '{print $2}')
@@ -584,6 +597,7 @@ set_geometry() {
 }
 
 toggle_auto_hide() {
+	local no_hide
 	no_hide=$(< /tmp/tdrop/auto_hidden/no_hide)
 	mkdir -p /tmp/tdrop/auto_hidden
 	if [[ -z $no_hide ]]; then
@@ -598,8 +612,10 @@ toggle_auto_hide() {
 #
 
 auto_hide() {
+	local no_hide
 	no_hide=$(< /tmp/tdrop/auto_hidden/no_hide)
 	if [[ -z $no_hide ]]; then
+		local wid
 		wid=$(xdotool getactivewindow)
 		mkdir -p /tmp/tdrop/auto_hidden
 		echo "$wid" > /tmp/tdrop/auto_hidden/wid
@@ -610,8 +626,10 @@ auto_hide() {
 }
 
 auto_show() {
+	local no_hide
 	no_hide=$(< /tmp/tdrop/auto_hidden/no_hide)
 	if [[ -z $no_hide ]]; then
+		local wid class was_floating
 		wid=$(< /tmp/tdrop/auto_hidden/wid)
 		class=$(< /tmp/tdrop/auto_hidden/class)
 		was_floating=$(< /tmp/tdrop/auto_hidden/geometry)
@@ -623,6 +641,7 @@ auto_show() {
 		fi
 		if [[ $was_floating != false ]]; then
 			if $combine_map_post; then
+				local XY X Y
 				XY=$(give_geometry "$wid")
 				X=$(echo "$XY" | awk '{print $1}')
 				Y=$(echo "$XY" | awk '{print $2}')
