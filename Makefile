@@ -11,5 +11,5 @@ install:
 
 uninstall:
 	rm -f "$(DESTDIR)$(BINDIR)"/tdrop
-	rm -rf "$(DESTDIR)$(MANDIR)"
+	rm -f "$(DESTDIR)$(MANDIR)"/man1/tdrop.1
 	rm -rf "$(DESTDIR)$(LICENSEDIR)/tdrop"
