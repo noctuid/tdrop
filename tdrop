@@ -241,7 +241,7 @@ wm_autoset_for_all() {
 	# bspwm will use previous size when floating already
 	if [[ $wm == bspwm ]]; then
 		map_pre() {
-			bspc rule -a "$1" -o floating=on
+			bspc rule -a "$1" -o state=floating
 		}
 	elif [[ $wm == awesome ]]; then
 		# awesome remembers size, but need to float and then set size first
