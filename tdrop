@@ -298,7 +298,8 @@ wm_autoset_for_hide_show() {
 		subtract_when_same=false
 		is_floating() {
 			# checking if the window id (converted from decimal to hex) is floating; empty if not floating
-			bspc query -T | grep -i "$(printf 0x%x "$1").*f-"
+			bspc query -T | grep -i "$(printf 0x%x "$1").*f-" || \
+				bspc query -T -w | grep '"state": "floating"'
 		}
 	elif [[ $wm == i3 ]]; then
 		subtract_when_same=false
