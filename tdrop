@@ -67,7 +67,7 @@ clearwid=false
 cancel_auto_show=true
 term=${*:0-1}
 auto_detect_wm=false
-multiple_monitors=false
+monitor_aware=false
 while getopts :h:w:x:y:s:n:p:P:M:O:d:z:Z:f:-:Wam opt
 do
 	case $opt in
@@ -89,7 +89,7 @@ do
 	f) program_flags=$OPTARG;;
 	W) normal_window=true;;
 	a) auto_detect_wm=true;;
-	m) multiple_monitors=true;;
+	m) monitor_aware=true;;
 	-)
 		OPTION=$(echo "$OPTARG" | awk -F '=' '{print $1}')
 		OPTARG=$(echo "$OPTARG" | awk -F '=' '{print $2}')
@@ -112,7 +112,7 @@ do
 		program-flags) program_flags=$OPTARG;;
 		normal-window) normal_window=true;;
 		auto-detect-wm) auto_detect_wm=true;;
-		multiple-monitors) multiple_monitors=true;;
+		monitor-aware) monitor_aware=true;;
 		clear) clearwid=true;;
 		no-cancel) cancel_auto_show=false;;
 		help) print_help;;
@@ -515,7 +515,7 @@ wid_toggle() {
 			fi
 			# update here so this doesn't cause a delay
 			# between the window being remapped and resized
-			if $multiple_monitors; then
+			if $monitor_aware; then
 				update_geometry_settings_for_monitor
 			fi
 			if ! $combine_map_post; then
@@ -538,7 +538,7 @@ wid_toggle() {
 		fi
 	else
 		# necessary to deal with negative width or height
-		if $multiple_monitors; then
+		if $monitor_aware; then
 			update_geometry_settings_for_monitor
 		fi
 		# make it

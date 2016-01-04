@@ -14,6 +14,7 @@ A demo showing tdrop's ability to auto-hide windows when opening things from the
 - Allows for multiple dropdowns of the same type (works by window id)
 - Allows for auto-hiding a dropdown when opening programs from it
 - Can automatically start programs and tmux or tmuxinator sessions
+- Supports automatic resizing based on the current monitor
 
 ## Requirements
 - xprop
@@ -38,6 +39,15 @@ For some window managers that require a window to be repositioned after re-mappi
 s. It is usually worse on tiling managers where the window must be re-floated every time it is mapped. The way around this is to use rules to either always have the class floated or one-time rules to only float the next instance of a class. For example, since bspwm has oneshot rules and won't alter the size/position of a window, this flicker is not a problem.
 
 However, the consistent way to eliminate visual flickering due to moving/resizing for any window manager is to enable fade-in for the compositor. For compton this can be done by setting `fading = true;` and adjusting the `fade-delta` in the .compton.conf accordingly.
+
+### Monitor Awareness
+Using the `-m`/`--monitor-aware` flag has two purposes. For those who use a single monitor, it allows specifying a negative number to `-w` or `-h`. For example, `-w -4` corresponds to a width 4 pixels less than 100% of the screen width. This may be useful when the window manager (possibly due to window decorations) causes a dropdown with `-w 100%` to go over the edge of the screen.
+
+For those who use multiple monitors, using `-m` will additionally alter the width and height options to correspond to the current monitor. This means that `-w 100%` will cause the dropdown to occupy the full width of the current monitor instead of spanning all monitors. Also, the `-m` option will automatically resize the dropdown when opening it on a different monitor if the width or height arguments are negative or percentages.
+
+Some window managers allow querying what the current monitor is (e.g. bspwm and i3), but for other window managers, tdrop determines the current monitor based on the position of the active window. This means that for window managers that have a concept of a focused but empty monitor, the `-m` option may not work properly on empty monitors. If you encounter this problem, please make an issue.
+
+See the manpage for more information.
 
 ### Auto-hiding
 In addition to creating dropdowns, tdrop can automatically hide a window and later un-hide it. For example, if gvim is opened to write a git commit message from the terminal, tdrop can automatically hide the terminal (dropdown or not) and restore it after the user is finished writing the commit message:
