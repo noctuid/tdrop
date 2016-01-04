@@ -513,6 +513,11 @@ wid_toggle() {
 			else
 				map_pre_command "$term"
 			fi
+			# update here so this doesn't cause a delay
+			# between the window being remapped and resized
+			if $multiple_monitors; then
+				update_geometry_settings_for_monitor
+			fi
 			if ! $combine_map_post; then
 				xdotool windowmap "$wid"
 				map_post_command "$wid"
@@ -532,6 +537,10 @@ wid_toggle() {
 			xdotool windowunmap "$wid"
 		fi
 	else
+		# necessary to deal with negative width or height
+		if $multiple_monitors; then
+			update_geometry_settings_for_monitor
+		fi
 		# make it
 		map_pre_command "$term"
 		local wid
@@ -698,9 +707,6 @@ if [[ -n $1 ]]; then
 	elif [[ $term == auto_show ]]; then
 		auto_show
 	else
-		if $multiple_monitors; then
-			update_geometry_settings_for_monitor
-		fi
 		wid_toggle
 	fi
 else
