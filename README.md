@@ -45,7 +45,7 @@ Using the `-m`/`--monitor-aware` flag has two purposes. For those who use a sing
 
 For those who use multiple monitors, using `-m` will additionally alter the width and height options to correspond to the current monitor. This means that `-w 100%` will cause the dropdown to occupy the full width of the current monitor instead of spanning all monitors. Also, the `-m` option will automatically resize the dropdown when opening it on a different monitor if the width or height arguments are negative or percentages.
 
-Some window managers allow querying what the current monitor is (e.g. bspwm and i3), but for other window managers, tdrop determines the current monitor based on the position of the active window. This means that for window managers that have a concept of a focused but empty monitor, the `-m` option may not work properly on empty monitors. If you encounter this problem, please make an issue.
+Some window managers allow querying what the current monitor is (e.g. bspwm and i3), but for other window managers, tdrop determines the current monitor based on the position of the active window. For these window managers, if the desktop is empty, tdrop must wait for the dropdown to be created or mapped before getting the monitor info. This may cause a slight delay before the dropdown is properly resized. If `-m` does not work at all or there is a specific way to query for the current monitor in your window manager, please make an issue.
 
 See the manpage for more information.
 

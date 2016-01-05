@@ -133,6 +133,13 @@ combine_map_post=false
 # in order to force resize the dropdown to the given width/height percentages
 # for the current monitor
 monitor_changed=false
+# used for -m option; at first tdrop assumes that there is a focused window
+# on the current desktop; if there isn't (and the WM doesn't have some way to
+# query the current monitor), this will be set to false, and tdrop will have to
+# find out the current monitor info after opening the dropdown
+# (currently, using xwininfo to find the position of a window is the only
+# WM-independent way I know to find out what the current monitor is)
+focused_window_exists=true
 
 #
 # Multiple Monitor Automatic Re-Sizing
@@ -168,9 +175,14 @@ update_geometry_settings_for_monitor() {
 		x_width=$(echo "$monitor_geo" | awk -F 'x' '{print $1}')
 		y_height=$(echo "$monitor_geo" | awk -F 'x|+' '{print $2}')
 	else
-		local wininfo window_x window_y monitors_info x_end y_end
-		# determine current monitor in generic (hacky) way
-		wininfo=$(xwininfo -id "$(xdotool getactivewindow)")
+		local wid wininfo window_x window_y monitors_info x_end y_end
+		# determine current monitor in generic way
+		wid=$(xdotool getactivewindow)
+		if [[ -z $wid ]]; then
+			# will try again after remapping or creating the dropdown
+			return 1
+		fi
+		wininfo=$(xwininfo -id "$wid")
 		window_x=$(echo "$wininfo" | awk '/Absolute.*X/ {print $4}')
 		window_y=$(echo "$wininfo" | awk '/Absolute.*Y/ {print $4}')
 		monitors_info=$(xrandr --query | awk '/ connected/ {gsub("primary ",""); print}')
@@ -513,10 +525,11 @@ wid_toggle() {
 			else
 				map_pre_command "$term"
 			fi
-			# update here so this doesn't cause a delay
+			# update here if possible so this doesn't cause a delay
 			# between the window being remapped and resized
 			if $monitor_aware; then
-				update_geometry_settings_for_monitor
+				update_geometry_settings_for_monitor || \
+					focused_window_exists=false
 			fi
 			if ! $combine_map_post; then
 				xdotool windowmap "$wid"
@@ -526,6 +539,10 @@ wid_toggle() {
 				map_post_command "$wid"
 			fi
 			maybe_cancel_auto_show "$wid"
+			if ! $focused_window_exists; then
+				# need to use dropdown as active window to get monitor info
+				update_geometry_settings_for_monitor
+			fi
 			# would be much too messy to integrate a resize into existing map_post commands
 			# or add for those WMs that don't even need an xdotool command
 			# cleaner to do after any map_post command with the downside of potential
@@ -538,8 +555,19 @@ wid_toggle() {
 		fi
 	else
 		# necessary to deal with negative width or height
-		if $monitor_aware; then
-			update_geometry_settings_for_monitor
+		# if creating on an empty desktop and can't determine the monitor,
+		# must set temporary values for negative width and/or height
+		local original_width original_height
+		if $monitor_aware && ! update_geometry_settings_for_monitor; then
+			focused_window_exists=false
+			if [[ $width =~ ^- ]]; then
+				original_width=$width
+				width=100%
+			fi
+			if [[ $height =~ ^- ]]; then
+				original_height=$height
+				height=100%
+			fi
 		fi
 		# make it
 		map_pre_command "$term"
@@ -563,6 +591,13 @@ wid_toggle() {
 				((count++))
 			done
 			map_post_command oneshot "$wid"
+			# update window dimensions if necessary
+			if ! $focused_window_exists; then
+				width=${original_width:-$width}
+				height=${original_height:-$height}
+				update_geometry_settings_for_monitor
+				set_geometry_for_monitor "$wid"
+			fi
 		fi
 	fi
 }
