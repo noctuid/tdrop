@@ -514,6 +514,7 @@ wid_toggle() {
 		if [[ -z $visibility ]] || [[ -z $(xprop -id "$wid") ]]; then
 			# window no longer exists
 			exists=false
+			> /tmp/tdrop/"$term$num"
 		fi
 	else
 		exists=false
