@@ -32,7 +32,10 @@ alt + s
 ```
 
 ### Basic Flags
-`-s` should only be used for terminals if the user wants to start a tmux or tmuxinator session. `-W` should be used if the program to start is not a terminal with an `-e` flag. `-a` should be used to set up WM specific rules (which are required for the --width, --height, --xoff, and --yoff flags to work properly; see below for supported WMs). Long options require using `--opt=<arg>` as opposed to leaving a space. Refer to `tdrop --help` and the manpage for more complete instructions.
+`-s` should only be used for supported terminals and if the user wants to start a tmux or tmuxinator session. `-a` should be used to set up WM specific rules (which are required for the --width, --height, --xoff, and --yoff flags to work properly; see below for supported WMs). Long options require using `--opt=<arg>` as opposed to leaving a space. Refer to `tdrop --help` and the manpage for more complete instructions.
+
+*Changes*
+Old users please note that `-W|--normal-window`, `-z|--sleep-terminal`, and `-Z|--sleep-window` are no longer necessary and have been removed.
 
 ### Flicker
 For some window managers that require a window to be repositioned after re-mapping it, some flicker may be noticeable. With a recent change, this flicker is pretty much gone for some window managers (e.g. in the Gnome Shell and Cinnamon DEs) and slightly better than before in other
