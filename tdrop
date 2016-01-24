@@ -225,7 +225,7 @@ update_geometry_settings_for_monitor() {
 	local last_monitor
 	last_monitor=$(< /tmp/tdrop/last_monitor)
 	echo "$current_monitor" > /tmp/tdrop/last_monitor
-	if [[ $current_monitor != $last_monitor ]]; then
+	if [[ $current_monitor != "$last_monitor" ]]; then
 		monitor_changed=true
 	fi
 }
