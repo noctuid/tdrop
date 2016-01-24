@@ -438,12 +438,7 @@ maybe_cancel_auto_show() {
 #
 
 term_create() {
-	local term_command
-	if [[ -n $program_flags ]]; then
-		term_command="$term $program_flags"
-	else
-		term_command=$term
-	fi
+	local term_command="$term $program_flags"
 	if [[ $term == terminix ]]; then
 		sleep_term_time=0.3
 	fi
@@ -471,12 +466,7 @@ term_create() {
 }
 
 win_create() {
-	local win_command
-	if [[ -n $program_flags ]]; then
-		win_command="$term $program_flags"
-	else
-		win_command=$term
-	fi
+	local win_command="$term $program_flags"
 	$win_command &
 	# need to wait for window to be created
 	sleep $sleep_win_time
