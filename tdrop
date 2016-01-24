@@ -14,19 +14,16 @@ options:
 	-w width     specify a width for a newly created term (default: 45%)
 	-x pos       specify x offset for a newly created term (default: 0)
 	-y pos       specify y offset for a newly created term (default: 1, see BUGS in man)
-	-s name      name for tmux or tmuxinator session (if not given, will not use tmux)
+	-s name      name for tmux or tmuxinator session (requires the program to be a supported terminal)
 	-n num       num or extra text; only needed if want multiple dropdowns of same program (default: "")
 	-p cmd       provide a pre-map command to float the window if necessary
 	-P cmd       provide a post-map command to float the window if necessary
 	-M cmd       provide a post-unmap command; can be used for example with a window manager that doesn't support floating to turn fullscreen on when mapping a terminal then off when unmapping it
 	-O cmd       provide a one time command only for when a dropdown is created/initiated (useful for 'tdrop current')
 	-d XxY       give decoration/border size to accurately save position; only applicable with auto_show; on applicable with a few window managers (e.g. blackbox)
-	-z           use a different sleep time to wait for terminal to be created (advanced; see man page)
-	-Z           use a different sleep time for -W program to be created (advanced; see man page)
 	-f           specify flags/options to be used when creating the term or window (e.g. -f '--title mytitle', default: none)
 	-a           automatically detect window manager and if settings exist for it, automatically set -p, -P, and -d values as necessary; this can have affect when used with a terminal or with auto_show or auto_hide (default: false)
 	-m           for use with multiple monitors and only with dropdowns (not for auto_show or auto_hide); convert percentages used for width or height to values relative to the size of the current monitor and force reszing of the dropdown when the monitor changes (default: false)
-	-W           the given program is not a terminal (or lacks an -e flag) (default: assume it IS a terminal)
 	--clear      clear saved window id; useful accidentally make a window a dropdown (e.g. '$ tdrop --clear current')
 	--no-cancel  don't cancel auto-showing
 	             (default is to prevent this when manually toggling a term after it is auto-hidden)
@@ -57,18 +54,12 @@ map_post=""
 unmap_post=""
 oneshot_post=""
 dec_fix=""
-sleep_term_time=0.01
-sleep_term_user_set=false
-sleep_win_time=0.5
-sleep_win_user_set=false
 program_flags=""
-normal_window=false
 clearwid=false
 cancel_auto_show=true
-term=${*:0-1}
 auto_detect_wm=false
 monitor_aware=false
-while getopts :h:w:x:y:s:n:p:P:M:O:d:z:Z:f:-:Wam opt
+while getopts :h:w:x:y:s:n:p:P:M:O:d:f:-:am opt
 do
 	case $opt in
 	h) height=$OPTARG;;
@@ -82,12 +73,7 @@ do
 	M) unmap_post=$OPTARG;;
 	O) oneshot_post=$OPTARG;;
 	d) dec_fix=$OPTARG;;
-	z) sleep_term_time=$OPTARG
-		sleep_term_user_set=true;;
-	Z) sleep_win_time=$OPTARG
-		sleep_win_user_set=true;;
 	f) program_flags=$OPTARG;;
-	W) normal_window=true;;
 	a) auto_detect_wm=true;;
 	m) monitor_aware=true;;
 	-)
@@ -105,12 +91,7 @@ do
 		post-unmap) unmap_post=$OPTARG;;
 		oneshot-post) oneshot_post=$OPTARG;;
 		decoration-fix) dec_fix=$OPTARG;;
-		sleep-terminal) sleep_term_time=$OPTARG
-			sleep_term_user_set=true;;
-		sleep-window) sleep_win_time=$OPTARG
-			sleep_win_user_set=true;;
 		program-flags) program_flags=$OPTARG;;
-		normal-window) normal_window=true;;
 		auto-detect-wm) auto_detect_wm=true;;
 		monitor-aware) monitor_aware=true;;
 		clear) clearwid=true;;
@@ -260,14 +241,7 @@ wm_autoset_for_all() {
 	elif [[ $wm == awesome ]]; then
 		# awesome remembers size, but need to float and then set size first
 		map_post_oneshot() {
-			# need sleep time to wait for window be created or will float wrong one..
-			# not sure if there is a way to float by window id
-			if ! $sleep_win_user_set; then
-				# what I've had best results with
-				sleep_win_time=0.1
-			fi
-			sleep $sleep_win_time && \
-				echo 'local awful = require("awful") ; awful.client.floating.set(c, true)' | \
+			echo 'local awful = require("awful") ; awful.client.floating.set(c, true)' | \
 				awesome-client && \
 				xdotool windowmove "$1" "$xoff" "$yoff" \
 				windowsize "$1" "$width" "$height"
@@ -279,27 +253,15 @@ wm_autoset_for_all() {
 	
 	# tilers that won't remember sizing
 	elif [[ $wm == i3 ]]; then
-		# need to sleep first time to wait for window to be created
 		map_post_oneshot() {
-			if ! $sleep_win_user_set; then
-				# what I've had best results with
-				sleep_win_time=0.1
-			fi
-			sleep $sleep_win_time && \
 			i3-msg "[id=$1] floating enable" > /dev/null && \
-			xdotool windowmove "$1" "$xoff" "$yoff" \
-				windowsize "$1" "$width" "$height"
+				xdotool windowmove "$1" "$xoff" "$yoff" \
+					windowsize "$1" "$width" "$height"
 		}
 		map_post() {
 			i3-msg "[id=$1] floating enable" > /dev/null && \
 				xdotool windowmove "$1" "$xoff" "$yoff"
 		}
-
-	# floating WMs that need extra sleep time to wait for dropdown to spawn initially
-	elif [[ $wm =~ ^(Fluxbox|Mutter|GNOME Shell|Mutter \(Muffin\)|KWin)$ ]]; then
-		if ! $sleep_term_user_set; then
-			sleep_term_time=0.05
-		fi
 	fi
 }
 
@@ -397,8 +359,10 @@ map_pre_command() {
 	# use automatically set function if exists
 	elif [[ -n $(type map_pre 2> /dev/null) ]]; then
 		# needed when creating oneshot rules for programs where cmd differs from actual class name
-		if [[ $1 == "gnome-terminal" ]]; then
+		if [[ $1 == gnome-terminal ]]; then
 			map_pre "Gnome-terminal"
+		elif [[ $1 == urxvtc ]]; then
+			map_pre "urxvt"
 		else
 			map_pre "$1"
 		fi
@@ -437,57 +401,67 @@ maybe_cancel_auto_show() {
 # Dropdown Initialization
 #
 
-term_create() {
-	local term_command="$term $program_flags"
-	if [[ $term == terminix ]]; then
-		sleep_term_time=0.3
-	fi
-	if [[ -n $session_name ]]; then
-		# ugly workarounds due to how different terms' different -e flags work
-		if [[ $term == urxvt ]]; then
-			$term_command -e bash -c "sleep $sleep_term_time && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && tmux attach-session -dt $session_name || tmuxinator start $session_name || tmux new-session -s $session_name" &
-		elif [[ $term == terminix ]]; then
-			$term_command -x "bash -c 'sleep $sleep_term_time && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && tmux attach-session -dt $session_name || tmuxinator start $session_name || tmux new-session -s $session_name'" &
-		else
-			# starting with '/bin/bash -c' because required by termite
-			$term_command -e "/bin/bash -c 'sleep $sleep_term_time && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && tmux attach-session -dt $session_name || tmuxinator start $session_name || tmux new-session -s $session_name'" &
-		fi
+create_win_return_wid() {
+	local blacklist program_command pid visible_wid wids program_wid
+	# blacklist all existing wids of program
+	# (for programs where one pid shares all wids)
+	blacklist=$(xdotool search --classname "$program")
+	# need to redirect stdout or function won't return
+	program_command="$1 > /dev/null &"
+	# for programs where $! won't give the correct pid
+	if [[ $program == terminix ]] && pgrep terminix; then
+		pid=$(pgrep terminix)
+		eval "$program_command"
+	elif [[ $program == urxvtc ]]; then
+		blacklist=$(xdotool search --classname urxvtd)
+		pid=$(pgrep urxvtd)
+		eval "$program_command"
 	else
-		# not using hold, because flag is different for different terminals
-		if [[ $term == urxvt ]]; then
-			$term_command -e bash -c "sleep $sleep_term_time && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && $SHELL" &
-		elif [[ $term == terminix ]]; then
-			$term_command -x "bash -c 'sleep $sleep_term_time && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && $SHELL'" &
-		else
-			# not using hold, because flag is different for different terminals
-			$term_command -e "/bin/bash -c 'sleep $sleep_term_time && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && $SHELL'" &
-		fi
+		eval "$program_command"
+		pid=$!
 	fi
+	visible_wid=false
+	while : ; do
+		wids=$(xdotool search --pid "$pid")
+		if [[ -n "$wids" ]]; then
+			while read -r wid; do
+				if [[ ! $blacklist =~ (^|$'\n')"$wid"($|$'\n') ]] && \
+					[[ $(get_visibility "$wid") == IsViewable ]]; then
+					visible_wid=true
+					program_wid=$wid
+				fi
+			done <<< "$wids"
+		fi
+		if $visible_wid; then
+			break
+		fi
+		sleep 0.01
+	done
+	echo -n "$program_wid"
 }
 
-win_create() {
-	local win_command="$term $program_flags"
-	$win_command &
-	# need to wait for window to be created
-	sleep $sleep_win_time
-	# often pids have two wids
-	local wid wid1 wid2
-	wids=$(xdotool search --pid $!)
-	wid1=$(echo "$wids" | head -n 1)
-	wid2=$(echo "$wids" | tail -n 1)
-	if [[ -n $wid2 ]]; then
-		if [[ $(get_visibility "$wid2") == IsUnMapped ]]; then
-			wid=$wid1
+program_start() {
+	local program_command tmux_command wid
+	program_command="$program $program_flags"
+	if [[ -n "$session_name" ]]; then
+		tmux_command="'tmux attach-session -dt $session_name || \
+			tmuxinator start $session_name || \
+			tmux new-session -s $session_name'"
+		if [[ $program == urxvt ]]; then
+			program_command="$program_command -e bash -c $tmux_command"
+		elif [[ $program == terminix ]]; then
+			program_command="$program_command -x \"bash -c $tmux_command\""
 		else
-			wid=$wid2
+			program_command="$program_command -e \"bash -c $tmux_command\""
 		fi
-	else
-		wid=$wid1
 	fi
-	# only works with pre-command
+	program_command="$program_command"
+	wid=$(create_win_return_wid "$program_command")
+	echo "$wid" > /tmp/tdrop/"$program$num"
+	# only will work if a pre-command has been run (e.g. bspwm)
 	xdotool windowmove "$wid" "$xoff" "$yoff" \
 		windowsize "$wid" "$width" "$height"
-	echo "$wid" > /tmp/tdrop/"$term$num"
+	echo -n "$wid"
 }
 
 current_create() {
@@ -503,7 +477,7 @@ wid_toggle() {
 	mkdir -p /tmp/tdrop
 	# get saved window id if already created
 	local wid exists visibility
-	wid=$(< /tmp/tdrop/"$term$num")
+	wid=$(< /tmp/tdrop/"$program$num")
 	exists=true
 	if [[ -n $wid ]]; then
 		visibility=$(get_visibility "$wid")
@@ -511,17 +485,17 @@ wid_toggle() {
 		if [[ -z $visibility ]] || [[ -z $(xprop -id "$wid") ]]; then
 			# window no longer exists
 			exists=false
-			> /tmp/tdrop/"$term$num"
+			> /tmp/tdrop/"$program$num"
 		fi
 	else
 		exists=false
 	fi
 	if $exists; then
 		if [[ $visibility == IsUnMapped ]]; then
-			if [[ $term == current ]]; then
+			if [[ $program == current ]]; then
 				map_pre_command "$(< /tmp/tdrop/current"$num"_type)"
 			else
-				map_pre_command "$term"
+				map_pre_command "$program"
 			fi
 			# update here if possible so this doesn't cause a delay
 			# between the window being remapped and resized
@@ -568,26 +542,12 @@ wid_toggle() {
 			fi
 		fi
 		# make it
-		map_pre_command "$term"
-		local wid
-		if [[ $term == current ]]; then
+		map_pre_command "$program"
+		if [[ $program == current ]]; then
 			wid=$(current_create)
 			xdotool windowunmap "$wid"
 		else
-			if $normal_window; then
-				win_create
-			else
-				term_create
-			fi
-			# get saved wid of newly created dropdown
-			wid=""
-			local count
-			count=0
-			while [[ -z $wid ]] && [[ $count -lt 100 ]]; do
-				wid=$(< /tmp/tdrop/"$term$num")
-				sleep 0.01
-				((count++))
-			done
+			wid=$(program_start)
 			map_post_command oneshot "$wid"
 			# update window dimensions if necessary
 			if ! $focused_window_exists; then
@@ -720,24 +680,24 @@ auto_show() {
 # Main
 #
 
-if $auto_detect_wm; then
-	wm=$(get_window_manager)
-	wm_autoset_for_all
-	if [[ $term == auto_show ]] || [[ $term == auto_hide ]]; then
-		wm_autoset_for_hide_show
-	else
-		wm_autoset_for_dropdown
-	fi
-fi
-
 if [[ -n $1 ]]; then
+	program=${*:0-1}
+	if $auto_detect_wm; then
+		wm=$(get_window_manager)
+		wm_autoset_for_all
+		if [[ $program == auto_show ]] || [[ $program == auto_hide ]]; then
+			wm_autoset_for_hide_show
+		else
+			wm_autoset_for_dropdown
+		fi
+	fi
 	if $clearwid; then
-		> /tmp/tdrop/"$term$num"
-	elif [[ $term == toggle_auto_hide ]]; then
+		> /tmp/tdrop/"$program$num"
+	elif [[ $program == toggle_auto_hide ]]; then
 		toggle_auto_hide
-	elif [[ $term == auto_hide ]]; then
+	elif [[ $program == auto_hide ]]; then
 		auto_hide
-	elif [[ $term == auto_show ]]; then
+	elif [[ $program == auto_show ]]; then
 		auto_show
 	else
 		wid_toggle
