@@ -75,6 +75,7 @@ mime ^video, has mpv, X, flag f = tdrop -a auto_hide && mpv -- "$@" && tdrop -a 
 - Terminology
 - Sakura
 - Roxterm
+- Terminix
 
 If your terminal doesn't work with tdrop, feel free to make an issue.
 

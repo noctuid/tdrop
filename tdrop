@@ -444,10 +444,15 @@ term_create() {
 	else
 		term_command=$term
 	fi
+	if [[ $term == terminix ]]; then
+		sleep_term_time=0.3
+	fi
 	if [[ -n $session_name ]]; then
-		# ugly workarounds due to how different terms different -e flags work
+		# ugly workarounds due to how different terms' different -e flags work
 		if [[ $term == urxvt ]]; then
 			$term_command -e bash -c "sleep $sleep_term_time && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && tmux attach-session -dt $session_name || tmuxinator start $session_name || tmux new-session -s $session_name" &
+		elif [[ $term == terminix ]]; then
+			$term_command -x "bash -c 'sleep $sleep_term_time && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && tmux attach-session -dt $session_name || tmuxinator start $session_name || tmux new-session -s $session_name'" &
 		else
 			# starting with '/bin/bash -c' because required by termite
 			$term_command -e "/bin/bash -c 'sleep $sleep_term_time && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && tmux attach-session -dt $session_name || tmuxinator start $session_name || tmux new-session -s $session_name'" &
@@ -456,6 +461,8 @@ term_create() {
 		# not using hold, because flag is different for different terminals
 		if [[ $term == urxvt ]]; then
 			$term_command -e bash -c "sleep $sleep_term_time && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && $SHELL" &
+		elif [[ $term == terminix ]]; then
+			$term_command -x "bash -c 'sleep $sleep_term_time && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && $SHELL'" &
 		else
 			# not using hold, because flag is different for different terminals
 			$term_command -e "/bin/bash -c 'sleep $sleep_term_time && xdotool getactivewindow > /tmp/tdrop/$term$num && xdotool getactivewindow windowmove $xoff $yoff windowsize $width $height && $SHELL'" &
