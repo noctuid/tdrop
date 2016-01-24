@@ -359,8 +359,10 @@ map_pre_command() {
 	# use automatically set function if exists
 	elif [[ -n $(type map_pre 2> /dev/null) ]]; then
 		# needed when creating oneshot rules for programs where cmd differs from actual class name
-		if [[ $1 == "gnome-terminal" ]]; then
+		if [[ $1 == gnome-terminal ]]; then
 			map_pre "Gnome-terminal"
+		elif [[ $1 == urxvtc ]]; then
+			map_pre "urxvt"
 		else
 			map_pre "$1"
 		fi
@@ -400,17 +402,31 @@ maybe_cancel_auto_show() {
 #
 
 create_win_return_wid() {
-	local program_command pid visible_wid wids program_wid
+	local blacklist program_command pid visible_wid wids program_wid
+	# blacklist all existing wids of program
+	# (for programs where one pid shares all wids)
+	blacklist=$(xdotool search --classname "$program")
 	# need to redirect stdout or function won't return
 	program_command="$1 > /dev/null &"
-	eval "$program_command"
-	pid=$!
+	# for programs where $! won't give the correct pid
+	if [[ $program == terminix ]] && pgrep terminix; then
+		pid=$(pgrep terminix)
+		eval "$program_command"
+	elif [[ $program == urxvtc ]]; then
+		blacklist=$(xdotool search --classname urxvtd)
+		pid=$(pgrep urxvtd)
+		eval "$program_command"
+	else
+		eval "$program_command"
+		pid=$!
+	fi
 	visible_wid=false
 	while : ; do
 		wids=$(xdotool search --pid "$pid")
 		if [[ -n "$wids" ]]; then
 			while read -r wid; do
-				if [[ $(get_visibility "$wid") == IsViewable ]]; then
+				if [[ ! $blacklist =~ (^|$'\n')"$wid"($|$'\n') ]] && \
+					[[ $(get_visibility "$wid") == IsViewable ]]; then
 					visible_wid=true
 					program_wid=$wid
 				fi
