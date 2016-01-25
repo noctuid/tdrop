@@ -21,7 +21,7 @@ options:
 	-M cmd       provide a post-unmap command; can be used for example with a window manager that doesn't support floating to turn fullscreen on when mapping a terminal then off when unmapping it
 	-O cmd       provide a one time command only for when a dropdown is created/initiated (useful for 'tdrop current')
 	-d XxY       give decoration/border size to accurately save position; only applicable with auto_show; on applicable with a few window managers (e.g. blackbox)
-	-f           specify flags/options to be used when creating the term or window (e.g. -f '--title mytitle', default: none)
+	-f           specify flags/options to be used when creating the term or window (e.g. -f '--title mytitle'; default: none). caution: if there is a tmux/tmuxinator session specified (with -s), the option to execute a program (usually -e for terminal programs) is implicitly added by tdrop!
 	-a           automatically detect window manager and if settings exist for it, automatically set -p, -P, and -d values as necessary; this can have affect when used with a terminal or with auto_show or auto_hide (default: false)
 	-m           for use with multiple monitors and only with dropdowns (not for auto_show or auto_hide); convert percentages used for width or height to values relative to the size of the current monitor and force reszing of the dropdown when the monitor changes (default: false)
 	--clear      clear saved window id; useful accidentally make a window a dropdown (e.g. '$ tdrop --clear current')
