@@ -349,7 +349,7 @@ get_class_name() {
 }
 
 get_visibility() {
-	xwininfo -id "$1" | awk '/Map State/ {print $3}'
+	xwininfo -id "$1" 2> /dev/null | awk '/Map State/ {print $3}'
 }
 
 map_pre_command() {
