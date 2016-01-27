@@ -17,7 +17,7 @@ options:
 	-x pos       specify x offset for a newly created term (default: 0)
 	-y pos       specify y offset for a newly created term (default: 1, see BUGS in man)
 	-s name      name for tmux or tmuxinator session (requires the program to be a supported terminal)
-	-n num       num or extra text; only needed if want multiple dropdowns of same program (default: "")
+	-n num       num or extra text; only needed if want multiple dropdowns of same program (default: none)
 	-p cmd       provide a pre-map command to float the window if necessary
 	-P cmd       provide a post-map command to float the window if necessary
 	-M cmd       provide a post-unmap command; can be used for example with a window manager that doesn't support floating to turn fullscreen on when mapping a terminal then off when unmapping it
@@ -742,4 +742,4 @@ else
 	print_help illegal_opt
 fi
 # vim is dumb
-# vim: set ft=sh:
+# vim: set ft=sh noet:
