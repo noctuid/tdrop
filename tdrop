@@ -494,7 +494,6 @@ program_start() {
 			program_command="$program_command -e \"bash -c $tmux_command\""
 		fi
 	fi
-	program_command="$program_command"
 	wid=$(create_win_return_wid "$program_command")
 	echo "$wid" > /tmp/tdrop/"$program$num"
 	# only will work if a pre-command has been run (e.g. bspwm)
