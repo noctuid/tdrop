@@ -114,7 +114,8 @@ done
 program=${*:0-1}
 
 # ensure that positional argument exists
-if [[ -z $program ]] || [[ $program =~ ^- ]]; then
+if [[ -z $program ]] || [[ $program =~ ^- ]] || \
+	[[ ${*:0-2:1} =~ ^-[b-ln-z]$ ]]; then
 	echo "1 positional argument is required." \
 		"For help use -h or --help or see the manpage." | \
 		tee -a /tmp/tdrop/log
