@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir -p /tmp/tdrop
+
 print_help() {
 	echo "
 	Used for hiding/unhiding programs to acheive quake-dropdown-like-functionality. Can create a dropdown window if one does not already exist and provides options to control the intial size and position, e.g. to leave panels visible. When used with a terminal, provides the option to specify the name of a tmuxinator or tmux session to automatically start or attach to.
@@ -39,7 +41,7 @@ See man page for more details.
 }
 
 #
-# Default Options
+# Default Options and Option Parsing
 #
 
 # xdotool can take percentages; cannot take decimal percentages though
@@ -77,8 +79,15 @@ do
 	a) auto_detect_wm=true;;
 	m) monitor_aware=true;;
 	-)
-		OPTION=${OPTARG%%=*}
-		OPTARG=${OPTARG#*=}
+		if [[ $OPTARG =~ ^(auto-detect-wm|monitor-aware|clear|no-cancel|help)$ ]] || \
+			[[ $OPTARG == *=* ]]; then
+			OPTION=${OPTARG%%=*}
+			OPTARG=${OPTARG#*=}
+		else
+			echo "Long options with args must be written as --opt=val." | \
+				tee -a /tmp/tdrop/log
+			exit 1
+		fi
 		case $OPTION in
 		height) height=$OPTARG;;
 		width) width=$OPTARG;;
@@ -97,10 +106,40 @@ do
 		clear) clearwid=true;;
 		no-cancel) cancel_auto_show=false;;
 		help) print_help;;
+		*) print_help illegal_opt;;
 		esac;;
 	*) print_help illegal_opt;;
     esac
 done
+program=${*:0-1}
+
+# ensure that positional argument exists
+if [[ -z $program ]] || [[ $program =~ ^- ]]; then
+	echo "1 positional argument is required." \
+		"For help use -h or --help or see the manpage." | \
+		tee -a /tmp/tdrop/log
+	exit 1
+fi
+
+# require -m for negative width or height
+if ! $monitor_aware && [[ $height$width == *-* ]]; then
+	echo "-m is required to use negative width or height values." | \
+		tee -a /tmp/tdrop/log
+	exit 1
+fi
+
+# validate options that require number values
+if [[ ! $height$width$xoff$yoff =~ ^[0-9%-]*$ ]]; then
+	echo "The -h, -w, -x, and -y values must be numbers (or percentages)." | \
+		tee -a /tmp/tdrop/log
+	exit 1
+fi
+if [[ -n $dec_fix ]] && [[ ! $dec_fix =~ ^-?[0-9]+x-?[0-9]+$ ]]; then
+	echo "The decoration fix value must have form 'num'x'num'." \
+		"The numbers can be negative or zero." | tee -a /tmp/tdrop/log
+	exit 1
+fi
+
 # non-user-settable global vars
 
 # necessary to account for differences in geometry/positioning output from xwininfo
@@ -474,7 +513,6 @@ current_create() {
 }
 
 wid_toggle() {
-	mkdir -p /tmp/tdrop
 	# get saved window id if already created
 	local wid exists visibility
 	wid=$(< /tmp/tdrop/"$program$num")
@@ -681,7 +719,6 @@ auto_show() {
 #
 
 if [[ -n $1 ]]; then
-	program=${*:0-1}
 	if $auto_detect_wm; then
 		wm=$(get_window_manager)
 		wm_autoset_for_all
