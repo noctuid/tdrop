@@ -111,11 +111,11 @@ do
 	*) print_help illegal_opt;;
     esac
 done
-program=${*:0-1}
+shift "$((OPTIND-1))"
+program=$1
 
 # ensure that positional argument exists
-if [[ -z $program ]] || [[ $program =~ ^- ]] || \
-	[[ ${*:0-2:1} =~ ^-[b-ln-z]$ ]]; then
+if [[ -z $program ]]; then
 	echo "1 positional argument is required." \
 		"For help use -h or --help or see the manpage." | \
 		tee -a /tmp/tdrop/log
@@ -718,29 +718,25 @@ auto_show() {
 # Main
 #
 
-if [[ -n $1 ]]; then
-	if $auto_detect_wm; then
-		wm=$(get_window_manager)
-		wm_autoset_for_all
-		if [[ $program == auto_show ]] || [[ $program == auto_hide ]]; then
-			wm_autoset_for_hide_show
-		else
-			wm_autoset_for_dropdown
-		fi
-	fi
-	if $clearwid; then
-		> /tmp/tdrop/"$program$num"
-	elif [[ $program == toggle_auto_hide ]]; then
-		toggle_auto_hide
-	elif [[ $program == auto_hide ]]; then
-		auto_hide
-	elif [[ $program == auto_show ]]; then
-		auto_show
+if $auto_detect_wm; then
+	wm=$(get_window_manager)
+	wm_autoset_for_all
+	if [[ $program == auto_show ]] || [[ $program == auto_hide ]]; then
+		wm_autoset_for_hide_show
 	else
-		wid_toggle
+		wm_autoset_for_dropdown
 	fi
+fi
+if $clearwid; then
+	> /tmp/tdrop/"$program$num"
+elif [[ $program == toggle_auto_hide ]]; then
+	toggle_auto_hide
+elif [[ $program == auto_hide ]]; then
+	auto_hide
+elif [[ $program == auto_show ]]; then
+	auto_show
 else
-	print_help illegal_opt
+	wid_toggle
 fi
 # vim is dumb
 # vim: set ft=sh noet:
