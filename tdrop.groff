@@ -52,7 +52,7 @@ Specify a post command to execute only when first creating or initiating a dropd
 Specify a window decoration/border size in the form <x decoration size>x<y decoration size> to be taken into account when saving window position. This should not be necessary for most window managers and is only used with 'auto_show', e.g. 'tdrop -d 1x22 auto_show' for blackbox. (default: none)
 .TP
 \fB\-f\fR, \fB \-\-program-flags\fR
-Specify flags/options that the terminal or program should be called with. For example, to set the title of the terminal, something like '-f "--title mytitle"' can be used. (default: none)
+Specify flags/options that the terminal or program should be called with. For example, to set the title of the terminal, something like '-f "--title mytitle"' can be used. Caution: If there is a tmux/tmuxinator session specified (with -s), the option to execute a program (usually -e for terminal programs) is implicitly added by tdrop! (default: none)
 .TP
 \fB\-a\fR, \fB \-\-auto-detect-wm\fR
 If there are available settings for the detected window manager for the -p, -P, -M, and/or -d options, automatically set them; takes no argument. User set settings will still override these. This can be used with 'tdrop <terminal>', 'tdrop auto_hide', and 'tdrop auto_show'. For 'auto_hide', if the window manager is supported, it will check if the current window is tiled so that it is not changed to floating when auto-showing. (default: false)
