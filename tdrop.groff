@@ -60,13 +60,13 @@ If there are available settings for the detected window manager for the -p, -P, 
 \fB\-m\fR, \fB \-\-monitor-aware\fR
 This option only applies for dropdowns (not auto-hiding and auto-showing). Specify that width and height percentages should be relative to the current monitor. If the monitor changes, this option will cause a dropdown to be resized to fit the given percentages. A negative argument is also allowed for '-w' and '-y' with this option (e.g. '-m -w -4') in which case the determined value will be that many pixels less than 100% of the screen size. This fixes the problem where 100% width may actually go over the screen due to window borders/decoration. Note that this option assumes xrandr is being used and requires xrandr to work. (default: false)
 .TP
-\fB \-\-clear\fR
+\fB\-c\fR, \fB \-\-clear\fR
 Used to clear a saved window id for the given program or 'current' instead of creating a dropdown; takes no argument.
 .TP
-\fB \-\-no-cancel\fR
+\fB\-C\fR, \fB \-\-no-cancel\fR
 Specifies that manually re-showing an auto-hidden window with tdrop should not cancel an auto_show; takes no argument. See examples.
 .TP
-\fB \-\-help\fR
+\fB\-H\fR, \fB \-\-help\fR
 Print help that is less awesome than this manpage; takes no argument.
 .SH EXAMPLES
 .SS Making Dropdowns

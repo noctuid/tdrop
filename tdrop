@@ -61,7 +61,31 @@ clearwid=false
 cancel_auto_show=true
 auto_detect_wm=false
 monitor_aware=false
-while getopts :h:w:x:y:s:n:p:P:M:O:d:f:-:am opt
+
+# convert all long options to short options
+# this method is concise and allows --opt val (as opposed to only --opt=val)
+args=$(echo "$*" | sed -r -e 's/--height(=| )/-h /' \
+		-e 's/--width(=| )/-w /' \
+		-e 's/--x-offset(=| )/-x /' \
+		-e 's/--y-offset(=| )/-y /' \
+		-e 's/--session(=| )/-s /' \
+		-e 's/--number(=| )/-n /' \
+		-e 's/--pre-command(=| )/-p /' \
+		-e 's/--post-command(=| )/-P /' \
+		-e 's/--post-unmap(=| )/-M /' \
+		-e 's/--oneshot-post(=| )/-O /' \
+		-e 's/--decoration-fix(=| )/-d /' \
+		-e 's/--program-flags(=| )/-f /' \
+		-e 's/--auto-detect-wm/-a/' \
+		-e 's/--monitor-aware/-m/' \
+		-e 's/--clear/-c/' \
+		-e 's/--no-cancel/-C/' \
+		-e 's/--help/-H/')
+# reset arguments with new ones
+# args is intentionally unquoted
+set -- $args
+
+while getopts :h:w:x:y:s:n:p:P:M:O:d:f:-:amcCH opt
 do
 	case $opt in
 	h) height=$OPTARG;;
@@ -78,38 +102,11 @@ do
 	f) program_flags=$OPTARG;;
 	a) auto_detect_wm=true;;
 	m) monitor_aware=true;;
-	-)
-		if [[ $OPTARG =~ ^(auto-detect-wm|monitor-aware|clear|no-cancel|help)$ ]] || \
-			[[ $OPTARG == *=* ]]; then
-			OPTION=${OPTARG%%=*}
-			OPTARG=${OPTARG#*=}
-		else
-			echo "Long options with args must be written as --opt=val." | \
-				tee -a /tmp/tdrop/log
-			exit 1
-		fi
-		case $OPTION in
-		height) height=$OPTARG;;
-		width) width=$OPTARG;;
-		x-offset) xoff=$OPTARG;;
-		y-offset) yoff=$OPTARG;;
-		session) session_name=$OPTARG;;
-		number) num=$OPTARG;;
-		pre-command) map_pre=$OPTARG;;
-		post-command) map_post=$OPTARG;;
-		post-unmap) unmap_post=$OPTARG;;
-		oneshot-post) oneshot_post=$OPTARG;;
-		decoration-fix) dec_fix=$OPTARG;;
-		program-flags) program_flags=$OPTARG;;
-		auto-detect-wm) auto_detect_wm=true;;
-		monitor-aware) monitor_aware=true;;
-		clear) clearwid=true;;
-		no-cancel) cancel_auto_show=false;;
-		help) print_help;;
-		*) print_help illegal_opt;;
-		esac;;
+	c) clearwid=true;;
+	C) cancel_auto_show=false;;
+	H) print_help;;
 	*) print_help illegal_opt;;
-    esac
+	esac
 done
 shift "$((OPTIND-1))"
 program=$1
