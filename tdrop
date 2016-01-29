@@ -64,26 +64,40 @@ monitor_aware=false
 
 # convert all long options to short options
 # this method is concise and allows --opt val (as opposed to only --opt=val)
-args=$(echo "$*" | sed -r -e 's/--height(=| )/-h /' \
-		-e 's/--width(=| )/-w /' \
-		-e 's/--x-offset(=| )/-x /' \
-		-e 's/--y-offset(=| )/-y /' \
-		-e 's/--session(=| )/-s /' \
-		-e 's/--number(=| )/-n /' \
-		-e 's/--pre-command(=| )/-p /' \
-		-e 's/--post-command(=| )/-P /' \
-		-e 's/--post-unmap(=| )/-M /' \
-		-e 's/--oneshot-post(=| )/-O /' \
-		-e 's/--decoration-fix(=| )/-d /' \
-		-e 's/--program-flags(=| )/-f /' \
-		-e 's/--auto-detect-wm/-a/' \
-		-e 's/--monitor-aware/-m/' \
-		-e 's/--clear/-c/' \
-		-e 's/--no-cancel/-C/' \
-		-e 's/--help/-H/')
-# reset arguments with new ones
+OIFS=$IFS
+# use \r for word splitting; will print \r between each arg with $*
+# purposely not using a character from the default IFS in order
+# to prevent something like -f "	--number" from being altered
+IFS=$'\r'
+# add \r to ^ and $ so don't have to check for (^|\r) every time
+# and then use a backreference
+# for long opts that take a value that could potentially contain
+# a tdrop flag, pad them with a space so that \r--flag will not match
+args=$(echo "$*" | sed -r \
+	-e 's/(^|$)/\r/g' \
+	-e 's/\r(--program-flags(=|\r)|-f\r)/\r-f\r /g' \
+	-e 's/\r(--pre-command(=|\r)|-p\r)/\r-p\r /g' \
+	-e 's/\r(--post-command(=|\r)|-P\r)/\r-P\r /g' \
+	-e 's/\r(--post-unmap(=|\r)|-M\r)/\r-M\r/g' \
+	-e 's/\r(--oneshot-post(=|\r)|-O\r)/\r-O\r /g' \
+	-e 's/\r(--session(=|\r)|-s\r)/\r-s\r /g' \
+	-e 's/\r(--number(=|\r)|-n\r)/\r-n\r /g' \
+	-e 's/\r--height(=|\r)/\r-h\r/g' \
+	-e 's/\r--width(=|\r)/\r-w\r/g' \
+	-e 's/\r--x-offset(=|\r)/\r-x\r/g' \
+	-e 's/\r--y-offset(=|\r)/\r-y\r/g' \
+	-e 's/\r--decoration-fix(=|\r)/\r-d\r/g' \
+	-e 's/\r--auto-detect-wm\r/\r-a\r/g' \
+	-e 's/\r--monitor-aware\r/\r-m\r/g' \
+	-e 's/\r--clear\r/\r-c\r/g' \
+	-e 's/\r--no-cancel\r/\r-C\r/g' \
+	-e 's/\r--help\r/\r-H\r/g' \
+	-e 's/\r /\r/g' \
+	-e 's/(^\r|\r$)//g')
+# replace arguments with new ones then reset the IFS
 # args is intentionally unquoted
 set -- $args
+IFS=$OIFS
 
 while getopts :h:w:x:y:s:n:p:P:M:O:d:f:-:amcCH opt
 do
