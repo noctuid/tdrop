@@ -61,44 +61,6 @@ clearwid=false
 cancel_auto_show=true
 auto_detect_wm=false
 monitor_aware=false
-
-# convert all long options to short options
-# this method is concise and allows --opt val (as opposed to only --opt=val)
-OIFS=$IFS
-# use \r for word splitting; will print \r between each arg with $*
-# purposely not using a character from the default IFS in order
-# to prevent something like -f "	--number" from being altered
-IFS=$'\r'
-# add \r to ^ and $ so don't have to check for (^|\r) every time
-# and then use a backreference
-# for long opts that take a value that could potentially contain
-# a tdrop flag, pad them with a space so that \r--flag will not match
-args=$(echo "$*" | sed -r \
-	-e 's/(^|$)/\r/g' \
-	-e 's/\r(--program-flags(=|\r)|-f\r)/\r-f\r /g' \
-	-e 's/\r(--pre-command(=|\r)|-p\r)/\r-p\r /g' \
-	-e 's/\r(--post-command(=|\r)|-P\r)/\r-P\r /g' \
-	-e 's/\r(--post-unmap(=|\r)|-M\r)/\r-M\r/g' \
-	-e 's/\r(--oneshot-post(=|\r)|-O\r)/\r-O\r /g' \
-	-e 's/\r(--session(=|\r)|-s\r)/\r-s\r /g' \
-	-e 's/\r(--number(=|\r)|-n\r)/\r-n\r /g' \
-	-e 's/\r--height(=|\r)/\r-h\r/g' \
-	-e 's/\r--width(=|\r)/\r-w\r/g' \
-	-e 's/\r--x-offset(=|\r)/\r-x\r/g' \
-	-e 's/\r--y-offset(=|\r)/\r-y\r/g' \
-	-e 's/\r--decoration-fix(=|\r)/\r-d\r/g' \
-	-e 's/\r--auto-detect-wm\r/\r-a\r/g' \
-	-e 's/\r--monitor-aware\r/\r-m\r/g' \
-	-e 's/\r--clear\r/\r-c\r/g' \
-	-e 's/\r--no-cancel\r/\r-C\r/g' \
-	-e 's/\r--help\r/\r-H\r/g' \
-	-e 's/\r /\r/g' \
-	-e 's/(^\r|\r$)//g')
-# replace arguments with new ones then reset the IFS
-# args is intentionally unquoted
-set -- $args
-IFS=$OIFS
-
 while getopts :h:w:x:y:s:n:p:P:M:O:d:f:-:amcCH opt
 do
 	case $opt in
@@ -119,6 +81,35 @@ do
 	c) clearwid=true;;
 	C) cancel_auto_show=false;;
 	H) print_help;;
+	-)
+		if [[ $OPTARG == *=* ]]; then
+			OPTION=${OPTARG%%=*}
+			OPTARG=${OPTARG#*=}
+		else
+			OPTION=$OPTARG
+			OPTARG=${*:$OPTIND:1}
+			((OPTIND++))
+		fi
+		case $OPTION in
+		height) height=$OPTARG;;
+		width) width=$OPTARG;;
+		x-offset) xoff=$OPTARG;;
+		y-offset) yoff=$OPTARG;;
+		session) session_name=$OPTARG;;
+		number) num=$OPTARG;;
+		pre-command) map_pre=$OPTARG;;
+		post-command) map_post=$OPTARG;;
+		post-unmap) unmap_post=$OPTARG;;
+		oneshot-post) oneshot_post=$OPTARG;;
+		decoration-fix) dec_fix=$OPTARG;;
+		program-flags) program_flags=$OPTARG;;
+		auto-detect-wm) auto_detect_wm=true;;
+		monitor-aware) monitor_aware=true;;
+		clear) clearwid=true;;
+		no-cancel) cancel_auto_show=false;;
+		help) print_help;;
+		*) print_help illegal_opt;;
+		esac;;
 	*) print_help illegal_opt;;
 	esac
 done
