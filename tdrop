@@ -483,6 +483,7 @@ program_start() {
 	local program_command tmux_command wid
 	program_command="$program $program_flags"
 	if [[ -n "$session_name" ]]; then
+		session_name=$(printf "%q" "$session_name")
 		tmux_command="'tmux attach-session -dt $session_name || \
 			tmuxinator start $session_name || \
 			tmux new-session -s $session_name'"
