@@ -114,9 +114,8 @@ done
 shift "$((OPTIND-1))"
 program=$1
 
-# ensure that positional argument exists
-if [[ -z $program ]]; then
-	echo "1 positional argument is required." \
+if [[ $# -ne 1 ]]; then
+	echo "Exactly 1 positional argument is required." \
 		"For help use -h or --help or see the manpage." | \
 		tee -a /tmp/tdrop/log
 	exit 1
