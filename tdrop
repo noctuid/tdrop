@@ -84,9 +84,10 @@ do
 			OPTION=${OPTARG%%=*}
 			OPTARG=${OPTARG#*=}
 		else
-			echo "Long options with args must be written as --opt=val." | \
-				tee -a /tmp/tdrop/log
-			exit 1
+			OPTION=$OPTARG
+			# shellcheck disable=SC2124
+			OPTARG=${@:$OPTIND:1}
+			((OPTIND++))
 		fi
 		case $OPTION in
 		height) height=$OPTARG;;
