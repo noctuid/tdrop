@@ -115,7 +115,7 @@ shift "$((OPTIND-1))"
 program=$1
 
 if [[ $# -ne 1 ]]; then
-	echo "Exactly 1 positional argument is required." \
+	echo >&2 "Exactly 1 positional argument is required." \
 		"For help use -h or --help or see the manpage." | \
 		tee -a /tmp/tdrop/log
 	exit 1
@@ -123,19 +123,19 @@ fi
 
 # require -m for negative width or height
 if ! $monitor_aware && [[ $height$width == *-* ]]; then
-	echo "-m is required to use negative width or height values." | \
+	echo >&2 "-m is required to use negative width or height values." | \
 		tee -a /tmp/tdrop/log
 	exit 1
 fi
 
 # validate options that require number values
 if [[ ! $height$width$xoff$yoff =~ ^[0-9%-]*$ ]]; then
-	echo "The -h, -w, -x, and -y values must be numbers (or percentages)." | \
+	echo >&2 "The -h, -w, -x, and -y values must be numbers (or percentages)." | \
 		tee -a /tmp/tdrop/log
 	exit 1
 fi
 if [[ -n $dec_fix ]] && [[ ! $dec_fix =~ ^-?[0-9]+x-?[0-9]+$ ]]; then
-	echo "The decoration fix value must have form 'num'x'num'." \
+	echo >&2 "The decoration fix value must have form 'num'x'num'." \
 		"The numbers can be negative or zero." | tee -a /tmp/tdrop/log
 	exit 1
 fi
