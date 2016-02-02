@@ -32,11 +32,13 @@ alt + s
 ```
 
 ### Basic Flags
-`-s` should only be used for supported terminals and if the user wants to start a tmux or tmuxinator session. `-a` should be used to set up WM specific rules (which are required for the --width, --height, --xoff, and --yoff flags to work properly; see below for supported WMs). Long options require using `--opt=<arg>` as opposed to leaving a space. Refer to `tdrop --help` and the manpage for more complete instructions.
+`-s` should only be used for supported terminals and if the user wants to start a tmux or tmuxinator session. `-a` should be used to set up WM specific rules (which are required for the --width, --height, --xoff, and --yoff flags to work properly; see below for supported WMs). Refer to `tdrop --help` and the manpage for more complete instructions.
 
-Tdrop has basic checks to print errors for malformed commands (for example if a long option is used without `=`). If a tdrop command does not work, please run it in a terminal or check `/tmp/tdrop/log` for error messages and consult the manpage before making an issue.
+Tdrop has basic checks to print errors for malformed commands (for example to require one positional argument). If a tdrop command does not work, please run it in a terminal or check `/tmp/tdrop/log` for error messages and consult the manpage before making an issue.
 
 **Changes**:
+
+Long options can now be used with whitespace instead of requiring a `=` (e.g. `--long-opt value`).
 
 Old users please note that `-W|--normal-window`, `-z|--sleep-terminal`, and `-Z|--sleep-window` are no longer necessary and have been removed.
 
