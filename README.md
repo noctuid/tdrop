@@ -105,6 +105,7 @@ That said, these are the floating window managers that currently have '-a' setti
 - marco (mate)
 - kwin (kde)
 - openbox (lxde)
+- compiz (unity)
 - pekwm
 - fluxbox
 - blackbox
