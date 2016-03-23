@@ -521,7 +521,7 @@ wid_toggle() {
 	if [[ -n $wid ]]; then
 		visibility=$(get_visibility "$wid")
 		# sometimes xwininfo will still report a window as existing hence xprop check
-		if [[ -z $visibility ]] || [[ -z $(xprop -id "$wid") ]]; then
+		if [[ -z $visibility ]] || [[ -z $(xprop -id "$wid" 2> /dev/null) ]]; then
 			# window no longer exists
 			exists=false
 			> /tmp/tdrop/"$program$num"
