@@ -1,5 +1,5 @@
 .\" Manpage for tdrop.
-.\" Contact <noct at openmailbox dot org> to correct errors or typos.
+.\" Please make an issue on the online repository if you find errors or typos.
 .TH TDROP 1 "11 February 2015" "tdrop 0.1" "tdrop man page"
 .SH NAME
 Tdrop \- make dropdown terminals and windows
@@ -140,6 +140,6 @@ xdotool(1), sxhkd(1), xprop(1), xwininfo(1), tmux(1)
 .SH BUGS
 If -y is set to 0, a window may be subsequently moved to the middle when showing/mapping it with xdotool. This may have to do with the window border.
 .SH AUTHOR
-Lit Wakefield <nocturnalartifice at gmail dot com>
+Fox Kiester <noct@openmailbox\&.org>
 .br
 Source: https://github.com/noct/tdrop
