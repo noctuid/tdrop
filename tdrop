@@ -244,7 +244,7 @@ update_geometry_settings_for_monitor() {
 
 	# determine if monitor has changed and save current monitor
 	local last_monitor
-	last_monitor=$(< /tmp/tdrop/last_monitor)
+	last_monitor=$(< /tmp/tdrop/last_monitor) 2> /dev/null
 	echo "$current_monitor" > /tmp/tdrop/last_monitor
 	if [[ $current_monitor != "$last_monitor" ]]; then
 		monitor_changed=true
@@ -516,7 +516,7 @@ current_create() {
 wid_toggle() {
 	# get saved window id if already created
 	local wid exists visibility
-	wid=$(< /tmp/tdrop/"$program$num")
+	wid=$(< /tmp/tdrop/"$program$num") 2> /dev/null
 	exists=true
 	if [[ -n $wid ]]; then
 		visibility=$(get_visibility "$wid")
@@ -657,7 +657,7 @@ set_geometry() {
 
 toggle_auto_hide() {
 	local no_hide
-	no_hide=$(< /tmp/tdrop/auto_hidden/no_hide)
+	no_hide=$(< /tmp/tdrop/auto_hidden/no_hide) 2> /dev/null
 	mkdir -p /tmp/tdrop/auto_hidden
 	if [[ -z $no_hide ]]; then
 		echo "true" > /tmp/tdrop/auto_hidden/no_hide
@@ -672,7 +672,7 @@ toggle_auto_hide() {
 
 auto_hide() {
 	local no_hide
-	no_hide=$(< /tmp/tdrop/auto_hidden/no_hide)
+	no_hide=$(< /tmp/tdrop/auto_hidden/no_hide) 2> /dev/null
 	if [[ -z $no_hide ]]; then
 		local wid
 		wid=$(xdotool getactivewindow)
@@ -686,7 +686,7 @@ auto_hide() {
 
 auto_show() {
 	local no_hide
-	no_hide=$(< /tmp/tdrop/auto_hidden/no_hide)
+	no_hide=$(< /tmp/tdrop/auto_hidden/no_hide) 2> /dev/null
 	if [[ -z $no_hide ]]; then
 		local wid class was_floating
 		wid=$(< /tmp/tdrop/auto_hidden/wid)
