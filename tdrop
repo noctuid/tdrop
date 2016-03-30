@@ -12,8 +12,8 @@ print_help() {
 
 usage: tdrop [options] <program or 'current'> or one of <auto_show/auto_hide/toggle_auto_hide>
 options:
-	-h height    specify a height for a newly created term (default: 100%)
-	-w width     specify a width for a newly created term (default: 45%)
+	-h height    specify a height for a newly created term (default: 45%)
+	-w width     specify a width for a newly created term (default: 100%)
 	-x pos       specify x offset for a newly created term (default: 0)
 	-y pos       specify y offset for a newly created term (default: 1, see BUGS in man)
 	-s name      name for tmux or tmuxinator session (requires the program to be a supported terminal)
