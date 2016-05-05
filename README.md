@@ -15,6 +15,7 @@ A demo showing tdrop's ability to auto-hide windows when opening things from the
 - Allows for auto-hiding a dropdown when opening programs from it
 - Can automatically start programs and tmux or tmuxinator sessions
 - Supports automatic resizing based on the current monitor
+- Has hooks for executing user commands
 
 ## Requirements
 - xprop
@@ -58,7 +59,9 @@ Some window managers allow querying what the current monitor is (e.g. bspwm and 
 See the manpage for more information.
 
 ### Hooks
-Tdrop provides a `--create-hook` flag that can be used to run a command after first creating the dropdown. A `$1` in the given command will be replaced with the window id for the dropdown (in this case the command will of course need to be in single quotes or the dollar sign escaped). For example, to set a dropdown as always on top, `-c 'wmctrl -i -r $1 -b add,above'` could be added to a tdrop command.
+Tdrop provides a `--create-hook` flag that can be used to run a command after first creating a dropdown. This hook will run for a normal dropdown or when the current window is turned into a dropdown. There is also a `--map-hook` flag that will run a command every time a dropdown is mapped. This hook will run when first creating a normal dropdown but not when turning the current window into a dropdown (since it is initially unmapped not mapped).
+
+A `$1` in the given command will be replaced with the window id for the dropdown (in this case the command will of course need to be in single quotes or the dollar sign escaped). For example, to set a dropdown as always on top, `--map-hook 'wmctrl -i -r $1 -b add,above'` could be added to a tdrop command.
 
 I plan to remove the current `-p`, `-P`, `-M`, and `-O` flags and replace them with generic hooks. Currently these options are only useful for dealing with floating/moving/resizing as they override settings made by `-a`. After this change, the new settings will still be able to be used for this purpose, but the idea is to have tdrop deal with these things automatically using `-a`. I will also provide a way to have the settings for another window manager be used as a simpler initial workaround for tdrop not yet having settings for some window manager.
 

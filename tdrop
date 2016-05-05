@@ -58,6 +58,7 @@ map_post=""
 unmap_post=""
 oneshot_post=""
 create_hook=""
+map_hook=""
 dec_fix=""
 program_flags=""
 clearwid=false
@@ -105,6 +106,7 @@ do
 		post-unmap) unmap_post=$OPTARG;;
 		oneshot-post) oneshot_post=$OPTARG;;
 		create-hook) create_hook=$OPTARG;;
+		map-hook) map_hook=$OPTARG;;
 		decoration-fix) dec_fix=$OPTARG;;
 		program-flags) program_flags=$OPTARG;;
 		auto-detect-wm) auto_detect_wm=true;;
@@ -456,6 +458,12 @@ run_create_hook() {
 	fi
 }
 
+run_map_hook() {
+	if [[ -n $map_hook ]]; then
+		eval "$map_hook"
+	fi
+}
+
 maybe_cancel_auto_show() {
 	if $cancel_auto_show && \
 		[[ $1 == $(cat /tmp/tdrop/auto_hidden/wid 2> /dev/null) ]]; then
@@ -575,6 +583,7 @@ wid_toggle() {
 				# combine mapping with resizing/moving when possible to reduce flicker
 				map_post_command "$wid"
 			fi
+			run_map_hook "$wid"
 			maybe_cancel_auto_show "$wid"
 			if ! $focused_window_exists; then
 				# need to use dropdown as active window to get monitor info
@@ -611,9 +620,12 @@ wid_toggle() {
 		if [[ $program == current ]]; then
 			wid=$(current_create)
 			xdotool windowunmap "$wid"
+			run_create_hook "$wid"
 		else
 			wid=$(program_start)
 			map_post_command oneshot "$wid"
+			run_create_hook "$wid"
+			run_map_hook "$wid"
 			# update window dimensions if necessary
 			if ! $focused_window_exists; then
 				width=${original_width:-$width}
@@ -622,7 +634,6 @@ wid_toggle() {
 				set_geometry_for_monitor "$wid"
 			fi
 		fi
-		run_create_hook "$wid"
 	fi
 }
 
