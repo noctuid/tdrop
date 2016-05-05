@@ -26,6 +26,8 @@ options:
 	-f           specify flags/options to be used when creating the term or window (e.g. -f '--title mytitle'; default: none). caution: if there is a tmux/tmuxinator session specified (with -s), the option to execute a program (usually -e for terminal programs) is implicitly added by tdrop!
 	-a           automatically detect window manager and if settings exist for it, automatically set -p, -P, and -d values as necessary; this can have affect when used with a terminal or with auto_show or auto_hide (default: false)
 	-m           for use with multiple monitors and only with dropdowns (not for auto_show or auto_hide); convert percentages used for width or height to values relative to the size of the current monitor and force reszing of the dropdown when the monitor changes (default: false)
+	-c cmd       provide a command to be run after first creating the dropdown
+	             (e.g. to set some window property)
 	--clear      clear saved window id; useful accidentally make a window a dropdown (e.g. '$ tdrop --clear current')
 	--no-cancel  don't cancel auto-showing
 	             (default is to prevent this when manually toggling a term after it is auto-hidden)
@@ -55,13 +57,14 @@ map_pre=""
 map_post=""
 unmap_post=""
 oneshot_post=""
+create_hook=""
 dec_fix=""
 program_flags=""
 clearwid=false
 cancel_auto_show=true
 auto_detect_wm=false
 monitor_aware=false
-while getopts :h:w:x:y:s:n:p:P:M:O:d:f:-:am opt
+while getopts :h:w:x:y:s:n:p:P:M:O:c:d:f:-:am opt
 do
 	case $opt in
 	h) height=$OPTARG;;
@@ -74,6 +77,7 @@ do
 	P) map_post=$OPTARG;;
 	M) unmap_post=$OPTARG;;
 	O) oneshot_post=$OPTARG;;
+	c) create_hook=$OPTARG;;
 	d) dec_fix=$OPTARG;;
 	f) program_flags=$OPTARG;;
 	a) auto_detect_wm=true;;
@@ -100,6 +104,7 @@ do
 		post-command) map_post=$OPTARG;;
 		post-unmap) unmap_post=$OPTARG;;
 		oneshot-post) oneshot_post=$OPTARG;;
+		create-hook) create_hook=$OPTARG;;
 		decoration-fix) dec_fix=$OPTARG;;
 		program-flags) program_flags=$OPTARG;;
 		auto-detect-wm) auto_detect_wm=true;;
@@ -445,6 +450,12 @@ unmap_post_command() {
 	fi
 }
 
+run_create_hook() {
+	if [[ -n $create_hook ]]; then
+		eval "$create_hook"
+	fi
+}
+
 maybe_cancel_auto_show() {
 	if $cancel_auto_show && \
 		[[ $1 == $(cat /tmp/tdrop/auto_hidden/wid 2> /dev/null) ]]; then
@@ -611,6 +622,7 @@ wid_toggle() {
 				set_geometry_for_monitor "$wid"
 			fi
 		fi
+		run_create_hook "$wid"
 	fi
 }
 

@@ -48,6 +48,9 @@ Specify a command to execute after unmapping a dropdown. This can be used with w
 \fB\-O\fR, \fB \-\-oneshot-post\fR
 Specify a post command to execute only when first creating or initiating a dropdown. This can be used when turning the current window into a dropdown to float and resize it. (default: none)
 .TP
+\fB-c\fR, \fB --create-hook\fR
+Specify a command to execute after first creating or initializing a dropdown. Unlike the previous options, this will not override the post or pre commands and can be used for purposes other than floating a window. One possible usage is to set certain window properties for the dropdown. This command can contain a '$1' (single quoted or escaped) which will be replaced with the window id of the dropdown. (default: none)
+.TP
 \fB\-d\fR, \fB \-\-decoration-fix\fR
 Specify a window decoration/border size in the form <x decoration size>x<y decoration size> to be taken into account when saving window position. This should not be necessary for most window managers and is only used with 'auto_show', e.g. 'tdrop -d 1x22 auto_show' for blackbox. (default: none)
 .TP
