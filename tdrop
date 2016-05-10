@@ -365,7 +365,7 @@ wm_autoset_for_hide_show() {
 	if [[ $wm =~ ^(pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter|GNOME Shell|Mutter \(Muffin\)|KWin|Metacity \(Marco\)|[Cc]ompiz)$ ]]; then
 		combine_map_post=true
 		map_post() {
-			xdotool windowmap "$1" windowmove "$1" "$2" "$3"
+			xdotool windowmap "$1" windowmove "$1" "$2" "$3" 2> /dev/null
 		}
 	fi
 }
@@ -387,7 +387,7 @@ wm_autoset_for_dropdown() {
 		combine_map_post=true
 		map_post() {
 			xdotool windowmap "$1" windowmove "$1" "$xoff" "$yoff" \
-				windowsize "$1" "$width" "$height"
+				windowsize "$1" "$width" "$height" 2> /dev/null
 		}
 	# floating window managers that may move a window after unmapping then mapping it
 	elif [[ $wm =~ ^(pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter|GNOME Shell|Mutter \(Muffin\)|KWin|Metacity \(Marco\)|[Cc]ompiz)$ ]]; then
@@ -397,7 +397,9 @@ wm_autoset_for_dropdown() {
 		# sawfish just moves all over the place
 		combine_map_post=true
 		map_post() {
-			xdotool windowmap "$1" windowmove "$1" "$xoff" "$yoff"
+			# when first creating, the window will already be mapped before it is run
+			# suppress the error from trying to map a mapped window
+			xdotool windowmap "$1" windowmove "$1" "$xoff" "$yoff" 2> /dev/null
 		}
 	fi
 }
