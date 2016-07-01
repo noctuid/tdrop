@@ -18,11 +18,11 @@ E.g.
 .br
 $ tdrop --y-offset=15 termite
 .TP
+\fB\-w\fR, \fB \-\-width\fR
+Specify a width for a created window as a number or percentage. A negative number is allowed (e.g. '-w -4') in which case the width will be that many pixels less than 100% of the screen size (or monitor size if '-m' is being used). This fixes the problem where 100% width may actually go over the screen due to window borders/decoration. The other other geometry options also accept negative values ('-h', '-x', and '-y'). (default: 100%)
+.TP
 \fB\-h\fR, \fB \-\-height\fR
 Specify a height for a created window as a number or percentage. (default: 45%)
-.TP
-\fB\-w\fR, \fB \-\-width\fR
-Specify a width for a created window as a number or percentage. (default: 100%)
 .TP
 \fB\-x\fR, \fB \-\-x-offset\fR
 Specify the x position for a created window as a number or percentage. (default: 0)
@@ -64,7 +64,7 @@ Specify flags/options that the terminal or program should be called with. For ex
 If there are available settings for the detected window manager for the -p, -P, -M, and/or -d options, automatically set them; takes no argument. User set settings will still override these. This can be used with 'tdrop <terminal>', 'tdrop auto_hide', and 'tdrop auto_show'. For 'auto_hide', if the window manager is supported, it will check if the current window is tiled so that it is not changed to floating when auto-showing. (default: false)
 .TP
 \fB\-m\fR, \fB \-\-monitor-aware\fR
-This option only applies for dropdowns (not auto-hiding and auto-showing). Specify that width and height percentages should be relative to the current monitor. If the monitor changes, this option will cause a dropdown to be resized to fit the given percentages. A negative argument is also allowed for '-w' and '-y' with this option (e.g. '-m -w -4') in which case the determined value will be that many pixels less than 100% of the screen size. This fixes the problem where 100% width may actually go over the screen due to window borders/decoration. Note that this option assumes xrandr is being used and requires xrandr to work. (default: false)
+This option only applies for dropdowns (not auto-hiding and auto-showing). Specify that geometry values should be relative to the current monitor. For example, if the width is a percentage or negative value, the pixel width will be calculated as a percentage of the current monitor's width (instead of the combined width of all monitors). If the monitor changes, this option will cause a dropdown to be resized to fit the given percentages. Note that this option assumes xrandr is being used and requires xrandr to work. (default: false)
 .TP
 \fB \-\-clear\fR
 Used to clear a saved window id for the given program or 'current' instead of creating a dropdown; takes no argument.

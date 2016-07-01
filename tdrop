@@ -129,13 +129,6 @@ if [[ $# -ne 1 ]]; then
 	exit 1
 fi
 
-# require -m for negative width or height
-if ! $monitor_aware && [[ $height$width == *-* ]]; then
-	echo >&2 "-m is required to use negative width or height values." | \
-		tee -a /tmp/tdrop/log
-	exit 1
-fi
-
 # validate options that require number values
 if [[ ! $height$width$xoff$yoff =~ ^[0-9%-]*$ ]]; then
 	echo >&2 "The -h, -w, -x, and -y values must be numbers (or percentages)." | \
@@ -173,6 +166,41 @@ focused_window_exists=true
 # Multiple Monitor Automatic Re-Sizing
 #
 
+percent_of_total() { # percent total
+	awk "BEGIN {printf(\"%.0f\", 0.01*${1%\%}*$2)}"
+}
+
+# acts on globals
+convert_geometry_to_pixels() {
+	total_width=$1
+	total_height=$2
+	local minus_width minus_height minus_xoff minus_yoff
+	if [[ $width =~ %$ ]]; then
+		width=$(percent_of_total "$width" "$total_width")
+	elif [[ $width =~ ^- ]]; then
+		minus_width=${width#-}
+		width=$((total_width-minus_width))
+	fi
+	if [[ $height =~ %$ ]]; then
+		height=$(percent_of_total "$height" "$total_height")
+	elif [[ $height =~ ^- ]]; then
+		minus_height=${height#-}
+		height=$((total_height-minus_height))
+	fi
+	if [[ $xoff =~ %$ ]]; then
+		xoff=$(percent_of_total "$xoff" "$total_width")
+	elif [[ $xoff =~ ^- ]]; then
+		minus_xoff=${xoff#-}
+		xoff=$((total_width-minus_xoff))
+	fi
+	if [[ $yoff =~ %$ ]]; then
+		yoff=$(percent_of_total "$yoff" "$total_height")
+	elif [[ $yoff =~ ^- ]]; then
+		minus_yoff=${yoff#-}
+		yoff=$((total_height-minus_yoff))
+	fi
+}
+
 update_geometry_settings_for_monitor() {
 	# 1. Correctly interpret width/height percentages when there exist multiple
 	#    monitors so an initially created dropdown is the correct size (xdotool
@@ -182,8 +210,7 @@ update_geometry_settings_for_monitor() {
 	#    was used
 
 	# it is conceivable that a user may want to use -m but not -a, so
-	# get the wm from with
-	# in this function
+	# get the wm from within this function
 	local wm current_monitor
 	wm=$(get_window_manager)
 	if [[ $wm == bspwm ]]; then
@@ -235,24 +262,13 @@ update_geometry_settings_for_monitor() {
 		done <<< "$monitors_info"
 	fi
 
+	# convert w/h/x/y percentages/negatives to pixels
+	convert_geometry_to_pixels "$x_width" "$y_height"
+
 	# update x and y offsets, so that will appear on correct screen
 	# (required for some WMs apparently, but not for others)
 	((xoff+=x_begin))
 	((yoff+=y_begin))
-
-	# convert w/h percentages to pixels based on size of current screen
-	if [[ $height =~ %$ ]]; then
-		height=$(awk "BEGIN {printf(\"%.0f\", 0.01*${height%\%}*$y_height)}")
-	elif [[ $height =~ ^- ]]; then
-		minus_height=${height#-}
-		height=$((y_height-minus_height))
-	fi
-	if [[ $width =~ %$ ]]; then
-		width=$(awk "BEGIN {printf(\"%.0f\", 0.01*${width%\%}*$x_width)}")
-	elif [[ $width =~ ^- ]]; then
-		minus_width=${width#-}
-		width=$((x_width-minus_width))
-	fi
 
 	# determine if monitor has changed and save current monitor
 	local last_monitor
@@ -550,6 +566,14 @@ current_create() {
 }
 
 wid_toggle() {
+	# deal with percentages/negatives when no -m
+	if ! $monitor_aware; then
+		local total_geo total_width total_height
+		total_geo=$(xwininfo -root | awk '/geometry/ {print $2}')
+		total_width=$(echo "$total_geo" | awk -F 'x' '{print $1}')
+		total_height=$(echo "$total_geo" | awk -F 'x|+' '{print $2}')
+		convert_geometry_to_pixels "$total_width" "$total_height"
+	fi
 	# get saved window id if already created
 	local wid exists visibility
 	wid=$(< /tmp/tdrop/"$program$num") 2> /dev/null

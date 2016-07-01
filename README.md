@@ -50,9 +50,9 @@ s. It is usually worse on tiling managers where the window must be re-floated ev
 However, the consistent way to eliminate visual flickering due to moving/resizing for any window manager is to enable fade-in for the compositor. For compton this can be done by setting `fading = true;` and adjusting the `fade-delta` in the .compton.conf accordingly.
 
 ### Monitor Awareness
-Using the `-m`/`--monitor-aware` flag has two purposes. For those who use a single monitor, it allows specifying a negative number to `-w` or `-h`. For example, `-w -4` corresponds to a width 4 pixels less than 100% of the screen width. This may be useful when the window manager (possibly due to window decorations) causes a dropdown with `-w 100%` to go over the edge of the screen.
+Using the `-m`/`--monitor-aware` flag will cause the geometry options to act with respect to the current monitor. This may be helpful for users of multiple monitors who don't want dropdowns spanning across monitors.
 
-For those who use multiple monitors, using `-m` will additionally alter the width and height options to correspond to the current monitor. This means that `-w 100%` will cause the dropdown to occupy the full width of the current monitor instead of spanning all monitors. Also, the `-m` option will automatically resize the dropdown when opening it on a different monitor if the width or height arguments are negative or percentages.
+This is particularly useful when using a percentage or negative value with `-w`, `-h`, `-x`, and/or `-y`. For example, `-w -4` normally corresponds to a width 4 pixels less than 100% of the screen width (potentially the combined width of multiple monitors). With `-m`, the pixel values are calculated using the dimensions of the current monitor alone. Negative values may be useful when the window manager (possibly due to window decorations) causes a dropdown with `-w 100%` to go over the edge of the screen. The `-m` option will also automatically resize and/or reposition the dropdown when opening it on a different monitor when one or more of the geometry arguments are negative or percentages.
 
 Some window managers allow querying what the current monitor is (e.g. bspwm and i3), but for other window managers, tdrop determines the current monitor based on the position of the active window. For these window managers, if the desktop is empty, tdrop must wait for the dropdown to be created or mapped before getting the monitor info. This may cause a slight delay before the dropdown is properly resized. If `-m` does not work at all or there is a specific way to query for the current monitor in your window manager, please make an issue.
 
@@ -135,7 +135,7 @@ Awesome support may be buggy; if you encounter problems, please report them. Unm
 Necessary features don't work on many window managers, including mine.
 
 ## Why Not Use wmutils?
-Maybe in the future. The only advantage I can see over xdotool is that it can toggle mapping (`mapw -t`), but this wouldn't be used in this script anyway since different code is executed depending on whether or not the window is mapped or unmapped. Also the command names are somewhat cryptic and resizing to a percentage isn't supported (would have to convert percentages to pixels).
+Maybe in the future. The only advantage I can see over xdotool is that it can toggle mapping (`mapw -t`), but this wouldn't be used in this script anyway since different code is executed depending on whether or not the window is mapped or unmapped. Also the command names are somewhat cryptic.
 
 ## Similar:
 - [drawer](https://github.com/lharding/lsh-bin/blob/master/drawer)
