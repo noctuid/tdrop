@@ -302,17 +302,21 @@ wm_autoset_for_all() {
 	# bspwm will use previous size when floating already
 	if [[ $wm == bspwm ]]; then
 		map_pre() {
+			class=$1
+			if [[ $1 =~ ^google-chrome ]]; then
+				class=google-chrome
+			fi
 			# newest (using "instance" names)
 			if [[ $(bspwm -v) =~ ^0.9.1 ]]; then
-				if [[ $1 =~ [A-Z] ]]; then
-					bspc rule -a "$1" -o state=floating
+				if [[ $class =~ [A-Z] ]]; then
+					bspc rule -a "$class" -o state=floating
 				else
-					bspc rule -a \*:"$1" -o state=floating
+					bspc rule -a \*:"$class" -o state=floating
 				fi
 			else
 				# compatability with older syntaxes
-				bspc rule -a "$1" -o state=floating
-				bspc rule -a "$1" -o floating=on
+				bspc rule -a "$class" -o state=floating
+				bspc rule -a "$class" -o floating=on
 			fi
 		}
 	elif [[ $wm == awesome ]]; then
