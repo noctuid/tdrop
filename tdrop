@@ -501,8 +501,8 @@ create_win_return_wid() {
 	# need to redirect stdout or function won't return
 	program_command="$1 > /dev/null &"
 	# for programs where $! won't give the correct pid
-	if [[ $program == terminix ]] && pgrep terminix; then
-		pid=$(pgrep terminix)
+	if [[ $program =~ ^(terminix|xfce4-terminal)$ ]] \
+		&& pid=$(pgrep -x "$program"); then
 		eval "$program_command"
 	elif [[ $program == urxvtc ]]; then
 		blacklist=$(xdotool search --classname urxvtd)
