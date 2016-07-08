@@ -603,10 +603,17 @@ wid_toggle() {
 	fi
 	if $exists; then
 		if [[ $visibility == IsUnMapped ]]; then
-			if [[ $program == current ]]; then
-				map_pre_command "$(< /tmp/tdrop/current"$num"_type)"
+			# visibility will be IsUnMapped on most WMs if the dropdown is open
+			# on another desktop
+			xdotool set_desktop_for_window "$wid" "$(xdotool get_desktop)"
+			if [[ $(get_visibility "$wid") == IsUnMapped ]]; then
+				if [[ $program == current ]]; then
+					map_pre_command "$(< /tmp/tdrop/current"$num"_type)"
+				else
+					map_pre_command "$program"
+				fi
 			else
-				map_pre_command "$program"
+				xdotool windowactivate "$wid"
 			fi
 			# update here if possible so this doesn't cause a delay
 			# between the window being remapped and resized
