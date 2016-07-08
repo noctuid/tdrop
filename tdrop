@@ -502,26 +502,26 @@ create_win_return_wid() {
 	# blacklist all existing wids of program
 	# (for programs where one pid shares all wids)
 	blacklist=$(xdotool search --classname "$program")
-	# need to redirect stdout or function won't return
-	program_command="$1 > /dev/null &"
-	# for programs where $! won't give the correct pid
-	if [[ $program =~ ^(terminix|xfce4-terminal)$ ]] \
-		&& pid=$(pgrep -x "$program"); then
-		eval "$program_command"
+	# for programs where $! won't always work (e.g. one pid for all windows)
+	if [[ $program =~ ^(terminix|xfce4-terminal)$ ]]; then
+		pid=$(pgrep -x "$program")
 	elif [[ $program == urxvtc ]]; then
 		blacklist=$(xdotool search --classname urxvtd)
-		pid=$(pgrep urxvtd)
-		eval "$program_command"
-	elif [[ $program =~ ^chromium ]] && pgrep -x chromium; then
+		pid=$(pgrep -x urxvtd)
+	elif [[ $program == chromium ]]; then
 		# this may work fine
-		# pid=$(pgrep -o chromium)
+		# pid=$(pgrep -xo chromium)
 		pid=$(pgrep -xa chromium | awk '!/--type/ {print $1}')
-		eval "$program_command"
-	elif [[ $program =~ ^google-chrome ]] && pgrep -x chrome; then
+	elif [[ $program == chromium-browser ]]; then
+		pid=$(pgrep -xa chromium-browse | awk '!/--type/ {print $1}')
+	elif [[ $program =~ ^google-chrome ]]; then
 		pid=$(pgrep -xa chrome | awk '!/--type/ {print $1}')
-		eval "$program_command"
-	else
-		eval "$program_command"
+	fi
+	# need to redirect stdout or function won't return
+	eval "$1 > /dev/null &"
+	if [[ -z $pid ]]; then
+		# for normal programs
+		# also for when one of the programs above hadn't already been started
 		pid=$!
 	fi
 	visible_wid=false
