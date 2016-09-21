@@ -410,7 +410,7 @@ wm_autoset_for_dropdown() {
 				windowsize "$1" "$width" "$height" 2> /dev/null
 		}
 	# floating window managers that may move a window after unmapping then mapping it
-	elif [[ $wm =~ ^(pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter|GNOME Shell|Mutter \(Muffin\)|KWin|Metacity \(Marco\)|[Cc]ompiz)$ ]]; then
+	elif [[ $wm =~ ^(pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter|GNOME Shell|Mutter \(Muffin\)|KWin|Metacity \(Marco\)|[Cc]ompiz|bspwm)$ ]]; then
 		# most will center
 		# mutter/gnome shell will move to top centerish (just below panel on gnome shell)
 		# xfwm4 will normally move to top left; metacity will move close to top left
