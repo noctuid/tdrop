@@ -125,7 +125,7 @@ Usually, it is a simple matter to add new ones to this list. If your dropdown mo
 
 #### Tiling with Floating Support
 These window managers currently will work with '-a' for a floating (instead of tiled) dropdown.
-- bspwm
+- bspwm (support for versions prior to 0.9.1 was dropped on 2016/09/22)
 - i3
 - awesome
 

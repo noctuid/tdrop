@@ -214,12 +214,8 @@ update_geometry_settings_for_monitor() {
 	local wm current_monitor
 	wm=$(get_window_manager)
 	if [[ $wm == bspwm ]]; then
-		current_monitor=$(bspc query -m -M)
-		# newest bspwm version retuns an id instead of the name
-		if [[ $current_monitor =~ ^0x ]]; then
-			current_monitor=$(bspc query -T -m | grep -Po '^{"name":.*?",' | \
-				awk -F ":" '{gsub("[\",]", ""); print $2}')
-		fi
+		current_monitor=$(bspc query -T -m | grep -Po '^{"name":.*?",' | \
+			awk -F ":" '{gsub("[\",]", ""); print $2}')
 	elif [[ $wm == i3 ]]; then
 		# I'd rather not make jq a dependency
 		current_monitor=$(i3-msg -t get_workspaces | sed 's/{"num"/\n/g' | \
@@ -307,16 +303,10 @@ wm_autoset_for_all() {
 				class=google-chrome
 			fi
 			# newest (using "instance" names)
-			if [[ $(bspwm -v) =~ ^0.9.1 ]]; then
-				if [[ $class =~ [A-Z] ]]; then
-					bspc rule -a "$class" -o state=floating
-				else
-					bspc rule -a \*:"$class" -o state=floating
-				fi
-			else
-				# compatability with older syntaxes
+			if [[ $class =~ [A-Z] ]]; then
 				bspc rule -a "$class" -o state=floating
-				bspc rule -a "$class" -o floating=on
+			else
+				bspc rule -a \*:"$class" -o state=floating
 			fi
 		}
 	elif [[ $wm == awesome ]]; then
@@ -352,10 +342,7 @@ wm_autoset_for_hide_show() {
 	if [[ $wm == bspwm ]]; then
 		subtract_when_same=false
 		is_floating() {
-			# checking if the window id (converted from decimal to hex) is floating; empty if not floating
-			bspc query -T | grep -i "$(printf 0x%x "$1").*f-" || \
-				bspc query -T -w | grep '"state": "floating"' || \
-				bspc query -T -n | grep '"state":"floating"'
+			bspc query -T -n | grep '"state":"floating"'
 		}
 	elif [[ $wm == i3 ]]; then
 		subtract_when_same=false
