@@ -513,6 +513,11 @@ create_win_return_wid() {
 	fi
 	visible_wid=false
 	while : ; do
+		if [[ $program == gnome-terminal ]]; then
+			# only 1 pid; changes at some point after first run
+			# actual process name for me is gnome-terminal-
+			pid=$(pgrep gnome-terminal)
+		fi
 		wids=$(xdotool search --pid "$pid")
 		if [[ -n "$wids" ]]; then
 			while read -r wid; do
