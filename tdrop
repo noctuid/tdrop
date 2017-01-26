@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-mkdir -p /tmp/tdrop
+MUTDROP_PATH=/tmp/tdrop_"$USER"
+mkdir -p "$MUTDROP_PATH" -m 700
 
 print_help() {
 	echo "
@@ -125,19 +126,19 @@ program=$1
 if [[ $# -ne 1 ]]; then
 	echo >&2 "Exactly 1 positional argument is required." \
 		"For help use -h or --help or see the manpage." | \
-		tee -a /tmp/tdrop/log
+		tee -a "$MUTDROP_PATH"/log
 	exit 1
 fi
 
 # validate options that require number values
 if [[ ! $height$width$xoff$yoff =~ ^[0-9%-]*$ ]]; then
 	echo >&2 "The -h, -w, -x, and -y values must be numbers (or percentages)." | \
-		tee -a /tmp/tdrop/log
+		tee -a "$MUTDROP_PATH"/log
 	exit 1
 fi
 if [[ -n $dec_fix ]] && [[ ! $dec_fix =~ ^-?[0-9]+x-?[0-9]+$ ]]; then
 	echo >&2 "The decoration fix value must have form 'num'x'num'." \
-		"The numbers can be negative or zero." | tee -a /tmp/tdrop/log
+		"The numbers can be negative or zero." | tee -a "$MUTDROP_PATH"/log
 	exit 1
 fi
 
@@ -270,8 +271,8 @@ update_geometry_settings_for_monitor() {
 
 	# determine if monitor has changed and save current monitor
 	local last_monitor
-	last_monitor=$(< /tmp/tdrop/last_monitor) 2> /dev/null
-	echo "$current_monitor" > /tmp/tdrop/last_monitor
+	last_monitor=$(< "$MUTDROP_PATH"/last_monitor) 2> /dev/null
+	echo "$current_monitor" > "$MUTDROP_PATH"/last_monitor
 	if [[ $current_monitor != "$last_monitor" ]]; then
 		monitor_changed=true
 	fi
@@ -477,8 +478,8 @@ run_map_hook() {
 
 maybe_cancel_auto_show() {
 	if $cancel_auto_show && \
-		[[ $1 == $(cat /tmp/tdrop/auto_hidden/wid 2> /dev/null) ]]; then
-		> /tmp/tdrop/auto_hidden/wid
+		[[ $1 == $(cat "$MUTDROP_PATH"/auto_hidden/wid 2> /dev/null) ]]; then
+		> "$MUTDROP_PATH"/auto_hidden/wid
 	fi
 }
 
@@ -555,7 +556,7 @@ program_start() {
 		fi
 	fi
 	wid=$(create_win_return_wid "$program_command")
-	echo "$wid" > /tmp/tdrop/"$program$num"
+	echo "$wid" > "$MUTDROP_PATH"/"$program$num"
 	# only will work if a pre-command has been run (e.g. bspwm)
 	xdotool windowmove "$wid" "$xoff" "$yoff" \
 		windowsize "$wid" "$width" "$height"
@@ -566,8 +567,8 @@ current_create() {
 	# turns active window into a dropdown
 	local wid
 	wid=$(xdotool getactivewindow)
-	echo "$wid" > /tmp/tdrop/current"$num"
-	get_class_name "$wid" > /tmp/tdrop/current"$num"_type
+	echo "$wid" > "$MUTDROP_PATH"/current"$num"
+	get_class_name "$wid" > "$MUTDROP_PATH"/current"$num"_type
 	echo -n "$wid"
 }
 
@@ -582,7 +583,7 @@ wid_toggle() {
 	fi
 	# get saved window id if already created
 	local wid exists visibility
-	wid=$(< /tmp/tdrop/"$program$num") 2> /dev/null
+	wid=$(< "$MUTDROP_PATH"/"$program$num") 2> /dev/null
 	exists=true
 	if [[ -n $wid ]]; then
 		visibility=$(get_visibility "$wid")
@@ -590,7 +591,7 @@ wid_toggle() {
 		if [[ -z $visibility ]] || [[ -z $(xprop -id "$wid" 2> /dev/null) ]]; then
 			# window no longer exists
 			exists=false
-			> /tmp/tdrop/"$program$num"
+			> "$MUTDROP_PATH"/"$program$num"
 		fi
 	else
 		exists=false
@@ -602,7 +603,7 @@ wid_toggle() {
 			xdotool set_desktop_for_window "$wid" "$(xdotool get_desktop)"
 			if [[ $(get_visibility "$wid") == IsUnMapped ]]; then
 				if [[ $program == current ]]; then
-					map_pre_command "$(< /tmp/tdrop/current"$num"_type)"
+					map_pre_command "$(< \"$MUTDROP_PATH\"/current\"$num\"_type)"
 				else
 					map_pre_command "$program"
 				fi
@@ -712,7 +713,7 @@ get_geometry() {
 }
 
 give_geometry() {
-	eval "$(< /tmp/tdrop/auto_hidden/geometry)"
+	eval "$(< \"$MUTDROP_PATH\"/auto_hidden/geometry)"
 	local x_fix y_fix X Y
 	if [[ -n $dec_fix ]]; then
 		x_fix=$(echo "$dec_fix" | awk -F "x" '{print $1}')
@@ -734,12 +735,12 @@ set_geometry() {
 
 toggle_auto_hide() {
 	local no_hide
-	no_hide=$(< /tmp/tdrop/auto_hidden/no_hide) 2> /dev/null
-	mkdir -p /tmp/tdrop/auto_hidden
+	no_hide=$(< "$MUTDROP_PATH"/auto_hidden/no_hide) 2> /dev/null
+	mkdir -p "$MUTDROP_PATH"/auto_hidden
 	if [[ -z $no_hide ]]; then
-		echo "true" > /tmp/tdrop/auto_hidden/no_hide
+		echo "true" > "$MUTDROP_PATH"/auto_hidden/no_hide
 	else
-		> /tmp/tdrop/auto_hidden/no_hide
+		> "$MUTDROP_PATH"/auto_hidden/no_hide
 	fi
 }
 
@@ -749,26 +750,26 @@ toggle_auto_hide() {
 
 auto_hide() {
 	local no_hide
-	no_hide=$(< /tmp/tdrop/auto_hidden/no_hide) 2> /dev/null
+	no_hide=$(< "$MUTDROP_PATH"/auto_hidden/no_hide) 2> /dev/null
 	if [[ -z $no_hide ]]; then
 		local wid
 		wid=$(xdotool getactivewindow)
-		mkdir -p /tmp/tdrop/auto_hidden
-		echo "$wid" > /tmp/tdrop/auto_hidden/wid
-		get_class_name "$wid" > /tmp/tdrop/auto_hidden/class
-		get_geometry "$wid" > /tmp/tdrop/auto_hidden/geometry
+		mkdir -p "$MUTDROP_PATH"/auto_hidden
+		echo "$wid" > "$MUTDROP_PATH"/auto_hidden/wid
+		get_class_name "$wid" > "$MUTDROP_PATH"/auto_hidden/class
+		get_geometry "$wid" > "$MUTDROP_PATH"/auto_hidden/geometry
 		xdotool windowunmap "$wid"
 	fi
 }
 
 auto_show() {
 	local no_hide
-	no_hide=$(< /tmp/tdrop/auto_hidden/no_hide) 2> /dev/null
+	no_hide=$(< "$MUTDROP_PATH"/auto_hidden/no_hide) 2> /dev/null
 	if [[ -z $no_hide ]]; then
 		local wid class was_floating
-		wid=$(< /tmp/tdrop/auto_hidden/wid)
-		class=$(< /tmp/tdrop/auto_hidden/class)
-		was_floating=$(< /tmp/tdrop/auto_hidden/geometry)
+		wid=$(< "$MUTDROP_PATH"/auto_hidden/wid)
+		class=$(< "$MUTDROP_PATH"/auto_hidden/class)
+		was_floating=$(< "$MUTDROP_PATH"/auto_hidden/geometry)
 		if [[ $was_floating != false ]]; then
 			map_pre_command "$class"
 		fi
@@ -806,7 +807,7 @@ if $auto_detect_wm; then
 	fi
 fi
 if $clearwid; then
-	> /tmp/tdrop/"$program$num"
+	> "$MUTDROP_PATH"/"$program$num"
 elif [[ $program == toggle_auto_hide ]]; then
 	toggle_auto_hide
 elif [[ $program == auto_hide ]]; then
