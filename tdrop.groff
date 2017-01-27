@@ -34,7 +34,7 @@ Specify the y position for a created window as a number or percentage. (default:
 Specify a tmuxinator or tmux session name to start. An existing tmux session has highest precedence and will be connected to with '-d', detaching other attached clients. If a there is no tmuxinator session of the given name, a normal tmux session with the name will be created. If this option is not given, tmux will not be used. Note that this option requires that the program be a supported terminal. (default: none)
 .TP
 \fB\-n\fR, \fB \-\-number\fR
-Specify a number to add when saving dropdown information. Only needed if multiple dropdowns of the same program are wanted. Can also be used for creating multiple different dropdowns on the fly. (default: none)
+Specify a number to add when saving dropdown information. Only needed if multiple dropdowns of the same program are wanted. Can also be used for creating multiple different dropdowns on the fly. Note that it is not necessary to use this to deal with multi-user systems as tdrop stores dropdown information separately for each user. (default: none)
 .TP
 \fB\-p\fR, \fB \-\-pre-command\fR
 Specify a command to execute before showing/mapping a dropdown. This may be useful when setting a rule to float all windows of a given type is undesirable. If 'bspwm' is given, the command will be a oneshot bspwm rule to float the specified program and will also work with 'current' and 'auto_show'. (default: none)
