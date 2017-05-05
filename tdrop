@@ -586,7 +586,8 @@ wid_toggle() {
 	fi
 	# get saved window id if already created
 	local wid exists visibility
-	wid=$(< "$MUTDROP_PATH/$program$num") 2> /dev/null
+	# cat to silence error
+	wid=$(cat "$MUTDROP_PATH/$program$num" 2> /dev/null)
 	exists=true
 	if [[ -n $wid ]]; then
 		visibility=$(get_visibility "$wid")
