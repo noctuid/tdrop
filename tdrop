@@ -305,6 +305,8 @@ wm_autoset_for_all() {
 			class=$1
 			if [[ $1 =~ ^google-chrome ]]; then
 				class=google-chrome
+			elif [[ $1 == st ]]; then
+				class=st-256color
 			fi
 			# newest (using "instance" names)
 			if [[ $class =~ [A-Z] ]]; then
