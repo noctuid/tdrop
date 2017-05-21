@@ -550,7 +550,7 @@ program_start() {
 		tmux_command="'tmux attach-session -dt $session_name || \
 			tmuxinator start $session_name || \
 			tmux new-session -s $session_name'"
-		if [[ $program == urxvt ]]; then
+		if [[ $program =~ ^urxvt ]]; then
 			program_command="$program_command -e bash -c $tmux_command"
 		elif [[ $program == terminix ]]; then
 			program_command="$program_command -x \"bash -c $tmux_command\""
