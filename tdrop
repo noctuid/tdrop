@@ -279,7 +279,7 @@ update_geometry_settings_for_monitor() {
 	fi
 }
 
-set_geometry_for_monitor() {
+set_geometry() {
 	xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
 }
 
@@ -638,7 +638,7 @@ wid_toggle() {
 			# cleaner to do after any map_post command with the downside of potential
 			# for minimal flicker or redundancy
 			if $monitor_changed; then
-				set_geometry_for_monitor "$wid"
+				set_geometry "$wid"
 			fi
 		else
 			xdotool windowunmap "$wid"
@@ -675,7 +675,7 @@ wid_toggle() {
 				width=${original_width:-$width}
 				height=${original_height:-$height}
 				update_geometry_settings_for_monitor
-				set_geometry_for_monitor "$wid"
+				set_geometry "$wid"
 			fi
 		fi
 	fi
@@ -716,7 +716,7 @@ get_geometry() {
 	fi
 }
 
-give_geometry() {
+retrieve_geometry() {
 	eval "$(< "$MUTDROP_PATH"/auto_hidden/geometry)"
 	local x_fix y_fix X Y
 	if [[ -n $dec_fix ]]; then
@@ -733,8 +733,8 @@ give_geometry() {
 	echo -n "$X $Y"
 }
 
-set_geometry() {
-	xdotool windowmove "$1" "$(give_geometry)"
+restore_geometry() {
+	xdotool windowmove "$1" "$(retrieve_geometry)"
 }
 
 toggle_auto_hide() {
@@ -783,13 +783,13 @@ auto_show() {
 		if [[ $was_floating != false ]]; then
 			if $combine_map_post; then
 				local XY X Y
-				XY=$(give_geometry "$wid")
+				XY=$(retrieve_geometry "$wid")
 				X=$(echo "$XY" | awk '{print $1}')
 				Y=$(echo "$XY" | awk '{print $2}')
 				map_post_command "$wid" "$X" "$Y"
 			else
 				map_post_command "$wid"
-				set_geometry "$wid"
+				restore_geometry "$wid"
 			fi
 		else
 			xdotool windowmap "$wid"
