@@ -44,9 +44,7 @@ See man page for more details.
 	fi
 }
 
-#
-# Default Options and Option Parsing
-#
+# * Default Options and Option Parsing
 
 # xdotool can take percentages; cannot take decimal percentages though
 width="100%"
@@ -55,19 +53,23 @@ xoff=0
 yoff=2
 session_name=""
 num=""
-map_pre=""
-map_post=""
-unmap_post=""
-oneshot_post=""
-create_hook=""
-map_hook=""
+pre_create=""
+post_create=""
+pre_float=""
+post_float=""
+pre_map=""
+post_map=""
+pre_unmap=""
+post_unmap=""
 dec_fix=""
 program_flags=""
 clearwid=false
 cancel_auto_show=true
 auto_detect_wm=false
 monitor_aware=false
-while getopts :h:w:x:y:s:n:p:P:M:O:c:d:f:-:am opt
+wm=""
+class=""
+while getopts :h:w:x:y:s:n:c:C:l:L:p:P:u:U:d:f:-:am opt
 do
 	case $opt in
 	h) height=$OPTARG;;
@@ -76,11 +78,14 @@ do
 	y) yoff=$OPTARG;;
 	s) session_name=$OPTARG;;
 	n) num=$OPTARG;;
-	p) map_pre=$OPTARG;;
-	P) map_post=$OPTARG;;
-	M) unmap_post=$OPTARG;;
-	O) oneshot_post=$OPTARG;;
-	c) create_hook=$OPTARG;;
+	c) pre_create=$OPTARG;;
+	C) post_create=$OPTARG;;
+	l) pre_float=$OPTARG;;
+	L) post_float=$OPTARG;;
+	p) pre_map=$OPTARG;;
+	P) post_map=$OPTARG;;
+	u) pre_unmap=$OPTARG;;
+	U) post_unmap=$OPTARG;;
 	d) dec_fix=$OPTARG;;
 	f) program_flags=$OPTARG;;
 	a) auto_detect_wm=true;;
@@ -103,16 +108,20 @@ do
 		y-offset) yoff=$OPTARG;;
 		session) session_name=$OPTARG;;
 		number) num=$OPTARG;;
-		pre-command) map_pre=$OPTARG;;
-		post-command) map_post=$OPTARG;;
-		post-unmap) unmap_post=$OPTARG;;
-		oneshot-post) oneshot_post=$OPTARG;;
-		create-hook) create_hook=$OPTARG;;
-		map-hook) map_hook=$OPTARG;;
+		pre-create-hook) pre_create=$OPTARG;;
+		post-create-hook) post_create=$OPTARG;;
+		pre-float-command) pre_float=$OPTARG;;
+		post-float-command) post_float=$OPTARG;;
+		pre-map-hook) pre_map=$OPTARG;;
+		post-map-hook) post_map=$OPTARG;;
+		pre-unmap-hook) pre_unmap=$OPTARG;;
+		post-unmap-hook) post_unmap=$OPTARG;;
 		decoration-fix) dec_fix=$OPTARG;;
 		program-flags) program_flags=$OPTARG;;
 		auto-detect-wm) auto_detect_wm=true;;
 		monitor-aware) monitor_aware=true;;
+		wm) wm=$OPTARG;;
+		class) class=$OPTARG;;
 		clear) clearwid=true;;
 		no-cancel) cancel_auto_show=false;;
 		help) print_help;;
@@ -144,18 +153,10 @@ if [[ -n $dec_fix ]] && [[ ! $dec_fix =~ ^-?[0-9]+x-?[0-9]+$ ]]; then
 fi
 
 # non-user-settable global vars
-
+wid=""
 # necessary to account for differences in geometry/positioning output from xwininfo
 # for different WMs (matters when a window is in a corner or on the side)
 subtract_when_same=true
-# will be set to true to eliminate or reduce flicker for WMs that alter window
-# position when remapping; when true, windowmap and windowmove are combined, so that
-# the window is correctly positioned earlier
-combine_map_post=false
-# set to true if the -m option is being used and the monitor has changed
-# in order to force resize the dropdown to the given width/height percentages
-# for the current monitor
-monitor_changed=false
 # used for -m option; at first tdrop assumes that there is a focused window
 # on the current desktop; if there isn't (and the WM doesn't have some way to
 # query the current monitor), this will be set to false, and tdrop will have to
@@ -164,9 +165,7 @@ monitor_changed=false
 # WM-independent way I know to find out what the current monitor is)
 focused_window_exists=true
 
-#
-# Multiple Monitor Automatic Re-Sizing
-#
+# * Multiple Monitor Automatic Re-Sizing
 
 percent_of_total() { # percent total
 	awk "BEGIN {printf(\"%.0f\", 0.01*${1%\%}*$2)}"
@@ -269,24 +268,14 @@ update_geometry_settings_for_monitor() {
 	# (required for some WMs apparently, but not for others)
 	((xoff+=x_begin))
 	((yoff+=y_begin))
-
-	# determine if monitor has changed and save current monitor
-	local last_monitor
-	last_monitor=$(< "$MUTDROP_PATH"/last_monitor) 2> /dev/null
-	echo "$current_monitor" > "$MUTDROP_PATH"/last_monitor
-	if [[ $current_monitor != "$last_monitor" ]]; then
-		monitor_changed=true
-	fi
 }
 
-set_geometry() {
-	xdotool windowmove "$1" "$xoff" "$yoff" windowsize "$1" "$width" "$height"
+map_and_reset_geometry() {
+	xdotool windowmap "$wid" windowmove "$wid" "$xoff" "$yoff" \
+		windowsize "$wid" "$width" "$height" 2> /dev/null
 }
 
-#
-# WM Detection and Settings
-#
-
+# * WM Detection and Hooks
 get_window_manager() {
 	# xfwm4 and fvwm at least will give two names (hence piping into head)
 	xprop -notype -id "$(xprop -root -notype | \
@@ -294,56 +283,7 @@ get_window_manager() {
 		-f _NET_WM_NAME 8u | awk -F "\"" '/WM_NAME/ {print $2}' | head -n 1
 }
 
-# settings that apply for both tdrop <term> and tdrop auto_(hide|show)
-# e.g. tilers w/ floating support: settings for floating a window when mapping it
-# can set up a rule for always floating a window or term type/class
-# alternatively, can use these settings to float just the dropdown
-wm_autoset_for_all() {
-	# bspwm will use previous size when floating already
-	if [[ $wm == bspwm ]]; then
-		map_pre() {
-			class=$1
-			if [[ $1 =~ ^google-chrome ]]; then
-				class=google-chrome
-			elif [[ $1 == st ]]; then
-				class=st-256color
-			fi
-			# newest (using "instance" names)
-			if [[ $class =~ [A-Z] ]]; then
-				bspc rule -a "$class" -o state=floating
-			else
-				bspc rule -a \*:"$class" -o state=floating
-			fi
-		}
-	elif [[ $wm == awesome ]]; then
-		# awesome remembers size, but need to float and then set size first
-		map_post_oneshot() {
-			echo 'local awful = require("awful") ; awful.client.floating.set(c, true)' | \
-				awesome-client && \
-				xdotool windowmove "$1" "$xoff" "$yoff" \
-				windowsize "$1" "$width" "$height"
-		}
-		map_post() {
-			echo 'local awful = require("awful") ; awful.client.floating.set(c, true)' | \
-				awesome-client
-		}
-	
-	# tilers that won't remember sizing
-	elif [[ $wm == i3 ]]; then
-		map_post_oneshot() {
-			i3-msg "[id=$1] floating enable" > /dev/null && \
-				xdotool windowmove "$1" "$xoff" "$yoff" \
-					windowsize "$1" "$width" "$height"
-		}
-		map_post() {
-			i3-msg "[id=$1] floating enable" > /dev/null && \
-				xdotool windowmove "$1" "$xoff" "$yoff"
-		}
-	fi
-}
-
-# settings for maintining previous size/placement of windows when unhiding them
-wm_autoset_for_hide_show() {
+wm_auto_settings() {
 	# tilers: is_floating function so that hidden tiling windows don't become floating
 	if [[ $wm == bspwm ]]; then
 		subtract_when_same=false
@@ -367,116 +307,133 @@ wm_autoset_for_hide_show() {
 		subtract_when_same=false
 	elif [[ $wm =~ ^(Mutter \(Muffin\))$ ]]; then
 		dec_fix_auto="-9x-8"
-	
+		
 	# NOTE:
 	# pekwm, xfwm4, sawfish, openbox need subtract_when_same to be true (default)
-	# for fluxbox, blackbox, fvwm, and metacity, the value does not matter
+	# for awesome, fluxbox, blackbox, mutter, fvwm, and metacity, the value does not matter
 	elif [[ $wm == GoomwW ]]; then
 		subtract_when_same=false
 	fi
+}
 
-	if [[ $wm =~ ^(pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter|GNOME Shell|Mutter \(Muffin\)|KWin|Metacity \(Marco\)|[Cc]ompiz)$ ]]; then
-		combine_map_post=true
-		map_post() {
-			xdotool windowmap "$1" windowmove "$1" "$2" "$3" 2> /dev/null
-		}
+fix_class() {
+	if [[ $program =~ ^google-chrome ]]; then
+		class=google-chrome
+	elif [[ $program == st ]]; then
+		class=st-256color
+	elif [[ $program == gnome-terminal ]]; then
+		class=Gnome-terminal
+	elif [[ $program == urxvtc ]]; then
+		class=urxvt
+	elif [[ $program == current ]]; then
+		class=$(cat "$MUTDROP_PATH"/current"$num"_class  2> /dev/null)
+	else
+		class=$program
 	fi
 }
 
-wm_autoset_for_dropdown() {
-	# tilers without floating support: can toggle fullscreen instead for the dropdown
-	if [[ $wm == herbstluftwm ]]; then
-		map_post() {
-			herbstclient fullscreen on
-		}
-		unmap_post() {
+pre_float() {
+	if [[ $wm == bspwm ]]; then
+		# newest (using "instance" names)
+		if [[ $class =~ [A-Z] ]]; then
+			bspc rule -a "$class" -o state=floating
+		else
+			bspc rule -a \*:"$class" -o state=floating
+		fi
+	fi
+}
+
+post_float() {
+	if [[ $wm == awesome ]]; then
+		echo 'local awful = require("awful") ; awful.client.floating.set(c, true)' | \
+			awesome-client
+	elif [[ $wm == i3 ]]; then
+		i3-msg "[id=$wid] floating enable" > /dev/null
+	elif [[ $wm == herbstluftwm ]]; then
+		herbstclient fullscreen on
+	fi
+}
+
+pre_create() {
+	if [[ -n "$pre_create" ]]; then
+		eval "$pre_create"
+	fi
+}
+
+post_create() {
+	if [[ -n "$post_create" ]]; then
+		eval "$post_create"
+	fi
+}
+
+pre_map() {
+	float=${1:-true}
+	if $float; then
+		if [[ -n $pre_float ]]; then
+			eval "$pre_float"
+		elif $auto_detect_wm; then
+			pre_float
+		fi
+	fi
+	if [[ -n $pre_map_hook ]]; then
+		eval "$pre_map_hook"
+	fi
+}
+
+map_and_post_map() {
+	# always reset geometry
+	map_and_reset_geometry
+	float=${1:-true}
+	if $float; then
+		if [[ -n "$post_float" ]]; then
+			eval "$post_float"
+		elif $auto_detect_wm; then
+			post_float
+		fi
+	fi
+	if [[ -n "$post_map_hook" ]]; then
+		eval "$post_map_hook"
+	fi
+}
+
+pre_unmap() {
+	if [[ -n "$pre_unmap_hook" ]]; then
+		eval "$pre_unmap_hook"
+	fi
+}
+
+post_unmap() {
+	if [[ -n "$post_unmap_hook" ]]; then
+		eval "$post_unmap_hook"
+	fi
+}
+
+unmap() {
+	hide=$1
+	pre_unmap
+	xdotool windowunmap "$wid"
+	if [[ -z $hide ]]; then
+		if [[ $wm == herbstluftwm ]]; then
+			# TODO should only happen if wasn't previously fullscreen
 			herbstclient fullscreen off
-		}
-
-	# floating window managers that may both move and resize a window after unmapping then mapping it
-	elif [[ $wm == Openbox ]]; then
-		# openbox will resize window to be slightly less than the width of the screen when mapping
-		# this is necessary when want width to be 100%
-		combine_map_post=true
-		map_post() {
-			xdotool windowmap "$1" windowmove "$1" "$xoff" "$yoff" \
-				windowsize "$1" "$width" "$height" 2> /dev/null
-		}
-	# floating window managers that may move a window after unmapping then mapping it
-	elif [[ $wm =~ ^(pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter|GNOME Shell|Mutter \(Muffin\)|KWin|Metacity \(Marco\)|[Cc]ompiz|bspwm)$ ]]; then
-		# most will center
-		# mutter/gnome shell will move to top centerish (just below panel on gnome shell)
-		# xfwm4 will normally move to top left; metacity will move close to top left
-		# sawfish just moves all over the place
-		combine_map_post=true
-		map_post() {
-			# when first creating, the window will already be mapped before it is run
-			# suppress the error from trying to map a mapped window
-			xdotool windowmap "$1" windowmove "$1" "$xoff" "$yoff" 2> /dev/null
-		}
+		fi
 	fi
+	post_unmap
 }
 
-#
-# Helper Functions for Specific Dropdowns and Auto Hide/Show
-#
+# Old notes:
+# floating WMs that may move a window after remapping it
+# pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter|GNOME Shell|Mutter \(Muffin\)|KWin|Metacity \(Marco\)|[Cc]ompiz|bspwm
+# floating WMs that may both move and resize a window after remapping it
+# Openbox
 
+# * General Helper Functions
 get_class_name() {
 	xprop -id "$1" WM_CLASS | awk '{gsub(/"/, ""); print $4}'
 }
 
 get_visibility() {
 	xwininfo -id "$1" 2> /dev/null | awk '/Map State/ {print $3}'
-}
-
-map_pre_command() {
-	# a user set option has higher priority
-	if [[ -n $map_pre ]]; then
-		eval "$map_pre"
-	# use automatically set function if exists
-	elif [[ -n $(type map_pre 2> /dev/null) ]]; then
-		# needed when creating oneshot rules for programs where cmd differs from actual class name
-		if [[ $1 == gnome-terminal ]]; then
-			map_pre "Gnome-terminal"
-		elif [[ $1 == urxvtc ]]; then
-			map_pre "urxvt"
-		else
-			map_pre "$1"
-		fi
-	fi
-}
-
-map_post_command() {
-	if [[ -n $oneshot_post ]] && [[ $1 == oneshot ]]; then
-		eval "$oneshot_post"
-	elif [[ -n $(type map_post_oneshot 2> /dev/null) ]] && \
-		[[ $1 == oneshot ]]; then
-		map_post_oneshot "$2"
-	elif [[ -n $map_post ]]; then
-		eval "$map_post"
-	elif [[ -n $(type map_post 2> /dev/null) ]]; then
-		map_post "$@"
-	fi
-}
-
-unmap_post_command() {
-	if [[ -n $unmap_post ]]; then
-		eval "$unmap_post"
-	elif [[ -n $(type unmap_post 2> /dev/null) ]]; then
-		unmap_post
-	fi
-}
-
-run_create_hook() {
-	if [[ -n $create_hook ]]; then
-		eval "$create_hook"
-	fi
-}
-
-run_map_hook() {
-	if [[ -n $map_hook ]]; then
-		eval "$map_hook"
-	fi
 }
 
 maybe_cancel_auto_show() {
@@ -486,12 +443,9 @@ maybe_cancel_auto_show() {
 	fi
 }
 
-#
-# Dropdown Initialization
-#
-
+# * Dropdown Initialization
 create_win_return_wid() {
-	local blacklist program_command pid visible_wid wids program_wid
+	local blacklist program_command pid visible_wid wids wid program_wid
 	# blacklist all existing wids of program
 	# (for programs where one pid shares all wids)
 	blacklist=$(xdotool search --classname "$program")
@@ -560,9 +514,6 @@ program_start() {
 	fi
 	wid=$(create_win_return_wid "$program_command")
 	echo "$wid" > "$MUTDROP_PATH/$program$num"
-	# only will work if a pre-command has been run (e.g. bspwm)
-	xdotool windowmove "$wid" "$xoff" "$yoff" \
-		windowsize "$wid" "$width" "$height"
 	echo -n "$wid"
 }
 
@@ -571,7 +522,7 @@ current_create() {
 	local wid
 	wid=$(xdotool getactivewindow)
 	echo "$wid" > "$MUTDROP_PATH"/current"$num"
-	get_class_name "$wid" > "$MUTDROP_PATH"/current"$num"_type
+	get_class_name "$wid" > "$MUTDROP_PATH"/current"$num"_class
 	echo -n "$wid"
 }
 
@@ -585,7 +536,7 @@ wid_toggle() {
 		convert_geometry_to_pixels "$total_width" "$total_height"
 	fi
 	# get saved window id if already created
-	local wid exists visibility
+	local exists visibility
 	# cat to silence error
 	wid=$(cat "$MUTDROP_PATH/$program$num" 2> /dev/null)
 	exists=true
@@ -606,11 +557,7 @@ wid_toggle() {
 			# on another desktop
 			xdotool set_desktop_for_window "$wid" "$(xdotool get_desktop)"
 			if [[ $(get_visibility "$wid") == IsUnMapped ]]; then
-				if [[ $program == current ]]; then
-					map_pre_command "$(< "$MUTDROP_PATH"/current"$num"_type)"
-				else
-					map_pre_command "$program"
-				fi
+				pre_map
 			else
 				xdotool windowactivate "$wid"
 			fi
@@ -620,28 +567,18 @@ wid_toggle() {
 				update_geometry_settings_for_monitor || \
 					focused_window_exists=false
 			fi
-			if ! $combine_map_post; then
-				xdotool windowmap "$wid"
-				map_post_command "$wid"
-			else
-				# combine mapping with resizing/moving when possible to reduce flicker
-				map_post_command "$wid"
-			fi
-			run_map_hook "$wid"
+			map_and_post_map
+			# cancel auto-show for a window when manually remapping it
 			maybe_cancel_auto_show "$wid"
 			if ! $focused_window_exists; then
 				# need to use dropdown as active window to get monitor info
 				update_geometry_settings_for_monitor
-			fi
-			# would be much too messy to integrate a resize into existing map_post commands
-			# or add for those WMs that don't even need an xdotool command
-			# cleaner to do after any map_post command with the downside of potential
-			# for minimal flicker or redundancy
-			if $monitor_changed; then
-				set_geometry "$wid"
+				# always resize/move; if monitor hasn't changed then it won't be
+				# necessary, but it won't cause problems either
+				map_and_reset_geometry
 			fi
 		else
-			xdotool windowunmap "$wid"
+			unmap
 		fi
 	else
 		# necessary to deal with negative width or height
@@ -660,31 +597,27 @@ wid_toggle() {
 			fi
 		fi
 		# make it
-		map_pre_command "$program"
+		pre_create
 		if [[ $program == current ]]; then
 			wid=$(current_create)
-			xdotool windowunmap "$wid"
-			run_create_hook "$wid"
+			unmap
 		else
+			pre_map
 			wid=$(program_start)
-			map_post_command oneshot "$wid"
-			run_create_hook "$wid"
-			run_map_hook "$wid"
+			map_and_post_map
 			# update window dimensions if necessary
 			if ! $focused_window_exists; then
 				width=${original_width:-$width}
 				height=${original_height:-$height}
 				update_geometry_settings_for_monitor
-				set_geometry "$wid"
+				map_and_reset_geometry
 			fi
 		fi
+		post_create
 	fi
 }
 
-#
-# Helper Functions for Auto Hiding/Showing
-#
-
+# * Helper Functions for Auto Hiding/Showing
 get_geometry() {
 	# so that won't float a tiled window later when showing
 	if [[ -n $(type is_floating 2> /dev/null) ]] && \
@@ -748,21 +681,17 @@ toggle_auto_hide() {
 	fi
 }
 
-#
-# Auto Hiding/Showing
-#
-
+# * Auto Hiding/Showing
 auto_hide() {
 	local no_hide
 	no_hide=$(< "$MUTDROP_PATH"/auto_hidden/no_hide) 2> /dev/null
 	if [[ -z $no_hide ]]; then
-		local wid
 		wid=$(xdotool getactivewindow)
 		mkdir -p "$MUTDROP_PATH"/auto_hidden
 		echo "$wid" > "$MUTDROP_PATH"/auto_hidden/wid
 		get_class_name "$wid" > "$MUTDROP_PATH"/auto_hidden/class
 		get_geometry "$wid" > "$MUTDROP_PATH"/auto_hidden/geometry
-		xdotool windowunmap "$wid"
+		unmap hide
 	fi
 }
 
@@ -770,46 +699,32 @@ auto_show() {
 	local no_hide
 	no_hide=$(< "$MUTDROP_PATH"/auto_hidden/no_hide) 2> /dev/null
 	if [[ -z $no_hide ]]; then
-		local wid class was_floating
+		local was_floating XY
 		wid=$(< "$MUTDROP_PATH"/auto_hidden/wid)
 		class=$(< "$MUTDROP_PATH"/auto_hidden/class)
 		was_floating=$(< "$MUTDROP_PATH"/auto_hidden/geometry)
-		if [[ $was_floating != false ]]; then
-			map_pre_command "$class"
-		fi
-		if ! $combine_map_post; then
-			xdotool windowmap "$wid"
-		fi
-		if [[ $was_floating != false ]]; then
-			if $combine_map_post; then
-				local XY X Y
-				XY=$(retrieve_geometry "$wid")
-				X=$(echo "$XY" | awk '{print $1}')
-				Y=$(echo "$XY" | awk '{print $2}')
-				map_post_command "$wid" "$X" "$Y"
-			else
-				map_post_command "$wid"
-				restore_geometry "$wid"
-			fi
-		else
-			xdotool windowmap "$wid"
-		fi
+		XY=$(retrieve_geometry "$wid")
+		xoff=$(echo "$XY" | awk '{print $1}')
+		yoff=$(echo "$XY" | awk '{print $2}')
+		pre_map "$was_floating"
+		map_and_post_map "$was_floating"
 	fi
 }
 
-#
-# Main
-#
-
+# * Main
+# ** Setup
 if $auto_detect_wm; then
-	wm=$(get_window_manager)
-	wm_autoset_for_all
-	if [[ $program == auto_show ]] || [[ $program == auto_hide ]]; then
-		wm_autoset_for_hide_show
-	else
-		wm_autoset_for_dropdown
+	if [[ -z $wm ]]; then
+		wm=$(get_window_manager)
 	fi
+	wm_auto_settings
 fi
+
+if [[ -z "$class" ]] || [[ $program == current ]]; then
+	fix_class
+fi
+
+# ** Primary Action
 if $clearwid; then
 	> "$MUTDROP_PATH/$program$num"
 elif [[ $program == toggle_auto_hide ]]; then
@@ -821,5 +736,6 @@ elif [[ $program == auto_show ]]; then
 else
 	wid_toggle
 fi
+
 # vim is dumb
 # vim: set ft=sh noet:
