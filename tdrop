@@ -6,34 +6,66 @@ mkdir -p "$MUTDROP_PATH" -m 700
 
 print_help() {
 	echo "
-	Used for hiding/unhiding programs to acheive quake-dropdown-like-functionality. Can create a dropdown window if one does not already exist and provides options to control the intial size and position, e.g. to leave panels visible. When used with a terminal, provides the option to specify the name of a tmuxinator or tmux session to automatically start or attach to.
-
-	Also supports the ability to auto-hide and auto-show. For example, this can be used to automatically hide a window when opening something, e.g. image viewer, video player, etc. from it, and then re-show the window whenever the image view, video player, etc. is closed.
-
-	Takes a window as an argument or one of auto_show, auto_hide, or toggle_auto_hide. 'toggle_auto_hide' toggles whether calling 'auto_hide' or 'auto_show' will have any effect. 'current' will turn the current window into a dropdown.
-
-usage: tdrop [options] <program or 'current'> or one of <auto_show/auto_hide/toggle_auto_hide>
+usage: tdrop [options] <program> or 'current' or
+                       one of 'auto_show'/'auto_hide'/'toggle_auto_hide'
 options:
-	-h height    specify a height for a newly created term (default: 45%)
-	-w width     specify a width for a newly created term (default: 100%)
-	-x pos       specify x offset for a newly created term (default: 0)
-	-y pos       specify y offset for a newly created term (default: 1, see BUGS in man)
-	-s name      name for tmux or tmuxinator session (requires the program to be a supported terminal)
-	-n num       num or extra text; only needed if want multiple dropdowns of same program (default: none)
-	-p cmd       provide a pre-map command to float the window if necessary
-	-P cmd       provide a post-map command to float the window if necessary
-	-M cmd       provide a post-unmap command; can be used for example with a window manager that doesn't support floating to turn fullscreen on when mapping a terminal then off when unmapping it
-	-O cmd       provide a one time command only for when a dropdown is created/initiated (useful for 'tdrop current')
-	-d XxY       give decoration/border size to accurately save position; only applicable with auto_show; on applicable with a few window managers (e.g. blackbox)
-	-f           specify flags/options to be used when creating the term or window (e.g. -f '--title mytitle'; default: none). caution: if there is a tmux/tmuxinator session specified (with -s), the option to execute a program (usually -e for terminal programs) is implicitly added by tdrop!
-	-a           automatically detect window manager and if settings exist for it, automatically set -p, -P, and -d values as necessary; this can have affect when used with a terminal or with auto_show or auto_hide (default: false)
-	-m           for use with multiple monitors and only with dropdowns (not for auto_show or auto_hide); convert percentages used for width or height to values relative to the size of the current monitor and force reszing of the dropdown when the monitor changes (default: false)
-	-c cmd       provide a command to be run after first creating the dropdown
-	             (e.g. to set some window property)
-	--clear      clear saved window id; useful accidentally make a window a dropdown (e.g. '$ tdrop --clear current')
-	--no-cancel  don't cancel auto-showing
-	             (default is to prevent this when manually toggling a term after it is auto-hidden)
-	--help       print help
+	-h height	specify a height for a newly created term (default: 45%)
+	-w width	specify a width for a newly created term (default: 100%)
+	-x pos		specify x offset for a newly created term (default: 0)
+	-y pos		specify y offset for a newly created term (default: 1, see man)
+	-s name		name for tmux/tmuxinator session (supported terminal required)
+	-n num		num or extra text; only needed if for the purpose of sing
+			multiple dropdowns of same program
+	-c cmd		provide a pre-create command
+	-C cmd		provide a post-create command
+	-l cmd		provide a command to float the window before it is mapped
+	-L cmd		provide a command to float the window after it is mapped
+	-p cmd		provide a pre-map command
+	-P cmd		provide a post-map command
+	-u cmd		provide a pre-unmap command
+	-U cmd		provide a post-unmap command
+	-d XxY		give decoration/border size to accurately restore window
+			position; only applicable with auto_show
+	-S cmd		can be used to fix saved geometry with auto_hide; see manpage
+	-i cmd		provide a command to detect whether the current window is a
+			floating window; on applicable with auto_hide
+	-f flags	specify flags/options to be used when creating the term or
+			window (e.g. -f '--title mytitle'; default: none).
+			Caution: if there is a tmux/tmuxinator session specified
+			(with -s), the option to execute a program (usually -e for
+			terminal programs) is implicitly added by tdrop
+	-a		automatically detect window manager and set relevant options
+			(e.g. this makes specifying -d and -l/-L, -d, and -i uneccessary
+			for supported WMs) (default: false)
+	-m		for use with multiple monitors and only with dropdowns
+			(i.e. not for auto_show or auto_hide); convert percentages used
+			for width or height to values relative to the size of the
+			current monitor and force resizing of the dropdown when
+			the monitor changes (default: false)
+	--wm		set the window manager name to mimic another window manager
+			(for use with -a)
+	--class		manually specify the classname of the window
+	--clear		clear saved window id; useful after accidentally make a window a
+			dropdown (e.g. '$ tdrop --clear current')
+	--no-cancel	don't cancel auto-showing (default is to prevent this when
+			manually toggling a window after it is auto-hidden)
+	--help		print help
+
+	Used for hiding/unhiding programs to acheive quake/dropdown functionality.
+Can create a dropdown window if one does not already exist and provides options
+to control the initial size and position, e.g. to leave panels visible. When
+used with a terminal, provides the option to specify the name of a tmuxinator or
+tmux session to automatically start or attach to.
+
+	Also supports the ability to auto-hide and auto-show. For example, this can
+be used to automatically hide a window when opening something from it (e.g.
+image viewer, video player, etc.) and then re-show the window after the opened
+window is closed.
+
+	Takes a window as an argument or one of auto_show, auto_hide, or
+toggle_auto_hide. 'toggle_auto_hide' toggles whether calling 'auto_hide' or
+'auto_show' will have any effect. 'current' will turn the current window
+into a dropdown.
 
 See man page for more details.
 "
@@ -62,12 +94,15 @@ post_map=""
 pre_unmap=""
 post_unmap=""
 dec_fix=""
+subtract_when_same=""
+is_floating=""
 program_flags=""
 clearwid=false
 cancel_auto_show=true
 auto_detect_wm=false
 monitor_aware=false
 wm=""
+user_set_wm=false
 class=""
 while getopts :h:w:x:y:s:n:c:C:l:L:p:P:u:U:d:f:-:am opt
 do
@@ -87,6 +122,8 @@ do
 	u) pre_unmap=$OPTARG;;
 	U) post_unmap=$OPTARG;;
 	d) dec_fix=$OPTARG;;
+	S) subtract_when_same=$OPTARG;;
+	i) is_floating=$OPTARG;;
 	f) program_flags=$OPTARG;;
 	a) auto_detect_wm=true;;
 	m) monitor_aware=true;;
@@ -117,10 +154,13 @@ do
 		pre-unmap-hook) pre_unmap=$OPTARG;;
 		post-unmap-hook) post_unmap=$OPTARG;;
 		decoration-fix) dec_fix=$OPTARG;;
+		subtract-when-same) subtract_when_same=$OPTARG;;
+		is-floating) is_floating=$OPTARG;;
 		program-flags) program_flags=$OPTARG;;
 		auto-detect-wm) auto_detect_wm=true;;
 		monitor-aware) monitor_aware=true;;
-		wm) wm=$OPTARG;;
+		wm) wm=$OPTARG
+			user_set_wm=true;;
 		class) class=$OPTARG;;
 		clear) clearwid=true;;
 		no-cancel) cancel_auto_show=false;;
@@ -154,9 +194,6 @@ fi
 
 # non-user-settable global vars
 wid=""
-# necessary to account for differences in geometry/positioning output from xwininfo
-# for different WMs (matters when a window is in a corner or on the side)
-subtract_when_same=true
 # used for -m option; at first tdrop assumes that there is a focused window
 # on the current desktop; if there isn't (and the WM doesn't have some way to
 # query the current monitor), this will be set to false, and tdrop will have to
@@ -283,52 +320,77 @@ get_window_manager() {
 		-f _NET_WM_NAME 8u | awk -F "\"" '/WM_NAME/ {print $2}' | head -n 1
 }
 
-wm_auto_settings() {
-	# tilers: is_floating function so that hidden tiling windows don't become floating
-	if [[ $wm == bspwm ]]; then
-		subtract_when_same=false
-		is_floating() {
-			bspc query -T -n | grep '"state":"floating"'
-		}
-	elif [[ $wm == i3 ]]; then
-		subtract_when_same=false
-		is_floating() {
-			# do you even sed?
-			i3-msg -t get_tree | awk 'gsub(/{"id"/, "\n{\"id\"")' | \
-				awk '/focused":true.*floating":"user_on/ {print $1}'
-		}
-
-	# settings for stacking/floating wms where can't get right position easily from xwininfo
-	# take borders into account
-	elif [[ $wm == Blackbox ]]; then
-		dec_fix_auto="1x22"
-	elif [[ $wm =~ ^(Mutter|GNOME Shell)$ ]]; then
-		dec_fix_auto="-10x-8"
-		subtract_when_same=false
-	elif [[ $wm =~ ^(Mutter \(Muffin\))$ ]]; then
-		dec_fix_auto="-9x-8"
-		
-	# NOTE:
-	# pekwm, xfwm4, sawfish, openbox need subtract_when_same to be true (default)
-	# for awesome, fluxbox, blackbox, mutter, fvwm, and metacity, the value does not matter
-	elif [[ $wm == GoomwW ]]; then
-		subtract_when_same=false
+set_wm() {
+	if ! $user_set_wm && $auto_detect_wm; then
+		wm=$(get_window_manager)
 	fi
 }
 
-fix_class() {
-	if [[ $program =~ ^google-chrome ]]; then
-		class=google-chrome
-	elif [[ $program == st ]]; then
-		class=st-256color
-	elif [[ $program == gnome-terminal ]]; then
-		class=Gnome-terminal
-	elif [[ $program == urxvtc ]]; then
-		class=urxvt
-	elif [[ $program == current ]]; then
-		class=$(cat "$MUTDROP_PATH"/current"$num"_class  2> /dev/null)
+decoration_settings() {
+	if [[ -z $subtract_when_same ]] && $auto_detect_wm; then
+		if [[ $wm == bspwm ]]; then
+			subtract_when_same=false
+		elif [[ $wm == i3 ]]; then
+			subtract_when_same=false
+		elif [[ $wm =~ ^(Mutter|GNOME Shell)$ ]]; then
+			subtract_when_same=false
+		elif [[ $wm == GoomwW ]]; then
+			subtract_when_same=false
+		fi
+	elif [[ -z $subtract_when_same ]]; then
+		# NOTE:
+		# pekwm, xfwm4, sawfish, openbox need subtract_when_same to be true
+		# for awesome, fluxbox, blackbox, mutter, fvwm, and metacity, the value
+		# does not matter
+		subtract_when_same=true
+	fi
+	
+	if [[ -z "$dec_fix" ]] && $auto_detect_wm; then
+		# settings for stacking/floating wms where can't get right position
+		# easily from xwininfo; take borders into account
+		if [[ $wm == Blackbox ]]; then
+			dec_fix="1x22"
+		elif [[ $wm =~ ^(Mutter|GNOME Shell)$ ]]; then
+			dec_fix="-10x-8"
+		elif [[ $wm =~ ^(Mutter \(Muffin\))$ ]]; then
+			dec_fix="-9x-8"
+		fi
+	fi
+}
+
+set_class() {
+	if [[ -z "$class" ]]; then
+		if [[ $program =~ ^google-chrome ]]; then
+			class=google-chrome
+		elif [[ $program == st ]]; then
+			class=st-256color
+		elif [[ $program == gnome-terminal ]]; then
+			class=Gnome-terminal
+		elif [[ $program == urxvtc ]]; then
+			class=urxvt
+		elif [[ $program == current ]]; then
+			class=$(cat "$MUTDROP_PATH"/current"$num"_class  2> /dev/null)
+		else
+			class=$program
+		fi
+	fi
+}
+
+is_floating() {
+	if [[ -n $is_floating ]]; then
+		eval "$is_floating $1"
+	elif $auto_detect_wm; then
+		if [[ $wm == i3 ]]; then
+			# TODO make sure this returns 1 on failure
+			i3-msg -t get_tree | awk 'gsub(/{"id"/, "\n{\"id\"")' | \
+				awk '/focused":true.*floating":"user_on/ {print $1}'
+		elif [[ $wm == bspwm ]]; then
+			bspc query -T -n | grep '"state":"floating"'
+		else
+			return 0
+		fi
 	else
-		class=$program
+		return 0
 	fi
 }
 
@@ -368,7 +430,7 @@ post_create() {
 
 pre_map() {
 	float=${1:-true}
-	if $float; then
+	if [[ $float != false ]]; then
 		if [[ -n $pre_float ]]; then
 			eval "$pre_float"
 		elif $auto_detect_wm; then
@@ -384,7 +446,7 @@ map_and_post_map() {
 	# always reset geometry
 	map_and_reset_geometry
 	float=${1:-true}
-	if $float; then
+	if [[ $float != false ]]; then
 		if [[ -n "$post_float" ]]; then
 			eval "$post_float"
 		elif $auto_detect_wm; then
@@ -620,11 +682,7 @@ wid_toggle() {
 # * Helper Functions for Auto Hiding/Showing
 get_geometry() {
 	# so that won't float a tiled window later when showing
-	if [[ -n $(type is_floating 2> /dev/null) ]] && \
-		[[ -z $(is_floating "$1") ]]; then
-		# window is not floating; don't bother saving geometry
-		echo -n "false"
-	else
+	if is_floating "$1"; then
 		local wininfo x y rel_x rel_y
 		wininfo=$(xwininfo -id "$1")
 		x=$(echo "$wininfo" | awk '/Absolute.*X/ {print $4}')
@@ -646,6 +704,9 @@ get_geometry() {
 			fi
 		fi
 		echo -n -e "X=$x\nY=$y"
+	else
+		# window is not floating; don't bother saving geometry
+		echo -n "false"
 	fi
 }
 
@@ -657,17 +718,8 @@ retrieve_geometry() {
 		y_fix=$(echo "$dec_fix" | awk -F "x" '{print $2}')
 		X=$((X-x_fix))
 		Y=$((Y-y_fix))
-	elif [[ -n $dec_fix_auto ]]; then
-		x_fix=$(echo "$dec_fix_auto" | awk -F "x" '{print $1}')
-		y_fix=$(echo "$dec_fix_auto" | awk -F "x" '{print $2}')
-		X=$((X-x_fix))
-		Y=$((Y-y_fix))
 	fi
 	echo -n "$X $Y"
-}
-
-restore_geometry() {
-	xdotool windowmove "$1" "$(retrieve_geometry)"
 }
 
 toggle_auto_hide() {
@@ -713,16 +765,9 @@ auto_show() {
 
 # * Main
 # ** Setup
-if $auto_detect_wm; then
-	if [[ -z $wm ]]; then
-		wm=$(get_window_manager)
-	fi
-	wm_auto_settings
-fi
-
-if [[ -z "$class" ]] || [[ $program == current ]]; then
-	fix_class
-fi
+set_wm
+decoration_settings
+set_class
 
 # ** Primary Action
 if $clearwid; then
