@@ -368,6 +368,8 @@ set_class() {
 			class=Gnome-terminal
 		elif [[ $program == urxvtc ]]; then
 			class=urxvt
+		elif [[ $program == alacritty ]]; then
+			class=Alacritty
 		elif [[ $program == current ]]; then
 			class=$(cat "$MUTDROP_PATH"/current"$num"_class  2> /dev/null)
 		else
@@ -566,7 +568,7 @@ program_start() {
 		tmux_command="'tmux attach-session -dt $session_name || \
 			tmuxinator start $session_name || \
 			tmux new-session -s $session_name'"
-		if [[ $program =~ ^urxvt ]]; then
+		if [[ $program =~ ^(urxvt|alacritty$) ]]; then
 			program_command="$program_command -e bash -c $tmux_command"
 		elif [[ $program == terminix ]]; then
 			program_command="$program_command -x \"bash -c $tmux_command\""
