@@ -82,6 +82,8 @@ mime ^video, has mpv, X, flag f = tdrop -a auto_hide && mpv -- "$@" && tdrop -a 
 
 ## Tested With
 ### Terminals
+These terminals have been tested with tdrop and support the `-s` and `-a` flags unless otherwise specified:
+
 - Termite
 - URxvt (including urxvtd)
 - XTerm
@@ -92,9 +94,10 @@ mime ^video, has mpv, X, flag f = tdrop -a auto_hide && mpv -- "$@" && tdrop -a 
 - Sakura
 - Roxterm
 - Terminix (-s will not work if the terminix process is already running)
-- st
+- st (-s does not work)
+- Alacritty
 
-If your terminal doesn't work with tdrop, feel free to make an issue.
+If your terminal doesn't work with tdrop, feel free to make an issue. Please follow the steps in the troubleshooting section.
 
 ### Window Managers
 The primary goal of tdrop is to "just work" with any window manager. The primary differences between how tdrop deals with different window managers is the strategy it takes for floating only the dropdown (as opposed to all instances of the class that the dropdown is) and how it deals with window managers that resize or move a window after unmapping then mapping it. There are three types of window managers as far as tdrop is concerned.
@@ -140,3 +143,15 @@ Maybe in the future. The only advantage I can see over xdotool is that it can to
 
 ## Similar:
 - [drawer](https://github.com/lharding/lsh-bin/blob/master/drawer)
+
+# Troubleshooting
+## Tdrop does not work with some terminal/program
+Please make an issue. Including the following information would help resolve the problem more quickly.
+
+Basic:
+- The incorrect behavior: Does the window appear at all? Is the problem that it is not floated e.g. in bspwm with the `-a` flag?
+- Whether things work as expected with a basic `tdrop <terminal>` (no flags) or whether the issue occurs with a specific flag (probably `-s`)
+
+Additional helpful information:
+- If the problem only occurs with the `-s` flag, the issue is likely due to the fact that not all terminals have compatible `-e` flags. It would be helpful if information on how the terminal's flag for executing a command works. Is it something other than `-e`? Are quotations required or incorrect (`-e 'command -flags ...'` vs `-e command flags`)?
+- If the issue is with the dropdown behavior (e.g. tdrop keeps opening new windows for the program), does the program share a PID across all instances (e.g. open several windows and provide the output of `pgrep -l <program>`)?
