@@ -77,33 +77,32 @@ See man page for more details.
 }
 
 # * Default Options and Option Parsing
-
 # xdotool can take percentages; cannot take decimal percentages though
 width="100%"
 height="45%"
 xoff=0
 yoff=2
-session_name=""
-num=""
-pre_create=""
-post_create=""
-pre_float=""
-post_float=""
-pre_map=""
-post_map=""
-pre_unmap=""
-post_unmap=""
-dec_fix=""
-subtract_when_same=""
-is_floating=""
-program_flags=""
+session_name=
+num=
+pre_create=
+post_create=
+pre_float=
+post_float=
+pre_map=
+post_map=
+pre_unmap=
+post_unmap=
+dec_fix=
+subtract_when_same=
+is_floating=
+program_flags=
 clearwid=false
 cancel_auto_show=true
 auto_detect_wm=false
 monitor_aware=false
-wm=""
+wm=
 user_set_wm=false
-class=""
+class=
 while getopts :h:w:x:y:s:n:c:C:l:L:p:P:u:U:d:f:-:am opt
 do
 	case $opt in
@@ -193,7 +192,7 @@ if [[ -n $dec_fix ]] && [[ ! $dec_fix =~ ^-?[0-9]+x-?[0-9]+$ ]]; then
 fi
 
 # non-user-settable global vars
-wid=""
+wid=
 # used for -m option; at first tdrop assumes that there is a focused window
 # on the current desktop; if there isn't (and the WM doesn't have some way to
 # query the current monitor), this will be set to false, and tdrop will have to
@@ -203,7 +202,6 @@ wid=""
 focused_window_exists=true
 
 # * Multiple Monitor Automatic Re-Sizing
-
 percent_of_total() { # percent total
 	awk "BEGIN {printf(\"%.0f\", 0.01*${1%\%}*$2)}"
 }
@@ -419,13 +417,13 @@ post_float() {
 }
 
 pre_create() {
-	if [[ -n "$pre_create" ]]; then
+	if [[ -n $pre_create ]]; then
 		eval "$pre_create"
 	fi
 }
 
 post_create() {
-	if [[ -n "$post_create" ]]; then
+	if [[ -n $post_create ]]; then
 		eval "$post_create"
 	fi
 }
@@ -439,8 +437,8 @@ pre_map() {
 			pre_float
 		fi
 	fi
-	if [[ -n $pre_map_hook ]]; then
-		eval "$pre_map_hook"
+	if [[ -n $pre_map ]]; then
+		eval "$pre_map"
 	fi
 }
 
@@ -449,26 +447,26 @@ map_and_post_map() {
 	map_and_reset_geometry
 	float=${1:-true}
 	if [[ $float != false ]]; then
-		if [[ -n "$post_float" ]]; then
+		if [[ -n $post_float ]]; then
 			eval "$post_float"
 		elif $auto_detect_wm; then
 			post_float
 		fi
 	fi
-	if [[ -n "$post_map_hook" ]]; then
-		eval "$post_map_hook"
+	if [[ -n $post_map ]]; then
+		eval "$post_map"
 	fi
 }
 
 pre_unmap() {
-	if [[ -n "$pre_unmap_hook" ]]; then
-		eval "$pre_unmap_hook"
+	if [[ -n $pre_unmap ]]; then
+		eval "$pre_unmap"
 	fi
 }
 
 post_unmap() {
-	if [[ -n "$post_unmap_hook" ]]; then
-		eval "$post_unmap_hook"
+	if [[ -n $post_unmap ]]; then
+		eval "$post_unmap"
 	fi
 }
 
