@@ -83,6 +83,12 @@ If there are available settings for the detected window manager for the -l, -L, 
 \fB-m\fR, \fB --monitor-aware\fR
 This option only applies for dropdowns (not auto-hiding and auto-showing). Specify that geometry values should be relative to the current monitor. For example, if the width is a percentage or negative value, the pixel width will be calculated as a percentage of the current monitor's width (instead of the combined width of all monitors). If the monitor changes, this option will cause a dropdown to be resized to fit the given percentages. Note that this option assumes xrandr is being used and requires xrandr to work. (default: false)
 .TP
+\fB --wm\fR
+.TP
+Mimic another WM's rules with -a. This is unlikely to be useful. It could potentially be used in the case where a similar fork of a window manager had a different name. (default: automatically detected)
+\fB --class\fR
+Set the classname for the window. This is used for window managers like bspwm that use the classname for floating rules. For some commonly used programs, tdrop will already use the correct classname. This option is useful when the program name and classname are not the same and there is not already a default. (default: the program name or a known substitution)
+.TP
 \fB --clear\fR
 Used to clear a saved window id for the given program or 'current' instead of creating a dropdown. Takes no argument.
 .TP
