@@ -342,6 +342,8 @@ set_class() {
 			class=Gnome-terminal
 		elif [[ $program == urxvtc ]]; then
 			class=urxvt
+		elif [[ $program == xiatec ]]; then
+			class=xiate
 		elif [[ $program == alacritty ]]; then
 			class=Alacritty
 		elif [[ $program == current ]]; then
@@ -494,6 +496,8 @@ create_win_return_wid() {
 	elif [[ $program == urxvtc ]]; then
 		blacklist=$(xdotool search --classname urxvtd)
 		pid=$(pgrep -x urxvtd)
+	elif [[ $program == xiatec ]]; then
+		pid=$(pgrep -x xiate)
 	elif [[ $program == chromium ]]; then
 		# this may work fine
 		# pid=$(pgrep -xo chromium)
@@ -543,7 +547,7 @@ program_start() {
 		tmux_command="'tmux attach-session -dt $session_name || \
 			tmuxinator start $session_name || \
 			tmux new-session -s $session_name'"
-		if [[ $program =~ ^(urxvt|alacritty$) ]]; then
+		if [[ $program =~ ^(urxvt|alacritty|xiatec$) ]]; then
 			program_command="$program_command -e bash -c $tmux_command"
 		elif [[ $program == terminix ]]; then
 			program_command="$program_command -x \"bash -c $tmux_command\""

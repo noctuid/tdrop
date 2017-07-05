@@ -96,6 +96,7 @@ These terminals have been tested with tdrop and support the `-s` and `-a` flags 
 - Terminix (-s will not work if the terminix process is already running)
 - st (-s does not work)
 - Alacritty
+- xiate
 
 If your terminal doesn't work with tdrop, feel free to make an issue. Please follow the steps in the troubleshooting section.
 
