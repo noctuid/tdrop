@@ -431,6 +431,8 @@ map_and_post_map() {
 			post_float
 		fi
 	fi
+	# need to set geometry again if wasn't previously floating
+	map_and_reset_geometry
 	if [[ -n $post_map ]]; then
 		eval "$post_map"
 	fi
