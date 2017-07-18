@@ -150,7 +150,7 @@ These terminals have been tested with tdrop and support the =-s= and =-a= flags 
 -  Terminology
 -  Sakura
 -  Roxterm
--  Terminix (-s will not work if the terminix process is already running)
+-  Tilix (previously terminix)
 -  st (-s does not work)
 -  Alacritty
 -  xiate
@@ -199,7 +199,7 @@ Necessary features don't work on many window managers, including mine.
 * Why Not Use wmutils?
 Maybe in the future. The only advantage I can see over xdotool is that it can toggle mapping (=mapw -t=), but this wouldn't be used in this script anyway since different code is executed depending on whether or not the window is mapped or unmapped. Also the command names are somewhat cryptic.
 
-* Similar:
+* Similar
 -  [[https://github.com/lharding/lsh-bin/blob/master/drawer][drawer]]
 
 * Troubleshooting

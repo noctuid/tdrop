@@ -494,7 +494,7 @@ create_win_return_wid() {
 	# (for programs where one pid shares all wids)
 	blacklist=$(xdotool search --classname "$program")
 	# for programs where $! won't always work (e.g. one pid for all windows)
-	if [[ $program =~ ^(terminix|xfce4-terminal)$ ]]; then
+	if [[ $program =~ ^(tilix|xfce4-terminal)$ ]]; then
 		pid=$(pgrep -x "$program")
 	elif [[ $program == urxvtc ]]; then
 		blacklist=$(xdotool search --classname urxvtd)
@@ -552,8 +552,6 @@ program_start() {
 			tmux new-session -s $session_name'"
 		if [[ $program =~ ^(urxvt|alacritty|xiatec$) ]]; then
 			program_command="$program_command -e bash -c $tmux_command"
-		elif [[ $program == terminix ]]; then
-			program_command="$program_command -x \"bash -c $tmux_command\""
 		else
 			program_command="$program_command -e \"bash -c $tmux_command\""
 		fi
