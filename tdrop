@@ -156,7 +156,7 @@ do
 		*) print_help illegal_opt;;
 		esac;;
 	*) print_help illegal_opt;;
-    esac
+	esac
 done
 shift "$((OPTIND-1))"
 program=$1
