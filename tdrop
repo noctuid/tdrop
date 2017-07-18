@@ -161,6 +161,13 @@ done
 shift "$((OPTIND-1))"
 program=$1
 
+# check that the program is not a path and does not contain flags
+if ! type "$program" 2> /dev/null; then
+	echo >&2 "The program should be in PATH and not contain flags." | \
+		tee -a "$MUTDROP_PATH"/log
+	exit 1
+fi
+
 if [[ $# -ne 1 ]]; then
 	echo >&2 "Exactly 1 positional argument is required." \
 		"For help use -h or --help or see the manpage." | \
