@@ -13,8 +13,9 @@ options:
 	-w width	specify a width for a newly created term (default: 100%)
 	-x pos		specify x offset for a newly created term (default: 0)
 	-y pos		specify y offset for a newly created term (default: 1, see man)
-	-s name		name for tmux/tmuxinator session (supported terminal required)
-	-n num		num or extra text; only needed if for the purpose of sing
+	-s name		name for tmux/tmuxinator session (supported terminal
+			required)
+	-n num		num or extra text; only needed if for the purpose of using
 			multiple dropdowns of same program
 	-c cmd		provide a pre-create command
 	-C cmd		provide a post-create command
@@ -45,8 +46,8 @@ options:
 	--wm		set the window manager name to mimic another window manager
 			(for use with -a)
 	--class		manually specify the classname of the window
-	--clear		clear saved window id; useful after accidentally make a window a
-			dropdown (e.g. '$ tdrop --clear current')
+	--clear		clear saved window id; useful after accidentally make a
+			window a dropdown (e.g. '$ tdrop --clear current')
 	--no-cancel	don't cancel auto-showing (default is to prevent this when
 			manually toggling a window after it is auto-hidden)
 	--help		print help

@@ -21,7 +21,7 @@ $ tdrop --y-offset=15 termite
 .br
 $ tdrop --y-offset 15 termite
 .TP
-Note that all hook and command related options can make use of any tdrop variables (such as $width, $height, $xoff, $yoff, $wid, etc.).
+Note that all hook and command related options can make use of any tdrop variables (such as $width, $height, $xoff, $yoff, $class, $wid, etc.). Note that for some of the hooks, the window id is not guarunteed to be known (since the window may not have yet been created), so any scripts that make use of these should check if it is defined (pre-map and pre-float; wid will never be known for pre-create).
 .TP
 \fB-w\fR, \fB --width\fR
 Specify a width for a created window as a number or percentage. A negative number is allowed (e.g. '-w -4') in which case the width will be that many pixels less than 100% of the screen size (or monitor size if '-m' is being used). This fixes the problem where 100% width may actually go over the screen due to window borders/decoration. The other other geometry options also accept negative values ('-h', '-x', and '-y'). (default: 100%)
