@@ -45,7 +45,7 @@ options:
 			the monitor changes (default: false)
 	--wm		set the window manager name to mimic another window manager
 			(for use with -a)
-	--class		manually specify the classname of the window
+	--class		manually specify the class of the window (can be obtained with xprop)
 	--clear		clear saved window id; useful after accidentally make a
 			window a dropdown (e.g. '$ tdrop --clear current')
 	--no-cancel	don't cancel auto-showing (default is to prevent this when

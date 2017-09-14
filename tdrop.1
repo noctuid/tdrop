@@ -6,7 +6,7 @@ Tdrop - make dropdown terminals and windows
 .SH SYNOPSIS
 tdrop [\fIOPTIONS\fR] [program name or cmd]
 .SH DESCRIPTION
-	Tdrop is used for hiding/unhiding programs to acheive quake/dropdown functionality. It can create a dropdown window if one does not already exist or turn the current window into a dropdown on the fly. It provides options to control the intial size and position of dropdowns, for example to leave panels visible or to deal with window borders. When used with a terminal, it provides an option to specify the name of a tmuxinator or tmux session to automatically start. It also allows the user to specify arbitrary options/flags to be used when starting programs. It uses window IDs as opposed to class names, so it can be used with multiple windows of the same program.
+	Tdrop is used for hiding/unhiding programs to acheive quake/dropdown functionality. It can create a dropdown window if one does not already exist or turn the current window into a dropdown on the fly. It provides options to control the intial size and position of dropdowns, for example to leave panels visible or to deal with window borders. When used with a terminal, it provides an option to specify the name of a tmuxinator or tmux session to automatically start. It also allows the user to specify arbitrary options/flags to be used when starting programs. It uses window IDs as opposed to classes, so it can be used with multiple windows of the same program.
 
 	It also has the ability to automatically hide and automatically show dropdowns. For example, it can be used to automatically hide a terminal when opening something from it, e.g. an image viewer, video player, etc. Tdrop can         then automatically bring back the terminal whenever the image view, video player, etc. is closed. See the Examples section for more information.
 .SH Commands
@@ -87,7 +87,9 @@ This option only applies for dropdowns (not auto-hiding and auto-showing). Speci
 .TP
 Mimic another WM's rules with -a. This is unlikely to be useful. It could potentially be used in the case where a similar fork of a window manager had a different name. (default: automatically detected)
 \fB --class\fR
-Providing this option lets tdrop know what the classname of the window is (it does not actually set the classname for a window). This is used for window managers like bspwm that use the classname for floating rules. For some commonly used programs, tdrop will already use the correct classname. This option is useful when the program name and classname are not the same and there is not already a default mapping between the two. (default: the program name or a known substitution)
+Providing this option lets tdrop know what the class (or classname) of the window is (it does not actually set the class for a window). This is used for window managers like bspwm that use the class for floating rules. For some commonly used programs, tdrop will already use the correct class. This option is useful when the program name and class are not the same and there is not already a default mapping between the two. (default: the program name or a known substitution)
+
+Both the class and classname of a window can be obtained using xprop (see WM_CLASS). As for the difference, generally the class starts with an uppercase letter and the classname starts with a lowercase letter. The xprop output may only list one for some programs (e.g. urxvt only has "urxvt"). Currently this option is only useful for bspwm, and it does not matter whether the class or classname (which bspwm calls an instance name) is provided, so the user does not really need to worry about the distinction.
 .TP
 \fB --clear\fR
 Used to clear a saved window id for the given program or 'current' instead of creating a dropdown. Takes no argument.
