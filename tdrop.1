@@ -91,6 +91,9 @@ Providing this option lets tdrop know what the class (or classname) of the windo
 
 Both the class and classname of a window can be obtained using xprop (see WM_CLASS). As for the difference, generally the class starts with an uppercase letter and the classname starts with a lowercase letter. The xprop output may only list one for some programs (e.g. urxvt only has "urxvt"). Currently this option is only useful for bspwm, and it does not matter whether the class or classname (which bspwm calls an instance name) is provided, so the user does not really need to worry about the distinction.
 .TP
+\fB --name\fR
+This option only applies for dropdowns (not auto-hiding and auto-showing). Set a new name for the dropdown window (see _NET_WM_NAME and WM_NAME in xprop output). This option may be useful if you want to add specific rules just for dropdowns with a program like compton by giving them a common title. (default: none)
+.TP
 \fB --clear\fR
 Used to clear a saved window id for the given program or 'current' instead of creating a dropdown. Takes no argument.
 .TP
