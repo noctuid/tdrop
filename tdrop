@@ -614,7 +614,11 @@ wid_toggle() {
 		exists=false
 	fi
 	if $exists; then
-		if [[ $visibility == IsUnMapped ]]; then
+		if [[ $visibility == IsUnviewable ]]; then
+			if [[ $wm == "i3" ]]; then
+				i3-msg [id=$wid] move to workspace current
+			fi
+		elif [[ $visibility == IsUnMapped ]]; then
 			# visibility will be IsUnMapped on most WMs if the dropdown is open
 			# on another desktop
 			xdotool set_desktop_for_window "$wid" "$(xdotool get_desktop)"
@@ -630,6 +634,7 @@ wid_toggle() {
 					focused_window_exists=false
 			fi
 			map_and_post_map
+			echo "$wid"
 			# cancel auto-show for a window when manually remapping it
 			maybe_cancel_auto_show "$wid"
 			if ! $focused_window_exists; then
