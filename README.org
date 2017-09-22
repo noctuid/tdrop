@@ -1,8 +1,11 @@
 * Demos
-A basic demo using tdrop to create a dropdown/scratchpad on the fly with a hotkey. I set the height to be less than max with tdrop to make it more obvious which is the dropdown at which time. First apvlv is turned into a dropdown. Then it is cleared and zathura is turned into a dropdown. One can also have multiple hotkeys to create multiple dropdowns on the fly at a time.
-[[http://noctuid.github.io/tdrop/assets/on_the_fly.gif]]
+This is a basic demo where tdrop is used to hide and show a terminal emulator on different desktops/workspaces:
 
-A demo showing tdrop's ability to auto-hide windows when opening things from them. First an image is opened in sxiv from ranger in the dropdown. When sxiv is closed, the dropdown automatically re-appears. The image is opened once again, but this time the dropdown is manually toggled before closing sxiv. This cancels the "re-show". [[http://noctuid.github.io/tdrop/assets/auto_hide.gif]]
+[[http://noctuid.github.io/tdrop/assets/termite.gif]]
+
+This is a basic demo where tdrop is used to turn the current window (emacs) into a dropdown and then hide and show it on different desktops/workspaces:
+
+[[http://noctuid.github.io/tdrop/assets/current.gif]]
 
 * Advantages Over Other Dropdown Terminals
 -  Can be used with any terminal or other program of your choice
