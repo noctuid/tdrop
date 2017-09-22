@@ -614,9 +614,9 @@ wid_toggle() {
 		exists=false
 	fi
 	if $exists; then
-		if [[ $visibility == IsUnMapped ]]; then
+		if [[ $visibility =~ ^(IsUnMapped|IsUnviewable)$ ]]; then
 			# visibility will be IsUnMapped on most WMs if the dropdown is open
-			# on another desktop
+			# on another desktop; may also be IsUnviewable
 			xdotool set_desktop_for_window "$wid" "$(xdotool get_desktop)"
 			if [[ $(get_visibility "$wid") == IsUnMapped ]]; then
 				pre_map
