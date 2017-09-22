@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+PS4='+ $(date "+%s.%N")\011 '
+exec 3>&2 2>/tmp/bashstart.$$.log
+set -x
 
 MUTDROP_PATH=/tmp/tdrop_"$USER"
 # shellcheck disable=SC2174
@@ -786,3 +789,5 @@ fi
 
 # vim is dumb
 # vim: set ft=sh noet:
+set +x
+exec 2>&3 3>&-
