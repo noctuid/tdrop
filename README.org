@@ -8,28 +8,29 @@ This is a basic demo where tdrop is used to turn the current window (emacs) into
 [[http://noctuid.github.io/tdrop/assets/current.gif]]
 
 * Advantages Over Other Dropdown Terminals
--  Can be used with any terminal or other program of your choice
--  Supports many WMs
--  Allows turning any window into a dropdown on the fly
--  Allows for control of sizing and placement so that panels aren't hidden
--  Supports tiled and floating dropdowns
--  Attempts to deal with floating windows on a case by case basis (ability to have a floating dropdown without needing a rule to float all windows of that type)
--  Allows for multiple dropdowns of the same type (uses window id)
--  Allows for auto-hiding a dropdown when opening programs from it
--  Can automatically start programs and tmux or tmuxinator sessions
--  Supports automatic resizing based on the current monitor
--  Has hooks for executing user commands
+- Can be used with any terminal or other program of your choice
+- Supports many WMs
+- Allows turning any window into a dropdown on the fly
+- Allows for control of sizing and placement so that panels aren't hidden
+- Supports tiled and floating dropdowns
+- Attempts to deal with floating windows on a case by case basis (ability to have a floating dropdown without needing a rule to float all windows of that type)
+- Allows for multiple dropdowns of the same type (uses window id)
+- Allows for auto-hiding a dropdown when opening programs from it
+- Can automatically start programs and tmux, tmuxinator, or tmuxifier sessions
+- Supports automatic resizing based on the current monitor
+- Has hooks for executing user commands
 
 * Requirements
--  bash and basic utilities (awk, sed, etc.)
--  xprop
--  xwininfo
--  xdotool
+- bash and basic utilities (awk, sed, etc.)
+- xprop
+- xwininfo
+- xdotool
 
 Optional:
--  xrandr (for -m)
--  tmux (for -s)
--  tmuxinator (for -s)
+- xrandr (required for -m)
+- tmux (required for -s)
+- tmuxinator (optional for -s)
+- tmuxifier (optional for -s)
 
 * Installation Instructions and Usage
 ** Installation
@@ -145,19 +146,19 @@ mime ^video, has mpv, X, flag f = tdrop -a auto_hide && mpv -- "$@" && tdrop -a 
 ** Terminals
 These terminals have been tested with tdrop and support the =-s= and =-a= flags unless otherwise specified:
 
--  Termite
--  URxvt (including urxvtd)
--  XTerm
--  Xfce4-terminal
--  Gnome-terminal
--  Konsole
--  Terminology
--  Sakura
--  Roxterm
--  Tilix (previously terminix)
--  st (-s does not work)
--  Alacritty
--  xiate
+- Termite
+- URxvt (including urxvtd)
+- XTerm
+- Xfce4-terminal
+- Gnome-terminal
+- Konsole
+- Terminology
+- Sakura
+- Roxterm
+- Tilix (previously terminix)
+- st (-s does not work)
+- Alacritty
+- xiate
 
 If your terminal doesn't work with tdrop, feel free to make an issue. Please follow the steps in the [[#troubleshooting][Troubleshooting]] section.
 
@@ -204,7 +205,7 @@ Necessary features don't work on many window managers, including mine.
 Maybe in the future. The only advantage I can see over xdotool is that it can toggle mapping (=mapw -t=), but this wouldn't be used in this script anyway since different code is executed depending on whether or not the window is mapped or unmapped. Also the command names are somewhat cryptic.
 
 * Similar
--  [[https://github.com/lharding/lsh-bin/blob/master/drawer][drawer]]
+- [[https://github.com/lharding/lsh-bin/blob/master/drawer][drawer]]
 
 * Troubleshooting
 :PROPERTIES:

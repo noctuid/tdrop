@@ -6,7 +6,7 @@ Tdrop - make dropdown terminals and windows
 .SH SYNOPSIS
 tdrop [\fIOPTIONS\fR] [program name or cmd]
 .SH DESCRIPTION
-	Tdrop is used for hiding/unhiding programs to acheive quake/dropdown functionality. It can create a dropdown window if one does not already exist or turn the current window into a dropdown on the fly. It provides options to control the intial size and position of dropdowns, for example to leave panels visible or to deal with window borders. When used with a terminal, it provides an option to specify the name of a tmuxinator or tmux session to automatically start. It also allows the user to specify arbitrary options/flags to be used when starting programs. It uses window IDs as opposed to classes, so it can be used with multiple windows of the same program.
+	Tdrop is used for hiding/unhiding programs to acheive quake/dropdown functionality. It can create a dropdown window if one does not already exist or turn the current window into a dropdown on the fly. It provides options to control the intial size and position of dropdowns, for example to leave panels visible or to deal with window borders. When used with a terminal, it provides an option to specify the name of a tmux session to automatically start. It also allows the user to specify arbitrary options/flags to be used when starting programs. It uses window IDs as opposed to classes, so it can be used with multiple windows of the same program.
 
 	It also has the ability to automatically hide and automatically show dropdowns. For example, it can be used to automatically hide a terminal when opening something from it, e.g. an image viewer, video player, etc. Tdrop can         then automatically bring back the terminal whenever the image view, video player, etc. is closed. See the Examples section for more information.
 .SH Commands
@@ -36,7 +36,7 @@ Specify the x position for a created window as a number or percentage. (default:
 Specify the y position for a created window as a number or percentage. (default: 1, see BUGS)
 .TP
 \fB-s NAME\fR, \fB --session=NAME\fR
-Specify a tmuxinator or tmux session name to start. An existing tmux session has highest precedence and will be connected to with '-d', detaching other attached clients. If a there is no tmuxinator session of the given name, a normal tmux session with the name will be created. If this option is not given, tmux will not be used. Note that this option requires that the program be a supported terminal. (default: none)
+Specify a tmuxinator, tmuxifier, or tmux session name to start. An existing tmux session has highest precedence and will be connected to with '-d', detaching other attached clients. If a there is no tmuxinator/tmuxifier/etc. session of the given name, a normal tmux session with the name will be created. If this option is not given, tmux will not be used. Note that this option requires that the program be a supported terminal. (default: none)
 .TP
 \fB-n NUMBER\fR, \fB --number=NUMBER\fR
 Specify a number (or any extra text) to differentiate between dropdowns of the same program (this is only needed when using multiple dropdowns of the same program). This flag can also be used for creating multiple different dropdowns on the fly ('current'). Note that it is not necessary to use this to deal with multi-user systems as tdrop stores dropdown information separately for each user. (default: none)
@@ -75,7 +75,7 @@ This option is a more complicated companion to -d that is also unlikely to be ne
 Specify a command that will determine whether the current window is floating ($wid can be used in the command instead). Only used for the auto_hide command. This will be used to save whether the current window is floating or not. When restoring the window, if there is a float command and the window was previously floating, it will be floated. (default: none)
 .TP
 \fB-f\fR, \fB --program-flags\fR
-Specify flags/options that the terminal or program should be called with. For example, to set the title of the terminal, something like '-f "--title mytitle"' can be used. Caution: If there is a tmux/tmuxinator session specified (with -s), the option to execute a program (usually -e for terminal programs) is implicitly added by tdrop! (default: none)
+Specify flags/options that the terminal or program should be called with. For example, to set the title of the terminal, something like '-f "--title mytitle"' can be used. Caution: If there is a tmux session specified (with -s), the option to execute a program (usually -e for terminal programs) is implicitly added by tdrop! (default: none)
 .TP
 \fB-a\fR, \fB --auto-detect-wm\fR
 If there are available settings for the detected window manager for the -l, -L, -d, and/or -i options, automatically set them. Takes no argument. Manually specified settings take precedence. This can be used both for dropdowns and the auto_(hide|show) commands. Takes no argument. (default: false)
@@ -123,7 +123,7 @@ Tdrop supports controlling the initial size and placement of a terminal. The bor
 .br
 $ tdrop -a -w 1362 -y 14 xterm
 
-Tdrop can also create a tmux or tmuxinator session if it does not exist:
+Tdrop can also create a tmux session if it does not exist:
 .br
 $ tdrop -a -w 1362 -y 14 -s dropdown xterm
 
