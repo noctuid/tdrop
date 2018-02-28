@@ -83,7 +83,8 @@ dec_fix=
 # pekwm, xfwm4, sawfish, openbox need subtract_when_same to be true
 # for awesome, fluxbox, blackbox, mutter, fvwm, and metacity, the value
 # does not matter
-subtract_when_same=true
+# set in decoration_settings
+subtract_when_same=
 is_floating=
 program_flags=
 clearwid=false
@@ -325,9 +326,12 @@ set_wm() {
 }
 
 decoration_settings() {
-	if [[ -z $subtract_when_same ]] && $auto_detect_wm; then
-		if [[ $wm =~ ^(Mutter|GNOME Shell|bspwm|i3|GoomwW)$ ]]; then
+	if [[ -z $subtract_when_same ]]; then
+		if $auto_detect_wm \
+				&& [[ $wm =~ ^(Mutter|GNOME Shell|bspwm|i3|GoomwW)$ ]]; then
 			subtract_when_same=false
+		else
+			subtract_when_same=true
 		fi
 	fi
 
@@ -683,14 +687,14 @@ wid_toggle() {
 # * Helper Functions for Auto Hiding/Showing
 get_geometry() {
 	# so that won't float a tiled window later when showing
-	if is_floating "$1"; then
-		local wininfo x y rel_x rel_y
+	if is_floating "$1" &> /dev/null; then
+		local wininfo x y rel_x rel_y width height
 		wininfo=$(xwininfo -id "$1")
 		x=$(echo "$wininfo" | awk '/Absolute.*X/ {print $4}')
 		y=$(echo "$wininfo" | awk '/Absolute.*Y/ {print $4}')
 		rel_x=$(echo "$wininfo" | awk '/Relative.*X/ {print $4}')
 		rel_y=$(echo "$wininfo" | awk '/Relative.*Y/ {print $4}')
-		if $subtract_when_same; then
+		if [[ $subtract_when_same != false ]]; then
 			# behaviour works for most WMs (at least floating ones)
 			x=$((x-rel_x))
 			y=$((y-rel_y))
@@ -704,23 +708,27 @@ get_geometry() {
 				y=$((y-rel_y))
 			fi
 		fi
-		echo -n -e "X=$x\nY=$y"
+		width=$(xwininfo -id "$(xdotool getactivewindow)" | \
+					awk '/Width/ {print $2}')
+		height=$(xwininfo -id "$(xdotool getactivewindow)" | \
+					 awk '/Height/ {print $2}')
+		echo -n -e "xoff=$x\nyoff=$y\nwidth=$width\nheight=$height"
 	else
 		# window is not floating; don't bother saving geometry
 		echo -n "false"
 	fi
 }
 
-retrieve_geometry() {
+# set global xoff, yoff, width, and height based on stored values
+restore_geometry() {
+	local x_fix y_fix
 	eval "$(< "$MUTDROP_PATH"/auto_hidden/geometry)"
-	local x_fix y_fix X Y
 	if [[ -n $dec_fix ]]; then
 		x_fix=$(echo "$dec_fix" | awk -F "x" '{print $1}')
 		y_fix=$(echo "$dec_fix" | awk -F "x" '{print $2}')
-		X=$((X-x_fix))
-		Y=$((Y-y_fix))
+		xoff=$((xoff-x_fix))
+		yoff=$((yoff-y_fix))
 	fi
-	echo -n "$X $Y"
 }
 
 toggle_auto_hide() {
@@ -757,9 +765,7 @@ auto_show() {
 		wid=$(< "$MUTDROP_PATH"/auto_hidden/wid)
 		class=$(< "$MUTDROP_PATH"/auto_hidden/class)
 		was_floating=$(< "$MUTDROP_PATH"/auto_hidden/geometry)
-		XY=$(retrieve_geometry "$wid")
-		xoff=$(echo "$XY" | awk '{print $1}')
-		yoff=$(echo "$XY" | awk '{print $2}')
+		restore_geometry "$wid"
 		pre_map "$was_floating"
 		map_and_post_map "$was_floating"
 	fi
