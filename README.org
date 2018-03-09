@@ -70,61 +70,77 @@ Some window managers allow querying what the current monitor is (e.g. bspwm and 
 See the manpage for more information.
 
 ** Hooks
-Tdrop provides various hook flags that can be used to run commands at various stages during execution. These commands can make use of any internal tdrop variable, such as =$width=, =$height=, =$xoff=, =$yoff=, =$class=, and =$wid=. For example, to set a dropdown as always on top, "-P 'wmctrl -i -r $wid -b add,above'" could be added to a tdrop command.
+Tdrop provides hook flags that the user can specify to run commands at various stages during execution. These commands can make use of any global, internal tdrop variable, such as =$width=, =$height=, =$xoff=, =$yoff=, =$class=, and =$wid= (to prevent evaluation of these variables, the user can specify the hook command in single quotes). For example, to set a dropdown as always on top, the user could specify =-P 'wmctrl -i -r $wid -b add,above'=.
 
-Note that for some of the hooks, the window id is not guarunteed to be known (since the window may not have yet been created), so any scripts that make use of these should check if it is defined (pre-map and pre-float; wid will never be known for pre-create).
+Note that for =--pre-map-hook= and =--pre-map-float-command=, the window id is not guarunteed to be known (since the window may not have yet been created), so any script that makes use of these flags should first check if =$wid= is defined. The window id will not be defined for =--pre-create-hook= (even for =current=; I can change this if there is a use case for it).
 
 *** Pre Create
-*Program* The hook will be run before the program is started.
+=-c= / =--pre-create-hook=
 
-*Current* The hook will be run before unmapping the current window.
+*Program* The command will run before the program is started.
+
+*Current* The command will run before unmapping the current window.
 
 *Hide and Show* No effect.
 
 *** Post Create
-*Program* The hook will be run after the program is started and its window is active.
+=-C= / =--post-create-hook=
 
-*Current* The hook will be run after unmapping the current window.
+*Program* The command will run after the program is started and its window is active.
+
+*Current* The command will run after unmapping the current window.
 
 *Hide and Show* No effect.
 
-*** Pre Float
-A command specifically meant to float the window. Note that if you specify this, it will override any defaults from =-a=.
-
-*Program* / *Current* The command will be run before mapping the window.
-
-*Hide* No effect.
-
-*Show* Will be used before mapping the window if it was previously floating.
-
-*** Post Float
-A command specifically meant to float the window. Note that if you specify this, it will override any defaults from =-a=.
-
-*Program* / *Current* The command will be run after mapping the window.
-
-*Hide* No effect.
-
-*Show* Will be used after mapping the window if it was previously floating.
-
 *** Pre Map
-*Program* / *Current* / *Show* The command will be run before mapping the window.
+=-p= / =--pre-map-hook=
+
+*Program* / *Current* / *Show* The command will run before mapping the window.
 
 *Hide* No effect.
 
 *** Post Map
-*Program* / *Current* / *Show* The command will be run after mapping the window.
+=-P= / =--post-map-hook=
+
+*Program* / *Current* / *Show* The command will run after mapping the window.
 
 *Hide* No effect.
 
 *** Pre Unmap
-*Program* / *Current* / *Hide* The command will be run before unmapping the window.
+=-u= / =--pre-unmap-hook=
+
+*Program* / *Current* / *Hide* The command will run before unmapping the window.
 
 *Show* No effect.
 
 *** Post Unmap
-*Program* / *Current* / *Hide* The command will be run after unmapping the window.
+=-U= / =--post-unmap-hook=
+
+*Program* / *Current* / *Hide* The command will run after unmapping the window.
 
 *Show* No effect.
+
+*** Pre Float
+=-l= / =--pre-map-float-command=
+
+A command specifically meant to float the window. Note that if you specify this, it will override any defaults from =-a=.
+
+*Program* / *Current* The command will run before mapping the window.
+
+*Hide* No effect.
+
+*Show* The command will run before mapping the window only if it was previously floating.
+
+*** Post Float
+=-L= / =--post-map-float-command=
+
+A command specifically meant to float the window. Note that if you specify this, it will override any defaults from =-a=.
+
+*Program* / *Current* The command will run after mapping the window.
+
+*Hide* No effect.
+
+*Show* The command will run after mapping the window only if it was previously floating.
 
 ** Auto-hiding
 In addition to creating dropdowns, tdrop can automatically hide a window and later un-hide it. For example, if gvim is opened to write a git commit message from the terminal, tdrop can automatically hide the terminal (dropdown or not) and restore it after the user is finished writing the commit message:

@@ -44,8 +44,8 @@ Specify a number (or any extra text) to differentiate between dropdowns of the s
 \fB-c COMMAND\fR, \fB --pre-create-hook=COMMAND\fR
 Specify a command to execute before first creating or initializing a dropdown (before mapping a normal dropdown or before unmapping the 'current' window). This flag has no effect for the auto_(hide|show) commands. (default: none)
 .TP
-\fB-C\fR, \fB --pre-create-hook=COMMAND\fR
-NDSpecify a command to execute after first creating or initializing a dropdown (after mapping a normal dropdown or after unmapping the 'current' window). This flag has no effect for the auto_(hide|show) commands. (default: none)
+\fB-C\fR, \fB --post-create-hook=COMMAND\fR
+Specify a command to execute after first creating or initializing a dropdown (after mapping a normal dropdown or after unmapping the 'current' window). This flag has no effect for the auto_(hide|show) commands. (default: none)
 .TP
 \fB-p COMMAND\fR, \fB --pre-map-hook=COMMAND\fR
 Specify a command to execute before showing/mapping a dropdown. Note that this will run when showing a dropdown for the first time even when --pre-create-hook is used. (default: none)
@@ -53,17 +53,17 @@ Specify a command to execute before showing/mapping a dropdown. Note that this w
 \fB-P COMMAND\fR, \fB --post-map-hook=COMMAND\fR
 Specify a command to execute after showing/mapping a dropdown. Note that this will run when hiding a dropdown for the first time even when --post-create-hook is used. (default: none)
 .TP
-\fB-l COMMAND\fR, \fB --pre-map-float-command=COMMAND\fR
-Specify a command execute before showing/mapping a dropdown in order to float the dropdown (e.g. a bspwm oneshot rule). This may be useful if you don't want to float all windows of a given program and tdrop doesn't automatically support this for your window manager with the -a flag. This will override any default floating command when used with -a.
-.TP
-\fB-L COMMAND\fR, \fB --post-map-float-command=COMMAND\fR
-Specify a command execute after showing/mapping a dropdown in order to float the dropdown. This may be useful if you don't want to float all windows of a given program and tdrop doesn't automatically support this for your window manager with the -a flag. This can be used if your window manager does not support floating rules at all; for example, it can be used to fake a key combination (e.g. using xdotool) that will float the current window. This will override any default floating command when used with -a.
-.TP
 \fB-u COMMAND\fR, \fB --pre-unmap-hook=COMMAND\fR
 Specify a command to execute before hiding/unmapping a dropdown. (default: none)
 .TP
 \fB-U COMMAND\fR, \fB --post-unmap-hook=COMMAND\fR
 Specify a command to execute after hiding/unmapping a dropdown. (default: none)
+.TP
+\fB-l COMMAND\fR, \fB --pre-map-float-command=COMMAND\fR
+Specify a command execute before showing/mapping a dropdown in order to float the dropdown (e.g. a bspwm oneshot rule). This may be useful if you don't want to float all windows of a given program and tdrop doesn't automatically support this for your window manager with the -a flag. This will override any default floating command when used with -a.
+.TP
+\fB-L COMMAND\fR, \fB --post-map-float-command=COMMAND\fR
+Specify a command execute after showing/mapping a dropdown in order to float the dropdown. This may be useful if you don't want to float all windows of a given program and tdrop doesn't automatically support this for your window manager with the -a flag. This can be used if your window manager does not support floating rules at all; for example, it can be used to fake a key combination (e.g. using xdotool) that will float the current window. This will override any default floating command when used with -a.
 .TP
 \fB-d DEC_SIZE\fR, \fB --decoration-fix=DEC_SIZE\fR
 Specify a window decoration/border size in the form <x decoration size>x<y decoration size> to be taken into account when saving window position. This should not be necessary for most window managers and is only used with 'auto_show', e.g. 'tdrop -d 1x22 auto_show' for blackbox. (default: none)
