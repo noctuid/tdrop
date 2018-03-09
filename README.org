@@ -8,16 +8,16 @@ This is a basic demo where tdrop is used to turn the current window (emacs) into
 [[http://noctuid.github.io/tdrop/assets/current.gif]]
 
 * Advantages Over Other Dropdown Terminals
-- Can be used with any terminal or other program of your choice
-- Supports many WMs
-- Allows turning any window into a dropdown on the fly
-- Allows for control of sizing and placement so that panels aren't hidden
+- Supports essentially any terminal or other program of your choice
+- Supports many window managers
+- Supports turning any window into a dropdown on the fly
+- Supports enforcing dropdown sizing and placement (e.g. to prevent panels from being hidden)
 - Supports tiled and floating dropdowns
-- Attempts to deal with floating windows on a case by case basis (ability to have a floating dropdown without needing a rule to float all windows of that type)
-- Allows for multiple dropdowns of the same type (uses window id)
-- Allows for auto-hiding a dropdown when opening programs from it
-- Can automatically start programs and tmux, tmuxinator, or tmuxifier sessions
-- Supports automatic resizing based on the current monitor
+- Supports floating dropdown instances without requiring the user to create a rule to float all program instances (for some window managers that support both tiling and floating)
+- Supports using multiple dropdowns of the same program (see =-n=)
+- Supports automatically hiding a dropdown when opening a new window from it (and then optionally re-showing the dropdown when the window is closed)
+- Supports automatically starting programs and tmux, tmuxinator, or tmuxifier sessions
+- Supports automatically resizing dropdowns based on the current monitor's size
 - Has hooks for executing user commands
 
 * Requirements
