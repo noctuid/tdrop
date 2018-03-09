@@ -172,7 +172,7 @@ These terminals have been tested with tdrop and support the =-s= and =-a= flags 
 - Sakura
 - Roxterm
 - Tilix (previously terminix)
-- st (-s does not work)
+- st/xst
 - Alacritty
 - xiate
 - [[https://github.com/kovidgoyal/kitty][kitty]]

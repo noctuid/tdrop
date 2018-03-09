@@ -570,7 +570,8 @@ program_start() {
 			tmuxifier load-session $session_name || \
 			tmuxinator start $session_name || \
 			tmux new-session -s $session_name'"
-		if [[ $program =~ ^(urxvt|alacritty|xiatec$) ]]; then
+		# note: st will work with or without the -e flag (like kitty)
+		if [[ $program =~ ^(urxvt|alacritty|xiatec|st$) ]]; then
 			program_command="$program_command -e bash -c $tmux_command"
 		elif [[ $program == kitty ]]; then
 			program_command="$program_command bash -c $tmux_command"
