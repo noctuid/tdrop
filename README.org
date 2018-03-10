@@ -164,18 +164,20 @@ These terminals have been tested with tdrop and support the =-s= and =-a= flags 
 
 - Alacritty
 - cool-retro-term
-- Gnome-terminal
+- GNOME terminal (GNOME, Unity, Cinnamon, etc.)
 - [[https://github.com/kovidgoyal/kitty][kitty]]
-- Konsole
-- QTerminal
+- Konsole (KDE)
+- LXTerminal (LXDE)
+- MATE terminal (MATE)
+- QTerminal (LXDE)
 - Roxterm
 - Sakura
-- Terminology
+- Terminology (Enlightenment)
 - Termite
 - Tilix (previously terminix)
 - tinyterm/minyterm
 - URxvt (including urxvtd)
-- Xfce4-terminal
+- Xfce4-terminal (XFCE)
 - xiate
 - XTerm
 
