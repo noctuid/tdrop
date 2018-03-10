@@ -167,6 +167,7 @@ These terminals have been tested with tdrop and support the =-s= and =-a= flags 
 - GNOME terminal (GNOME, Unity, Cinnamon, etc.)
 - [[https://github.com/kovidgoyal/kitty][kitty]]
 - Konsole (KDE)
+- LilyTerm (requires =confirm_to_execute_command 0= in config for =-s= or =-f '-e...'=)
 - LXTerminal (LXDE)
 - MATE terminal (MATE)
 - QTerminal (LXDE)

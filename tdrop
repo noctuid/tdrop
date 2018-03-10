@@ -571,7 +571,7 @@ program_start() {
 			tmuxinator start $session_name || \
 			tmux new-session -s $session_name'"
 		# note: st will work with or without the -e flag (like kitty)
-		if [[ $program =~  ^(urxvt|alacritty|xiatec|st|lxterminal|qterminal|cool-retro-term$) ]]; then
+		if [[ $program =~  ^(urxvt|alacritty|xiatec|st|lxterminal|qterminal|cool-retro-term|lilyterm$) ]]; then
 			program_command="$program_command -e bash -c $tmux_command"
 		elif [[ $program == kitty ]]; then
 			program_command="$program_command bash -c $tmux_command"
