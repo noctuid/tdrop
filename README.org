@@ -162,22 +162,22 @@ mime ^video, has mpv, X, flag f = tdrop -a auto_hide && mpv -- "$@" && tdrop -a 
 ** Terminals
 These terminals have been tested with tdrop and support the =-s= and =-a= flags unless otherwise specified:
 
-- Termite
-- URxvt (including urxvtd)
-- XTerm
-- Xfce4-terminal
+- Alacritty
+- cool-retro-term
 - Gnome-terminal
+- [[https://github.com/kovidgoyal/kitty][kitty]]
 - Konsole
 - QTerminal
-- Terminology
-- Sakura
 - Roxterm
+- Sakura
+- Terminology
+- Termite
 - Tilix (previously terminix)
-- st/xst
-- Alacritty
+- tinyterm/minyterm
+- URxvt (including urxvtd)
+- Xfce4-terminal
 - xiate
-- [[https://github.com/kovidgoyal/kitty][kitty]]
-- cool-retro-term
+- XTerm
 
 If your terminal doesn't work with tdrop, feel free to make an issue. Please follow the steps in the [[#troubleshooting][Troubleshooting]] section.
 
