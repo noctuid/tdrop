@@ -168,6 +168,7 @@ These terminals have been tested with tdrop and support the =-s= and =-a= flags 
 - Xfce4-terminal
 - Gnome-terminal
 - Konsole
+- QTerminal
 - Terminology
 - Sakura
 - Roxterm
