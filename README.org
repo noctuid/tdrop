@@ -177,6 +177,7 @@ These terminals have been tested with tdrop and support the =-s= and =-a= flags 
 - Alacritty
 - xiate
 - [[https://github.com/kovidgoyal/kitty][kitty]]
+- cool-retro-term
 
 If your terminal doesn't work with tdrop, feel free to make an issue. Please follow the steps in the [[#troubleshooting][Troubleshooting]] section.
 
