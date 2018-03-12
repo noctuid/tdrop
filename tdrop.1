@@ -75,7 +75,7 @@ This option is a more complicated companion to -d that is also unlikely to be ne
 Specify a command that will determine whether the current window is floating ($wid can be used in the command instead). Only used for the auto_hide command. This will be used to save whether the current window is floating or not. When restoring the window, if there is a float command and the window was previously floating, it will be floated. (default: none)
 .TP
 \fB-f\fR, \fB --program-flags\fR
-Specify flags/options that the terminal or program should be called with. For example, to set the title of the terminal, something like '-f "--title mytitle"' can be used. Caution: If there is a tmux session specified (with -s), the option to execute a program (usually -e for terminal programs) is implicitly added by tdrop! (default: none)
+Specify flags/options that the terminal or program should be called with. For example, to set the title of the terminal, something like 'tdrop -f "--title mytitle" <program>' can be used. Caution: If there is a tmux session specified (with -s), the option to execute a program (usually -e for terminal programs) is implicitly added by tdrop! (default: none)
 .TP
 \fB-a\fR, \fB --auto-detect-wm\fR
 If there are available settings for the detected window manager for the -l, -L, -d, and/or -i options, automatically set them. Takes no argument. Manually specified settings take precedence. This can be used both for dropdowns and the auto_(hide|show) commands. Takes no argument. (default: false)
