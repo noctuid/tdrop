@@ -43,7 +43,7 @@ alt + s
     tdrop -ma -w -4 -y "$PANEL_HEIGHT" -s dropdown termite
 #+END_EXAMPLE
 
-The positional argument should be the name of a program in =$PATH= (as opposed to the full path to a program) and should not contain any flags (see =-f= if you want to pass additional flags to the program when running it).
+The positional argument should be the name of a program in =$PATH= (as opposed to the full path to a program) and should not contain any flags (see =-f= if you want to pass additional flags to the program when running it). It should always be the last argument.
 
 ** Basic Flags
 =-s= / =--session= should only be used for supported terminals and if the user wants to start/attach to a tmux or tmuxinator session. =-a= / =--auto-detect-wm= can be specified to automatically set certain options (=-l=, =-L=, =-d=, and/or =-i=) based on the current window manager. These flags (whether automatically or manually set) may be necessary for tdrop to behave correctly (e.g. they are required for =-w= / =--width=, =-h= / =--height=, =-x= / =--xoff=, and =-y= / =--yoff= to work correctly on tiling window managers). =-m= can be specified to automatically resize the dropdown based on the current monitor's size when percentages are used for =-w= and/or =-h=. See the manpage for further details about these flags.
