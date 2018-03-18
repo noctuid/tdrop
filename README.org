@@ -60,6 +60,8 @@ Old users please note that =-W|--normal-window=, =-z|--sleep-terminal=, and =-Z|
 ** Automatic Window Manager Detection (=-a=)
 =-a= / =--auto-detect-wm= can be specified to automatically set certain options (=-l=, =-L=, =-d=, and/or =-i=) based on the current window manager. These flags (whether automatically or manually set) may be necessary for tdrop to behave correctly (e.g. they are required for =-w=, =-h=, =-x=, and =-y= to work correctly for tiling window managers with floating support). See the manpage for further details about these flags.
 
+Note that if you've used [[https://tools.suckless.org/x/wmname][wmname]] to change your window manager's name, tdrop will use any settings for that name instead. In this case, you will generally need to specify the real name of your window manager using the =--wm= flag in order for =-a= to work correctly (e.g. if you are using bspwm and have run =wmname LG3D=, you will need to specify =--wm bspwm=).
+
 ** Monitor Awareness (=-m=)
  =-m= / =--monitor-aware= can be specified to automatically resize the dropdown based on the current monitor's size when percentages are used for =-w= and/or =-h=. This may be helpful for users of multiple monitors who don't want dropdowns spanning across monitors.
 
