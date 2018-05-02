@@ -262,7 +262,7 @@ update_geometry_settings_for_monitor() {
 	local monitor_geo x_begin y_begin x_width y_height
 	if [[ -n $current_monitor ]]; then
 		monitor_geo=$(xrandr --query | \
-			awk "/$current_monitor/ {gsub(\"primary \",\"\"); print \$3}")
+			awk "/^$current_monitor/ {gsub(\"primary \",\"\"); print \$3}")
 		x_begin=$(echo "$monitor_geo" | awk -F '+' '{print $2}')
 		y_begin=$(echo "$monitor_geo" | awk -F '+' '{print $3}')
 		x_width=$(echo "$monitor_geo" | awk -F 'x' '{print $1}')
