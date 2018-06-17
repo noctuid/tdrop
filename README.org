@@ -34,7 +34,7 @@ Optional:
 
 * Installation and Usage
 ** Installation
-Tdrop is in the AUR as =tdrop-git=. It can also be installed by cloning this repo and running ~sudo make install~. One can then bind a key to it (e.g. with sxhkd).
+Tdrop is in the AUR as =tdrop-git= and is packaged for Void Linux as =tdrop=. It can also be installed by cloning this repo and running ~sudo make install~. One can then bind a key to it (e.g. with sxhkd).
 
 ** Basic Sxhkd Example
 #+BEGIN_EXAMPLE
