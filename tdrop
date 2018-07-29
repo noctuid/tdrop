@@ -358,6 +358,8 @@ set_class() {
 			class=Gnome-terminal
 		elif [[ $program == urxvtc ]]; then
 			class=urxvt
+		elif [[ $program == urxvt256c-ml ]]; then
+			class=URxvt
 		elif [[ $program == xiatec ]]; then
 			class=xiate
 		elif [[ $program == alacritty ]]; then
