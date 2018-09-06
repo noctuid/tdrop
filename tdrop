@@ -539,7 +539,12 @@ create_win_return_wid() {
 			# actual process name for me is gnome-terminal-
 			pid=$(pgrep gnome-terminal)
 		fi
-		wids=$(xdotool search --pid "$pid")
+		if [[ $program == discord ]]; then
+			wids=$(xdotool search --classname discord)
+			blacklist=
+		else
+			wids=$(xdotool search --pid "$pid")
+		fi
 		if [[ -n "$wids" ]]; then
 			while read -r wid; do
 				if [[ ! $blacklist =~ (^|$'\n')"$wid"($|$'\n') ]] && \
