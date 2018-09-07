@@ -84,8 +84,8 @@ If there are available settings for the detected window manager for the -l, -L, 
 This option only applies for dropdowns (not auto-hiding and auto-showing). Specify that geometry values should be relative to the current monitor. For example, if the width is a percentage or negative value, the pixel width will be calculated as a percentage of the current monitor's width (instead of the combined width of all monitors). If the monitor changes, this option will cause a dropdown to be resized to fit the given percentages. Note that this option assumes xrandr is being used and requires xrandr to work. (default: false)
 .TP
 \fB --wm=NAME\fR
-.TP
 Specify the window manager name (which determines the default settings when -a is specified). This may be useful if you've change the name of your window manager using wmname as this will prevent tdrop from correctly detecting the real window manager name. This could also potentially be useful if the all the default -a settings for another window manager work with the current one (e.g. if using a similar but differently named fork of some window manager). (default: automatically detected)
+.TP
 \fB --class=NAME\fR
 Providing this option lets tdrop know what the class (or classname) of the window is (it does not actually set the class for a window). This is used for window managers like bspwm that use the class for floating rules. For some commonly used programs, tdrop will already use the correct class. This option is useful when the program name and class are not the same and there is not already a default mapping between the two. (default: the program name or a known substitution)
 
