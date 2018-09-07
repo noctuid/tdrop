@@ -356,7 +356,7 @@ set_class() {
 			class=st-256color
 		elif [[ $program == gnome-terminal ]]; then
 			class=Gnome-terminal
-		elif [[ $program == urxvtc ]]; then
+		elif [[ $program =~ ^urxvt.* ]]; then
 			class=urxvt
 		elif [[ $program == xiatec ]]; then
 			class=xiate
