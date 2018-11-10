@@ -524,6 +524,8 @@ create_win_return_wid() {
 		pid=$(pgrep -xa chromium-browse | awk '!/--type/ {print $1}')
 	elif [[ $program =~ ^google-chrome ]]; then
 		pid=$(pgrep -xa chrome | awk '!/--type/ {print $1}')
+	elif [[ $program =~ ^emacsclient ]]; then
+		blacklist=$(xdotool search --classname emacs)
 	fi
 	# need to redirect stdout or function won't return
 	eval "$1 > /dev/null &"
@@ -542,6 +544,8 @@ create_win_return_wid() {
 		if [[ $program == discord ]]; then
 			wids=$(xdotool search --classname discord)
 			blacklist=
+		elif [[ $program =~ ^emacsclient ]]; then
+			wids=$(xdotool search --classname emacs)
 		else
 			wids=$(xdotool search --pid "$pid")
 		fi
