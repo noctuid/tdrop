@@ -568,10 +568,11 @@ create_win_return_wid() {
 
 program_start() {
 	local program_command tmux_command wid
-	program_command="$program $program_flags"
 	if [[ $program == alacritty ]]; then
 		# prevent alacritty from resizing the terminal to 80x24
-		program_command="$program_command -d 0 0"
+		program_command="$program -d 0 0 $program_flags"
+	else
+		program_command="$program $program_flags"
 	fi
 	if [[ -n "$session_name" ]]; then
 		session_name=$(printf "%q" "$session_name")
