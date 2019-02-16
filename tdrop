@@ -563,6 +563,14 @@ create_win_return_wid() {
 		fi
 		sleep 0.01
 	done
+	# workaround for urxvt tabbed plugin using -embed
+	if [[ $program =~ $urxvt ]] && [[ -n $program_wid ]]; then
+		maybe_program_wid=$(xprop -id "$program_wid" | \
+								awk -F '"' '/-embed/ {print $6}')
+		if [[ -n $maybe_program_wid ]]; then
+			program_wid=$maybe_program_wid
+		fi
+	fi
 	echo -n "$program_wid"
 }
 
