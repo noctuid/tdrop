@@ -204,7 +204,7 @@ focused_window_exists=true
 
 # * Multiple Monitor Automatic Re-Sizing
 percent_of_total() { # percent total
-	awk "BEGIN {printf(\"%.0f\", 0.01*${1%\%}*$2)}"
+	gawk "BEGIN {printf(\"%.0f\", 0.01*${1%\%}*$2)}"
 }
 
 # acts on globals
@@ -252,21 +252,21 @@ update_geometry_settings_for_monitor() {
 	wm=$(get_window_manager)
 	if [[ $wm == bspwm ]]; then
 		current_monitor=$(bspc query -T -m | grep -Po '^{"name":.*?",' | \
-			awk -F ":" '{gsub("[\",]", ""); print $2}')
+			gawk -F ":" '{gsub("[\",]", ""); print $2}')
 	elif [[ $wm == i3 ]]; then
 		# I'd rather not make jq a dependency
 		current_monitor=$(i3-msg -t get_workspaces | sed 's/{"num"/\n/g' | \
-			awk -F ',' '/focused":true/ {sub(".*output",""); gsub("[:\"]",""); print $1}')
+			gawk -F ',' '/focused":true/ {sub(".*output",""); gsub("[:\"]",""); print $1}')
 	fi
 
 	local monitor_geo x_begin y_begin x_width y_height
 	if [[ -n $current_monitor ]]; then
 		monitor_geo=$(xrandr --query | \
-			awk "/^$current_monitor/ {gsub(\"primary \",\"\"); print \$3}")
-		x_begin=$(echo "$monitor_geo" | awk -F '+' '{print $2}')
-		y_begin=$(echo "$monitor_geo" | awk -F '+' '{print $3}')
-		x_width=$(echo "$monitor_geo" | awk -F 'x' '{print $1}')
-		y_height=$(echo "$monitor_geo" | awk -F 'x|+' '{print $2}')
+			gawk "/^$current_monitor/ {gsub(\"primary \",\"\"); print \$3}")
+		x_begin=$(echo "$monitor_geo" | gawk -F '+' '{print $2}')
+		y_begin=$(echo "$monitor_geo" | gawk -F '+' '{print $3}')
+		x_width=$(echo "$monitor_geo" | gawk -F 'x' '{print $1}')
+		y_height=$(echo "$monitor_geo" | gawk -F 'x|+' '{print $2}')
 	else
 		local wid wininfo window_x window_y monitors_info x_end y_end
 		# determine current monitor in generic way
@@ -276,21 +276,21 @@ update_geometry_settings_for_monitor() {
 			return 1
 		fi
 		wininfo=$(xwininfo -id "$wid")
-		window_x=$(echo "$wininfo" | awk '/Absolute.*X/ {print $4}')
-		window_y=$(echo "$wininfo" | awk '/Absolute.*Y/ {print $4}')
-		monitors_info=$(xrandr --query | awk '/ connected/ {gsub("primary ",""); print}')
+		window_x=$(echo "$wininfo" | gawk '/Absolute.*X/ {print $4}')
+		window_y=$(echo "$wininfo" | gawk '/Absolute.*Y/ {print $4}')
+		monitors_info=$(xrandr --query | gawk '/ connected/ {gsub("primary ",""); print}')
 		while read -r monitor; do
-			monitor_geo=$(echo "$monitor" | awk '{print $3}')
+			monitor_geo=$(echo "$monitor" | gawk '{print $3}')
 			if [[ $monitor_geo =~ ^[0-9]+x[0-9]+\+[0-9]+\+[0-9]+$ ]]; then
-				x_begin=$(echo "$monitor_geo" | awk -F '+' '{print $2}')
-				y_begin=$(echo "$monitor_geo" | awk -F '+' '{print $3}')
-				x_width=$(echo "$monitor_geo" | awk -F 'x' '{print $1}')
-				y_height=$(echo "$monitor_geo" | awk -F 'x|+' '{print $2}')
+				x_begin=$(echo "$monitor_geo" | gawk -F '+' '{print $2}')
+				y_begin=$(echo "$monitor_geo" | gawk -F '+' '{print $3}')
+				x_width=$(echo "$monitor_geo" | gawk -F 'x' '{print $1}')
+				y_height=$(echo "$monitor_geo" | gawk -F 'x|+' '{print $2}')
 				x_end=$((x_begin+x_width))
 				y_end=$((y_begin+y_height))
 				if [[ $window_x -ge $x_begin ]] && [[ $window_x -lt $x_end ]] && \
 					[[ $window_y -ge $y_begin ]] && [[ $window_y -lt $y_end ]]; then
-					current_monitor=$(echo "$monitor" | awk '{print $1}')
+					current_monitor=$(echo "$monitor" | gawk '{print $1}')
 					break
 				fi
 			fi
@@ -315,8 +315,8 @@ map_and_reset_geometry() {
 get_window_manager() {
 	# xfwm4 and fvwm at least will give two names (hence piping into head)
 	xprop -notype -id "$(xprop -root -notype | \
-		awk '$1=="_NET_SUPPORTING_WM_CHECK:"{print $5}')" \
-		-f _NET_WM_NAME 8u | awk -F "\"" '/WM_NAME/ {print $2}' | head -n 1
+		gawk '$1=="_NET_SUPPORTING_WM_CHECK:"{print $5}')" \
+		-f _NET_WM_NAME 8u | gawk -F "\"" '/WM_NAME/ {print $2}' | head -n 1
 }
 
 set_wm() {
@@ -376,8 +376,8 @@ is_floating() {
 	elif $auto_detect_wm; then
 		if [[ $wm == i3 ]]; then
 			# TODO make sure this returns 1 on failure
-			i3-msg -t get_tree | awk 'gsub(/{"id"/, "\n{\"id\"")' | \
-				awk '/focused":true.*floating":"user_on/ {print $1}'
+			i3-msg -t get_tree | gawk 'gsub(/{"id"/, "\n{\"id\"")' | \
+				gawk '/focused":true.*floating":"user_on/ {print $1}'
 		elif [[ $wm == bspwm ]]; then
 			bspc query -T -n | grep '"state":"floating"'
 		else
@@ -487,11 +487,11 @@ unmap() {
 
 # * General Helper Functions
 get_class_name() {
-	xprop -id "$1" WM_CLASS 2> /dev/null | awk '{gsub(/"/, ""); print $4}'
+	xprop -id "$1" WM_CLASS 2> /dev/null | gawk '{gsub(/"/, ""); print $4}'
 }
 
 get_visibility() {
-	xwininfo -id "$1" 2> /dev/null | awk '/Map State/ {print $3}'
+	xwininfo -id "$1" 2> /dev/null | gawk '/Map State/ {print $3}'
 }
 
 maybe_cancel_auto_show() {
@@ -521,11 +521,11 @@ create_win_return_wid() {
 	elif [[ $program == chromium ]]; then
 		# this may work fine
 		# pid=$(pgrep -xo chromium)
-		pid=$(pgrep -xa chromium | awk '!/--type/ {print $1}')
+		pid=$(pgrep -xa chromium | gawk '!/--type/ {print $1}')
 	elif [[ $program == chromium-browser ]]; then
-		pid=$(pgrep -xa chromium-browse | awk '!/--type/ {print $1}')
+		pid=$(pgrep -xa chromium-browse | gawk '!/--type/ {print $1}')
 	elif [[ $program =~ ^google-chrome ]]; then
-		pid=$(pgrep -xa chrome | awk '!/--type/ {print $1}')
+		pid=$(pgrep -xa chrome | gawk '!/--type/ {print $1}')
 	elif [[ $program =~ ^emacsclient ]]; then
 		blacklist=$(xdotool search --classname emacs)
 	fi
@@ -571,7 +571,7 @@ create_win_return_wid() {
 	# workaround for urxvt tabbed plugin using -embed
 	if [[ $program =~ $urxvt ]] && [[ -n $program_wid ]]; then
 		maybe_program_wid=$(xprop -id "$program_wid" | \
-								awk -F '"' '/-embed/ {print $6}')
+								gawk -F '"' '/-embed/ {print $6}')
 		if [[ -n $maybe_program_wid ]]; then
 			program_wid=$maybe_program_wid
 		fi
@@ -626,9 +626,9 @@ wid_toggle() {
 	# deal with percentages/negatives when no -m
 	if ! $monitor_aware; then
 		local total_geo total_width total_height
-		total_geo=$(xwininfo -root | awk '/geometry/ {print $2}')
-		total_width=$(echo "$total_geo" | awk -F 'x' '{print $1}')
-		total_height=$(echo "$total_geo" | awk -F 'x|+' '{print $2}')
+		total_geo=$(xwininfo -root | gawk '/geometry/ {print $2}')
+		total_width=$(echo "$total_geo" | gawk -F 'x' '{print $1}')
+		total_height=$(echo "$total_geo" | gawk -F 'x|+' '{print $2}')
 		convert_geometry_to_pixels "$total_width" "$total_height"
 	fi
 	# get saved window id if already created
@@ -720,10 +720,10 @@ get_geometry() {
 	if is_floating "$1" &> /dev/null; then
 		local wininfo x y rel_x rel_y width height
 		wininfo=$(xwininfo -id "$1")
-		x=$(echo "$wininfo" | awk '/Absolute.*X/ {print $4}')
-		y=$(echo "$wininfo" | awk '/Absolute.*Y/ {print $4}')
-		rel_x=$(echo "$wininfo" | awk '/Relative.*X/ {print $4}')
-		rel_y=$(echo "$wininfo" | awk '/Relative.*Y/ {print $4}')
+		x=$(echo "$wininfo" | gawk '/Absolute.*X/ {print $4}')
+		y=$(echo "$wininfo" | gawk '/Absolute.*Y/ {print $4}')
+		rel_x=$(echo "$wininfo" | gawk '/Relative.*X/ {print $4}')
+		rel_y=$(echo "$wininfo" | gawk '/Relative.*Y/ {print $4}')
 		if [[ $subtract_when_same != false ]]; then
 			# behaviour works for most WMs (at least floating ones)
 			x=$((x-rel_x))
@@ -739,9 +739,9 @@ get_geometry() {
 			fi
 		fi
 		width=$(xwininfo -id "$(xdotool getactivewindow)" | \
-					awk '/Width/ {print $2}')
+					gawk '/Width/ {print $2}')
 		height=$(xwininfo -id "$(xdotool getactivewindow)" | \
-					 awk '/Height/ {print $2}')
+					 gawk '/Height/ {print $2}')
 		echo -n -e "xoff=$x\nyoff=$y\nwidth=$width\nheight=$height"
 	else
 		# window is not floating; don't bother saving geometry
@@ -754,8 +754,8 @@ restore_geometry() {
 	local x_fix y_fix
 	eval "$(< "$MUTDROP_PATH"/auto_hidden/geometry)"
 	if [[ -n $dec_fix ]]; then
-		x_fix=$(echo "$dec_fix" | awk -F "x" '{print $1}')
-		y_fix=$(echo "$dec_fix" | awk -F "x" '{print $2}')
+		x_fix=$(echo "$dec_fix" | gawk -F "x" '{print $1}')
+		y_fix=$(echo "$dec_fix" | gawk -F "x" '{print $2}')
 		xoff=$((xoff-x_fix))
 		yoff=$((yoff-y_fix))
 	fi

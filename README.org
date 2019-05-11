@@ -21,7 +21,12 @@ This is a basic demo where tdrop is used to turn the current window (emacs) into
 - Has hooks for executing user commands
 
 * Requirements
-- bash and basic utilities (awk, sed, etc.)
+- bash
+- basic utilities (probably already installed on linux)
+  - GNU coreutils (for install, tee, cat, mkdir, head, etc.)
+  - gawk
+  - GNU grep
+  - procps-ng (for pgrep)
 - xprop
 - xwininfo
 - xdotool
