@@ -503,6 +503,8 @@ maybe_cancel_auto_show() {
 }
 
 # * Dropdown Initialization
+# TODO ideally this function wouldn't be necessary and some external program
+# (something like xtoolwait) could be used to return the wid
 create_win_return_wid() {
 	local blacklist program_command pid visible_wid wids wid program_wid
 	# blacklist all existing wids of program
@@ -544,6 +546,9 @@ create_win_return_wid() {
 		if [[ $program == discord ]]; then
 			wids=$(xdotool search --classname discord)
 			blacklist=
+		elif [[ $program == qutebrowser ]]; then
+			# one pid, but can't use for getting wids with xdotool
+			wids=$(xdotool search --classname qutebrowser)
 		elif [[ $program =~ ^emacsclient ]]; then
 			wids=$(xdotool search --classname emacs)
 		else
