@@ -43,7 +43,7 @@ options:
 			for width or height to values relative to the size of the
 			current monitor and force resizing of the dropdown when
 			the monitor changes (default: false)
-	-t		use mouse pointer location for detecting which screen is the current
+	-t		use mouse pointer location for detecting which monitor is the current
 			one
 	--wm		set the window manager name to mimic another window manager
 			(for use with -a)
@@ -93,7 +93,7 @@ clearwid=false
 cancel_auto_show=true
 auto_detect_wm=false
 monitor_aware=false
-pointer_screen_detection=false
+pointer_monitor_detection=false
 wm=
 user_set_wm=false
 class=
@@ -121,9 +121,9 @@ do
 	f) program_flags=$OPTARG;;
 	a) auto_detect_wm=true;;
 	m) monitor_aware=true;;
-	t) pointer_screen_detection=true;;
+	t) pointer_monitor_detection=true;;
 	-)
-		if [[ $OPTARG =~ ^(auto-detect-wm|monitor-aware|clear|no-cancel|help)$ ]] || \
+		if [[ $OPTARG =~ ^(auto-detect-wm|monitor-aware|pointer-monitor-detection|clear|no-cancel|help)$ ]] || \
 			[[ $OPTARG == *=* ]]; then
 			OPTION=${OPTARG%%=*}
 			OPTARG=${OPTARG#*=}
@@ -154,7 +154,7 @@ do
 		program-flags) program_flags=$OPTARG;;
 		auto-detect-wm) auto_detect_wm=true;;
 		monitor-aware) monitor_aware=true;;
-		pointer-screen-detection) pointer_screen_detection=true;;
+		pointer-monitor-detection) pointer_monitor_detection=true;;
 		wm) wm=$OPTARG
 			user_set_wm=true;;
 		class) class=$OPTARG;;
@@ -273,8 +273,8 @@ update_geometry_settings_for_monitor() {
 		x_width=$(echo "$monitor_geo" | gawk -F 'x' '{print $1}')
 		y_height=$(echo "$monitor_geo" | gawk -F 'x|+' '{print $2}')
 	else
-		local activity_x activity_y monitors_info x_end y_end
-		if ! $pointer_screen_detection; then
+		local current_x current_y monitors_info x_end y_end
+		if ! $pointer_monitor_detection; then
 			# determine current monitor using active window
 			local wid wininfo
 			wid=$(xdotool getactivewindow)
@@ -284,14 +284,14 @@ update_geometry_settings_for_monitor() {
 			fi
 
 			wininfo=$(xwininfo -id "$wid")
-			activity_x=$(echo "$wininfo" | gawk '/Absolute.*X/ {print $4}')
-			activity_y=$(echo "$wininfo" | gawk '/Absolute.*Y/ {print $4}')
+			current_x=$(echo "$wininfo" | gawk '/Absolute.*X/ {print $4}')
+			current_y=$(echo "$wininfo" | gawk '/Absolute.*Y/ {print $4}')
 		else
 			# determine current monitor using pointer location
 			local pointerinfo
 			pointerinfo=$(xdotool getmouselocation --shell)
-			activity_x=$(echo "$pointerinfo" | sed -n 's/X=//p')
-			activity_y=$(echo "$pointerinfo" | sed -n 's/Y=//p')
+			current_x=$(echo "$pointerinfo" | sed -n 's/X=//p')
+			current_y=$(echo "$pointerinfo" | sed -n 's/Y=//p')
 		fi
 		monitors_info=$(xrandr --query | gawk '/ connected/ {gsub("primary ",""); print}')
 		while read -r monitor; do
@@ -303,8 +303,8 @@ update_geometry_settings_for_monitor() {
 				y_height=$(echo "$monitor_geo" | gawk -F 'x|+' '{print $2}')
 				x_end=$((x_begin+x_width))
 				y_end=$((y_begin+y_height))
-				if [[ $activity_x -ge $x_begin ]] && [[ $activity_x -lt $x_end ]] && \
-					[[ $activity_y -ge $y_begin ]] && [[ $activity_y -lt $y_end ]]; then
+				if [[ $current_x -ge $x_begin ]] && [[ $current_x -lt $x_end ]] && \
+					[[ $current_y -ge $y_begin ]] && [[ $current_y -lt $y_end ]]; then
 					current_monitor=$(echo "$monitor" | gawk '{print $1}')
 					break
 				fi
