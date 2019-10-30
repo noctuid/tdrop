@@ -199,17 +199,11 @@ fi
 
 # non-user-settable global vars
 wid=
-# used for -m option; at first tdrop assumes that there is a focused window
-# on the current desktop; if there isn't (and the WM doesn't have some way to
-# query the current monitor), this will be set to false, and tdrop will have to
-# find out the current monitor info after opening the dropdown
-# (currently, using xwininfo to find the position of a window is the only
-# WM-independent way I know to find out what the current monitor is)
-focused_window_exists=true
 
 # * Multiple Monitor Automatic Re-Sizing
 percent_of_total() { # percent total
-	gawk "BEGIN {printf(\"%.0f\", 0.01*${1%\%}*$2)}"
+	# gawk "BEGIN {printf(\"%.0f\", 0.01*${1%\%}*$2)}"
+	echo $((${1%\%} * ${2} / 100))
 }
 
 # acts on globals
@@ -243,6 +237,21 @@ convert_geometry_to_pixels() {
 	fi
 }
 
+# meant to set non-local variables
+split_geometry() { # <monitor geometry>
+	monitor_geo=$1
+	# x_begin=$(echo "$monitor_geo" | gawk -F '+' '{print $2}')
+	x_begin=${monitor_geo#*+}
+	x_begin=${x_begin%+*}
+	# y_begin=$(echo "$monitor_geo" | gawk -F '+' '{print $3}')
+	y_begin=${monitor_geo##*+}
+	# x_width=$(echo "$monitor_geo" | gawk -F 'x' '{print $1}')
+	x_width=${monitor_geo%x*}
+	# y_height=$(echo "$monitor_geo" | gawk -F 'x|+' '{print $2}')
+	y_height=${monitor_geo#*x}
+	y_height=${y_height%%+*}
+}
+
 update_geometry_settings_for_monitor() {
 	# 1. Correctly interpret width/height percentages when there exist multiple
 	#    monitors so an initially created dropdown is the correct size (xdotool
@@ -253,12 +262,11 @@ update_geometry_settings_for_monitor() {
 
 	# it is conceivable that a user may want to use -m but not -a, so
 	# get the wm from within this function
-	local wm current_monitor
-	wm=$(get_window_manager)
+	local current_monitor
 	if [[ $wm == bspwm ]]; then
-		current_monitor=$(bspc query -T -m | grep -Po '^{"name":.*?",' | \
-			gawk -F ":" '{gsub("[\",]", ""); print $2}')
+		current_monitor=$(bspc query --names --monitors --monitor)
 	elif [[ $wm == i3 ]]; then
+		# TODO use jq if installed
 		# I'd rather not make jq a dependency
 		current_monitor=$(i3-msg -t get_workspaces | sed 's/{"num"/\n/g' | \
 			gawk -F ',' '/focused":true/ {sub(".*output",""); gsub("[:\"]",""); print $1}')
@@ -266,12 +274,9 @@ update_geometry_settings_for_monitor() {
 
 	local monitor_geo x_begin y_begin x_width y_height
 	if [[ -n $current_monitor ]]; then
-		monitor_geo=$(xrandr --query | \
-			gawk "/^$current_monitor/ {gsub(\"primary \",\"\"); print \$3}")
-		x_begin=$(echo "$monitor_geo" | gawk -F '+' '{print $2}')
-		y_begin=$(echo "$monitor_geo" | gawk -F '+' '{print $3}')
-		x_width=$(echo "$monitor_geo" | gawk -F 'x' '{print $1}')
-		y_height=$(echo "$monitor_geo" | gawk -F 'x|+' '{print $2}')
+		monitor_geo=$(xrandr --current | \
+						  gawk "/^$current_monitor/ {gsub(\"primary \",\"\"); print \$3}")
+		split_geometry "$monitor_geo"
 	else
 		local current_x current_y monitors_info x_end y_end
 		if ! $pointer_monitor_detection; then
@@ -287,25 +292,24 @@ update_geometry_settings_for_monitor() {
 			current_x=$(echo "$wininfo" | gawk '/Absolute.*X/ {print $4}')
 			current_y=$(echo "$wininfo" | gawk '/Absolute.*Y/ {print $4}')
 		else
+			# shellcheck disable=SC2034
+			local X Y SCREEN WINDOW
 			# determine current monitor using pointer location
-			local pointerinfo
-			pointerinfo=$(xdotool getmouselocation --shell)
-			current_x=$(echo "$pointerinfo" | sed -n 's/X=//p')
-			current_y=$(echo "$pointerinfo" | sed -n 's/Y=//p')
+			eval "$(xdotool getmouselocation --shell)"
+			current_x=X
+			current_y=Y
 		fi
-		monitors_info=$(xrandr --query | gawk '/ connected/ {gsub("primary ",""); print}')
+		monitors_info=$(xrandr --current | gawk '/ connected/ {gsub("primary ",""); print}')
 		while read -r monitor; do
 			monitor_geo=$(echo "$monitor" | gawk '{print $3}')
 			if [[ $monitor_geo =~ ^[0-9]+x[0-9]+\+[0-9]+\+[0-9]+$ ]]; then
-				x_begin=$(echo "$monitor_geo" | gawk -F '+' '{print $2}')
-				y_begin=$(echo "$monitor_geo" | gawk -F '+' '{print $3}')
-				x_width=$(echo "$monitor_geo" | gawk -F 'x' '{print $1}')
-				y_height=$(echo "$monitor_geo" | gawk -F 'x|+' '{print $2}')
+				split_geometry "$monitor_geo"
 				x_end=$((x_begin+x_width))
 				y_end=$((y_begin+y_height))
 				if [[ $current_x -ge $x_begin ]] && [[ $current_x -lt $x_end ]] && \
-					[[ $current_y -ge $y_begin ]] && [[ $current_y -lt $y_end ]]; then
-					current_monitor=$(echo "$monitor" | gawk '{print $1}')
+					   [[ $current_y -ge $y_begin ]] && [[ $current_y -lt $y_end ]]; then
+					# current_monitor=$(echo "$monitor" | gawk '{print $1}')
+					current_monitor=${monitor%% *}
 					break
 				fi
 			fi
@@ -327,16 +331,15 @@ map_and_reset_geometry() {
 }
 
 # * WM Detection and Hooks
-get_window_manager() {
-	# xfwm4 and fvwm at least will give two names (hence piping into head)
-	xprop -notype -id "$(xprop -root -notype | \
-		gawk '$1=="_NET_SUPPORTING_WM_CHECK:"{print $5}')" \
-		-f _NET_WM_NAME 8u | gawk -F "\"" '/WM_NAME/ {print $2}' | head -n 1
-}
-
 set_wm() {
 	if ! $user_set_wm && $auto_detect_wm; then
-		wm=$(get_window_manager)
+		local id
+		id=$(xprop -root -notype _NET_SUPPORTING_WM_CHECK)
+		id=${id##* }
+		# xfwm4 and fvwm at least will give two names (hence piping into head)
+		wm=$(xprop -notype -id "$id" _NET_WM_NAME | head -n 1)
+		wm=${wm##* }
+		wm=${wm//\"/}
 	fi
 }
 
@@ -502,7 +505,11 @@ unmap() {
 
 # * General Helper Functions
 get_class_name() {
-	xprop -id "$1" WM_CLASS 2> /dev/null | gawk '{gsub(/"/, ""); print $4}'
+	local class
+	class=$(xprop -id "$1" WM_CLASS 2> /dev/null)
+	class=${class##* }
+	class=${class//\"/}
+	echo "$class"
 }
 
 get_visibility() {
@@ -511,7 +518,7 @@ get_visibility() {
 
 maybe_cancel_auto_show() {
 	if $cancel_auto_show && \
-		[[ $1 == $(cat "$MUTDROP_PATH"/auto_hidden/wid 2> /dev/null) ]]; then
+			[[ $1 == $(cat "$MUTDROP_PATH"/auto_hidden/wid 2> /dev/null) ]]; then
 		# shellcheck disable=SC2188
 		> "$MUTDROP_PATH"/auto_hidden/wid
 	fi
@@ -640,12 +647,23 @@ current_create() {
 }
 
 wid_toggle() {
+	# used for -m option; at first tdrop assumes that there is a focused window
+	# on the current desktop; if there isn't (and the WM doesn't have some way
+	# to query the current monitor), this will be set to false, and tdrop will
+	# have to find out the current monitor info after opening the dropdown
+	# (currently, using xwininfo to find the position of a window is the only
+	# WM-independent way I know to find out what the current monitor is)
+	local focused_window_exists
+	focused_window_exists=true
+
 	# deal with percentages/negatives when no -m
 	if ! $monitor_aware; then
 		local total_geo total_width total_height
-		total_geo=$(xwininfo -root | gawk '/geometry/ {print $2}')
-		total_width=$(echo "$total_geo" | gawk -F 'x' '{print $1}')
-		total_height=$(echo "$total_geo" | gawk -F 'x|+' '{print $2}')
+		total_geo=$(xwininfo -root | gawk '/geometry/ {gsub("+*",""); print $2}')
+		# total_width=$(echo "$total_geo" | gawk -F 'x' '{print $1}')
+		total_width=${total_geo%x*}
+		# total_height=$(echo "$total_geo" | gawk -F 'x' '{print $2}')
+		total_height=${total_geo#*x}
 		convert_geometry_to_pixels "$total_width" "$total_height"
 	fi
 	# get saved window id if already created
@@ -656,7 +674,7 @@ wid_toggle() {
 	if [[ -n $wid ]]; then
 		visibility=$(get_visibility "$wid")
 		# sometimes xwininfo will still report a window as existing hence xprop check
-		if [[ -z $visibility ]] || [[ -z $(xprop -id "$wid" 2> /dev/null) ]]; then
+		if [[ -z $visibility ]] || ! xprop -id "$wid" &> /dev/null; then
 			# window no longer exists
 			exists=false
 			# shellcheck disable=SC2188
