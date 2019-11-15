@@ -798,7 +798,7 @@ restore_geometry() {
 
 toggle_auto_hide() {
 	local no_hide
-	no_hide=$(< "$MUTDROP_PATH"/auto_hidden/no_hide) 2> /dev/null
+	no_hide=$(cat "$MUTDROP_PATH"/auto_hidden/no_hide 2> /dev/null)
 	mkdir -p "$MUTDROP_PATH"/auto_hidden
 	if [[ -z $no_hide ]]; then
 		echo "true" > "$MUTDROP_PATH"/auto_hidden/no_hide
@@ -811,7 +811,7 @@ toggle_auto_hide() {
 # * Auto Hiding/Showing
 auto_hide() {
 	local no_hide
-	no_hide=$(< "$MUTDROP_PATH"/auto_hidden/no_hide) 2> /dev/null
+	no_hide=$(cat "$MUTDROP_PATH"/auto_hidden/no_hide 2> /dev/null)
 	if [[ -z $no_hide ]]; then
 		wid=$(xdotool getactivewindow)
 		mkdir -p "$MUTDROP_PATH"/auto_hidden
@@ -824,7 +824,7 @@ auto_hide() {
 
 auto_show() {
 	local no_hide
-	no_hide=$(< "$MUTDROP_PATH"/auto_hidden/no_hide) 2> /dev/null
+	no_hide=$(cat "$MUTDROP_PATH"/auto_hidden/no_hide 2> /dev/null)
 	if [[ -z $no_hide ]]; then
 		local was_floating XY
 		wid=$(< "$MUTDROP_PATH"/auto_hidden/wid)
