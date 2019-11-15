@@ -98,7 +98,7 @@ wm=
 user_set_wm=false
 class=
 name=
-while getopts :h:w:x:y:s:n:c:C:l:L:p:P:u:U:d:f:-:amt opt
+while getopts :h:w:x:y:s:n:c:C:l:L:p:P:u:U:d:S:i:f:-:amt opt
 do
 	case $opt in
 		h) height=$OPTARG;;
@@ -591,7 +591,7 @@ create_win_return_wid() {
 		sleep 0.01
 	done
 	# workaround for urxvt tabbed plugin using -embed
-	if [[ $program =~ $urxvt ]] && [[ -n $program_wid ]]; then
+	if [[ $program =~ urxvt ]] && [[ -n $program_wid ]]; then
 		maybe_program_wid=$(xprop -id "$program_wid" | \
 								gawk -F '"' '/-embed/ {print $6}')
 		if [[ -n $maybe_program_wid ]]; then
@@ -826,7 +826,7 @@ auto_show() {
 	local no_hide
 	no_hide=$(cat "$MUTDROP_PATH"/auto_hidden/no_hide 2> /dev/null)
 	if [[ -z $no_hide ]]; then
-		local was_floating XY
+		local was_floating
 		wid=$(< "$MUTDROP_PATH"/auto_hidden/wid)
 		class=$(< "$MUTDROP_PATH"/auto_hidden/class)
 		was_floating=$(< "$MUTDROP_PATH"/auto_hidden/geometry)
