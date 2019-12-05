@@ -10,7 +10,7 @@ tdrop [\fIOPTIONS\fR] [program name or cmd]
 
 	It also has the ability to automatically hide and automatically show dropdowns. For example, it can be used to automatically hide a terminal when opening something from it, e.g. an image viewer, video player, etc. Tdrop can         then automatically bring back the terminal whenever the image view, video player, etc. is closed. See the Examples section for more information.
 .SH Commands
-Tdrop expects the name of a program or 'current' (to use the current window) as the last argument to create a dropdown. Alternatively, it can take one of auto_show, auto_hide, or toggle_auto_hide. Neither functionality is particularly useful called directly from the command line; the former should be bound to a key, and the latter is better used in shell functions/aliases or with a file opener (e.g. in the rifle.conf).
+Tdrop expects the name of a program or 'current' (to use the current window) as the last argument to create a dropdown (optionally followed by any flags to that program). Alternatively, it can take one of auto_show, auto_hide, or toggle_auto_hide. Neither functionality is particularly useful called directly from the command line; the former should be bound to a key, and the latter is better used in shell functions/aliases or with a file opener (e.g. in the rifle.conf).
 .SH OPTIONS
 .br
 E.g.
@@ -75,7 +75,11 @@ This option is a more complicated companion to -d that is also unlikely to be ne
 Specify a command that will determine whether the current window is floating ($wid can be used in the command instead). Only used for the auto_hide command. This will be used to save whether the current window is floating or not. When restoring the window, if there is a float command and the window was previously floating, it will be floated. (default: none)
 .TP
 \fB-f\fR, \fB --program-flags\fR
-Specify flags/options that the terminal or program should be called with. For example, to set the title of the terminal, something like 'tdrop -f "--title mytitle" <program>' can be used. Caution: If there is a tmux session specified (with -s), the option to execute a program (usually -e for terminal programs) is implicitly added by tdrop! (default: none)
+NOTE: Using this flag is deprecated; it may be removed in the future. Instead, specify program flags after the program (e.g. "tdrop kitty --name foo").
+
+Specify flags/options that the terminal or program should be called with. For example, to set the title of the terminal, something like 'tdrop -f "--title mytitle" <program>' can be used.
+
+Caution: If there is a tmux session specified (with -s), the option to execute a program (usually -e for terminal programs) is implicitly added by tdrop! (default: none)
 .TP
 \fB-a\fR, \fB --auto-detect-wm\fR
 If there are available settings for the detected window manager for the -l, -L, -d, and/or -i options, automatically set them. Takes no argument. Manually specified settings take precedence. This can be used both for dropdowns and the auto_(hide|show) commands. Takes no argument. (default: false)

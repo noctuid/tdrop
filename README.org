@@ -48,7 +48,7 @@ alt + s
     tdrop -ma -w -4 -y "$PANEL_HEIGHT" -s dropdown termite
 #+END_EXAMPLE
 
-The positional argument should be the name of a program in =$PATH= (as opposed to the full path to a program) and should not contain any flags (see =-f= if you want to pass additional flags to the program when running it). It should always be the last argument.
+The positional argument should be the name of a program in =$PATH= (as opposed to the full path to a program). It should always come after any tdrop flags. Flags for the program can come after it (e.g. ~tdrop urxvt -title foo~).
 
 ** Basic Flags
 =-w= / =--width=, =-h= / =--height=, =-x= / =--xoff=, and =-y= / =--yoff= can be used to set the window size/position. The argument to any of these can be a number (e.g. =-w 800=) or a percentage (e.g. =-w 100%=). Negative numbers correspond to that many pixels less than 100% of the screen width (e.g. =-w -4=).

@@ -32,6 +32,8 @@ options:
 			floating window; on applicable with auto_hide
 	-f flags	specify flags/options to be used when creating the term or
 			window (e.g. -f '--title mytitle'; default: none).
+			NOTE: This flag is deprecated. Specify flags after the program name
+			instead. This flag may be removed in the future.
 			Caution: if there is a tmux session specified (with -s), the option
 			to execute a program (usually -e for terminal programs) is
 			implicitly added by tdrop
@@ -88,7 +90,7 @@ dec_fix=
 # set in decoration_settings
 subtract_when_same=
 is_floating=
-program_flags=
+program_flags=()
 clearwid=false
 cancel_auto_show=true
 auto_detect_wm=false
@@ -118,7 +120,7 @@ do
 		d) dec_fix=$OPTARG;;
 		S) subtract_when_same=false;;
 		i) is_floating=$OPTARG;;
-		f) program_flags=$OPTARG;;
+		f) eval "program_flags=($OPTARG)";;
 		a) auto_detect_wm=true;;
 		m) monitor_aware=true;;
 		t) pointer_monitor_detection=true;;
@@ -151,7 +153,7 @@ do
 				decoration-fix) dec_fix=$OPTARG;;
 				no-subtract-when-same) subtract_when_same=false;;
 				is-floating) is_floating=$OPTARG;;
-				program-flags) program_flags=$OPTARG;;
+				program-flags) eval "program_flags=($OPTARG)";;
 				auto-detect-wm) auto_detect_wm=true;;
 				monitor-aware) monitor_aware=true;;
 				pointer-monitor-detection) pointer_monitor_detection=true;;
@@ -170,6 +172,10 @@ done
 shift "$((OPTIND-1))"
 program=$1
 
+if [[ -z $program_flags ]]; then
+	program_flags=("${@:2}")
+fi
+
 # check that the program is not a path and does not contain flags
 if [[ ! $program =~ ^(current|auto_hide|auto_show|toggle_auto_hide)$ ]] && \
 	   ! type "$program" &> /dev/null; then
@@ -178,8 +184,8 @@ if [[ ! $program =~ ^(current|auto_hide|auto_show|toggle_auto_hide)$ ]] && \
 	exit 1
 fi
 
-if [[ $# -ne 1 ]]; then
-	echo >&2 "Exactly 1 positional argument is required." \
+if [[ -z $program ]]; then
+	echo >&2 "Program to run is required as a positional argument." \
 			 "For help use -h or --help or see the manpage." | \
 		tee -a "$MUTDROP_PATH"/log
 	exit 1
@@ -552,7 +558,7 @@ create_win_return_wid() {
 		blacklist=$(xdotool search --classname emacs)
 	fi
 	# need to redirect stdout or function won't return
-	eval "$1 > /dev/null &"
+	"$@" > /dev/null &
 	if [[ -z $pid ]]; then
 		# for normal programs
 		# also for when one of the programs above hadn't already been started
@@ -603,30 +609,30 @@ create_win_return_wid() {
 
 program_start() {
 	local program_command tmux_command wid
+	program_command=("$program")
 	if [[ $program == alacritty ]]; then
 		# prevent alacritty from resizing the terminal to 80x24
-		program_command="$program -d 0 0 $program_flags"
-	else
-		program_command="$program $program_flags"
+		program_command+=(-d 0 0)
 	fi
+	program_command+=("${program_flags[@]}")
 	if [[ -n "$session_name" ]]; then
 		session_name=$(printf "%q" "$session_name")
-		tmux_command="'tmux attach-session -dt $session_name || \
+		tmux_command="tmux attach-session -dt $session_name || \
 			tmuxifier load-session $session_name || \
 			tmuxinator start $session_name || \
-			tmux new-session -s $session_name'"
+			tmux new-session -s $session_name"
 		# note: st will work with or without the -e flag (like kitty)
 		# note: regular console works with or without quotes, but trinity's
 		# konsole only works without quotes
-		if [[ $program =~  ^(urxvt|alacritty|xiatec|st|lxterminal|qterminal|cool-retro-term|lilyterm|konsole$) ]]; then
-			program_command="$program_command -e bash -c $tmux_command"
+		if [[ $program =~ ^(urxvt|alacritty|xiatec|st|lxterminal|qterminal|cool-retro-term|lilyterm|konsole$) ]]; then
+			program_command+=(-e bash -c "$tmux_command")
 		elif [[ $program == kitty ]]; then
-			program_command="$program_command bash -c $tmux_command"
+			program_command+=(bash -c "$tmux_command")
 		else
-			program_command="$program_command -e \"bash -c $tmux_command\""
+			program_command+=(-e "\"bash -c $tmux_command\"")
 		fi
 	fi
-	wid=$(create_win_return_wid "$program_command")
+	wid=$(create_win_return_wid "${program_command[@]}")
 	if [[ -n "$name" ]]; then
 		xdotool set_window --name "$name" "$wid"
 	fi
