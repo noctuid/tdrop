@@ -373,8 +373,10 @@ decoration_settings() {
 }
 
 set_class() {
-	if [[ -z "$class" ]]; then
-		if [[ $program =~ ^google-chrome ]]; then
+	if [[ -z $class ]]; then
+		if [[ $program =~ ^emacsclient ]]; then
+			class=emacs
+		elif [[ $program =~ ^google-chrome ]]; then
 			class=google-chrome
 		elif [[ $program == st ]]; then
 			class=st-256color
