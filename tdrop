@@ -359,7 +359,7 @@ decoration_settings() {
 		fi
 	fi
 
-	if [[ -z "$dec_fix" ]] && $auto_detect_wm; then
+	if [[ -z $dec_fix ]] && $auto_detect_wm; then
 		# settings for stacking/floating wms where can't get right position
 		# easily from xwininfo; take borders into account
 		if [[ $wm == Blackbox ]]; then
@@ -582,9 +582,9 @@ create_win_return_wid() {
 		else
 			wids=$(xdotool search --pid "$pid")
 		fi
-		if [[ -n "$wids" ]]; then
+		if [[ -n $wids ]]; then
 			while read -r wid; do
-				if [[ ! $blacklist =~ (^|$'\n')"$wid"($|$'\n') ]] && \
+				if [[ ! $blacklist =~ (^|$'\n')$wid($|$'\n') ]] && \
 					   [[ $(get_visibility "$wid") == IsViewable ]]; then
 					visible_wid=true
 					program_wid=$wid
@@ -615,7 +615,7 @@ program_start() {
 		program_command+=(-d 0 0)
 	fi
 	program_command+=("${program_flags[@]}")
-	if [[ -n "$session_name" ]]; then
+	if [[ -n $session_name ]]; then
 		session_name=$(printf "%q" "$session_name")
 		tmux_command="tmux attach-session -dt $session_name || \
 			tmuxifier load-session $session_name || \
@@ -633,7 +633,7 @@ program_start() {
 		fi
 	fi
 	wid=$(create_win_return_wid "${program_command[@]}")
-	if [[ -n "$name" ]]; then
+	if [[ -n $name ]]; then
 		xdotool set_window --name "$name" "$wid"
 	fi
 	echo "$wid" > "$MUTDROP_PATH/$program$num"
@@ -646,7 +646,7 @@ current_create() {
 	wid=$(xdotool getactivewindow)
 	echo "$wid" > "$MUTDROP_PATH"/current"$num"
 	get_class_name "$wid" > "$MUTDROP_PATH"/current"$num"_class
-	if [[ -n "$name" ]]; then
+	if [[ -n $name ]]; then
 		xdotool set_window --name "$name" "$wid"
 	fi
 	echo -n "$wid"
