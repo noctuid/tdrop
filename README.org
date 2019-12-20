@@ -170,6 +170,9 @@ The most useful application of this functionality is probably when opening video
 mime ^video, has mpv, X, flag f = tdrop -a auto_hide && mpv -- "$@" && tdrop -a auto_show
 #+END_EXAMPLE
 
+** Other Commands
+If =hide_all= is given instead of a program name, tdrop will hide all visible dropdowns.
+
 * Tested With
 ** Terminals
 These terminals have been tested with tdrop and support the =-s= and =-a= flags unless otherwise specified:
