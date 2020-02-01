@@ -64,11 +64,6 @@ options:
 
 See man page for more details.
 "
-	if [[ $1 == illegal_opt ]]; then
-		exit 1
-	else
-		exit 0
-	fi
 }
 
 error() {
@@ -176,9 +171,11 @@ do
 				no-cancel) cancel_auto_show=false;;
 				timeout) timeout=$OPTARG;;
 				help) print_help;;
-				*) print_help illegal_opt;;
+				*) error "Unknown option --$OPTION." \
+						 "Use --help to see available flags.";;
 			esac;;
-		*) print_help illegal_opt;;
+		*) error "Unknown option -$OPTARG." \
+				 "Use --help to see available flags.";;
 	esac
 done
 shift "$((OPTIND-1))"
