@@ -1,3 +1,5 @@
+[[https://github.com/noctuid/tdrop/actions?query=workflow%3Alint][https://github.com/noctuid/tdrop/workflows/lint/badge.svg]]
+
 * Demos
 This is a basic demo where tdrop is used to hide and show a terminal emulator on different desktops/workspaces:
 
