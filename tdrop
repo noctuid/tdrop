@@ -57,6 +57,9 @@ options:
 			window a dropdown (e.g. '$ tdrop --clear current')
 	--no-cancel	don't cancel auto-showing (default is to prevent this when
 			manually toggling a window after it is auto-hidden)
+	--timeout	set the timeout (in seconds) that tdrop will wait for a window
+			to appear before giving up in case the program fails to start
+			(default: 10)
 	--help		print help
 
 See man page for more details.
@@ -66,6 +69,11 @@ See man page for more details.
 	else
 		exit 0
 	fi
+}
+
+error() {
+	echo >&2 "$@" | tee -a "$MUTDROP_PATH"/log
+	exit 1
 }
 
 # * Default Options and Option Parsing
@@ -102,6 +110,7 @@ wm=
 user_set_wm=false
 class=
 name=
+timeout=10
 while getopts :h:w:x:y:s:n:c:C:l:L:p:P:u:U:d:S:i:f:-:amt opt
 do
 	case $opt in
@@ -165,6 +174,7 @@ do
 				name) name=$OPTARG;;
 				clear) clearwid=true;;
 				no-cancel) cancel_auto_show=false;;
+				timeout) timeout=$OPTARG;;
 				help) print_help;;
 				*) print_help illegal_opt;;
 			esac;;
@@ -178,31 +188,24 @@ if [[ -z $program_flags ]]; then
 	program_flags=("${@:2}")
 fi
 
-# check that the program is not a path and does not contain flags
-if [[ ! $program =~ ^(current|auto_hide|auto_show|toggle_auto_hide|hide_all)$ ]] && \
-	   ! type "$program" &> /dev/null; then
-	echo >&2 "The program should be in PATH and not contain flags." | \
-		tee -a "$MUTDROP_PATH"/log
-	exit 1
+if [[ -z $program ]]; then
+	error "Program to run is required as a positional argument." \
+		  "For help use -h or --help or see the manpage."
 fi
 
-if [[ -z $program ]]; then
-	echo >&2 "Program to run is required as a positional argument." \
-			 "For help use -h or --help or see the manpage." | \
-		tee -a "$MUTDROP_PATH"/log
-	exit 1
+# check that the program is in PATH
+if [[ ! $program =~ ^(current|auto_hide|auto_show|toggle_auto_hide|hide_all)$ ]] && \
+	   ! type "$program" &> /dev/null; then
+	error "The program should be in PATH."
 fi
 
 # validate options that require number values
 if [[ ! $height$width$xoff$yoff =~ ^[0-9%-]*$ ]]; then
-	echo >&2 "The -h, -w, -x, and -y values must be numbers (or percentages)." | \
-		tee -a "$MUTDROP_PATH"/log
-	exit 1
+	error "The -h, -w, -x, and -y values must be numbers (or percentages)."
 fi
 if [[ -n $dec_fix ]] && [[ ! $dec_fix =~ ^-?[0-9]+x-?[0-9]+$ ]]; then
-	echo >&2 "The decoration fix value must have form 'num'x'num'." \
-			 "The numbers can be negative or zero." | tee -a "$MUTDROP_PATH"/log
-	exit 1
+	error "The decoration fix value must have form 'num'x'num'." \
+		  "The numbers can be negative or zero."
 fi
 
 # non-user-settable global vars
@@ -569,6 +572,7 @@ create_win_return_wid() {
 		pid=$!
 	fi
 	visible_wid=false
+	counter=0
 	while : ; do
 		if [[ $program == gnome-terminal ]]; then
 			# only 1 pid; changes at some point after first run
@@ -597,6 +601,10 @@ create_win_return_wid() {
 		fi
 		if $visible_wid; then
 			break
+		fi
+		((counter=counter+1))
+		if [[ $counter -gt $((timeout * 100)) ]]; then
+			error "Exceeded timeout of $timeout seconds waiting for program."
 		fi
 		sleep 0.01
 	done
