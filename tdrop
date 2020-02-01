@@ -181,7 +181,7 @@ done
 shift "$((OPTIND-1))"
 program=$1
 
-if [[ -z $program_flags ]]; then
+if [[ ${#program_flags[@]} -eq 0 ]]; then
 	program_flags=("${@:2}")
 fi
 
