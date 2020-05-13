@@ -626,9 +626,9 @@ program_start() {
 	program_command+=("${program_flags[@]}")
 	if [[ -n $session_name ]]; then
 		session_name=$(printf "%q" "$session_name")
-		tmux_command="tmux attach-session -dt $session_name || \
-			tmuxifier load-session $session_name || \
-			tmuxinator start $session_name || \
+		tmux_command="tmux attach-session -dt $session_name 2> /dev/null || \
+			tmuxifier load-session $session_name 2> /dev/null || \
+			tmuxinator start $session_name 2> /dev/null || \
 			tmux new-session -s $session_name"
 		# note: st will work with or without the -e flag (like kitty)
 		# note: regular console works with or without quotes, but trinity's
