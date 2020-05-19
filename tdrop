@@ -568,6 +568,7 @@ create_win_return_wid() {
 		# also for when one of the programs above hadn't already been started
 		pid=$!
 	fi
+	echo spawned program $program with pid $pid >&2
 	visible_wid=false
 	counter=0
 	while : ; do
@@ -584,15 +585,25 @@ create_win_return_wid() {
 			wids=$(xdotool search --classname qutebrowser)
 		elif [[ $program =~ ^emacsclient ]]; then
 			wids=$(xdotool search --classname emacs)
+		elif [[ $program == keepassxc ]]; then
+			# let both windows spawn
+			sleep 2
+			wids=$(xdotool search --pid "$pid")
 		else
 			wids=$(xdotool search --pid "$pid")
 		fi
 		if [[ -n $wids ]]; then
+			echo found some wids: >&2
+			echo $wids >&2
 			while read -r wid; do
 				if [[ ! $blacklist =~ (^|$'\n')$wid($|$'\n') ]] && \
 					   [[ $(get_visibility "$wid") == IsViewable ]]; then
+					echo $wid is visible >&2
 					visible_wid=true
-					program_wid=$wid
+					# use first visible wid
+					[[ -z $program_wid ]] && program_wid=$wid
+				else
+					echo $wid is invisible >&2
 				fi
 			done <<< "$wids"
 		fi
@@ -613,6 +624,7 @@ create_win_return_wid() {
 			program_wid=$maybe_program_wid
 		fi
 	fi
+	echo deciding on wid: "$program_wid" >&2
 	echo -n "$program_wid"
 }
 
