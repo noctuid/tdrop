@@ -334,8 +334,19 @@ update_geometry_settings_for_monitor() {
 }
 
 map_and_reset_geometry() {
-	xdotool windowmap "$wid" windowmove "$wid" "$xoff" "$yoff" \
-			windowsize "$wid" "$width" "$height" 2> /dev/null
+	if [[ -n $width ]] && [[ -n $height ]] && [[ -n $xoff ]] \
+		   && [[ -n $yoff ]]; then
+		xdotool windowmap "$wid" windowmove "$wid" "$xoff" "$yoff" \
+				windowsize "$wid" "$width" "$height" 2> /dev/null
+	elif [[ -n $width ]] && [[ -n $height ]]; then
+		xdotool windowmap "$wid" windowsize "$wid" "$width" "$height" \
+				2> /dev/null
+	elif [[ -n $xoff ]] && [[ -n $yoff ]]; then
+		xdotool windowmap "$wid" windowmove "$wid" "$xoff" "$yoff" \
+				2> /dev/null
+	else
+		xdotool windowmap "$wid" 2> /dev/null
+	fi
 }
 
 # * WM Detection and Hooks

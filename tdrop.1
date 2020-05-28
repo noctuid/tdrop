@@ -27,16 +27,16 @@ $ tdrop --y-offset 15 termite
 Note that all hook and command related options can make use of any tdrop variables (such as $width, $height, $xoff, $yoff, $class, $wid, etc.). Note that for some of the hooks, the window id is not guarunteed to be known (since the window may not have yet been created), so any scripts that make use of these should check if it is defined (pre-map and pre-float; wid will never be known for pre-create).
 .TP
 \fB-w WIDTH\fR, \fB --width=WIDTH\fR
-Specify a width for a created window as a number or percentage. A negative number is allowed (e.g. '-w -4') in which case the width will be that many pixels less than 100% of the screen size (or monitor size if '-m' is being used). This fixes the problem where 100% width may actually go over the screen due to window borders/decoration. The other other geometry options also accept negative values ('-h', '-x', and '-y'). (default: 100%)
+Specify a width for a created window as a number or percentage. A negative number is allowed (e.g. '-w -4') in which case the width will be that many pixels less than 100% of the screen size (or monitor size if '-m' is being used). This fixes the problem where 100% width may actually go over the screen due to window borders/decoration. The other other geometry options also accept negative values ('-h', '-x', and '-y'). If both the width and height are specified as empty/"", do not alter the window's size. (default: 100%)
 .TP
 \fB-h HEIGHT\fR, \fB --height=HEIGHT\fR
-Specify a height for a created window as a number or percentage. (default: 45%)
+Specify a height for a created window as a number or percentage. If both the width and height are specified as empty/"", do not alter the window's size. (default: 45%)
 .TP
 \fB-x OFFSET\fR, \fB --x-offset=OFFSET\fR
-Specify the x position for a created window as a number or percentage. (default: 0)
+Specify the x position for a created window as a number or percentage. If both the x and y offsets are specified as empty/"", do not alter the window's position. (default: 0)
 .TP
 \fB-y OFFSET\fR, \fB --y-offset=OFFSET\fR
-Specify the y position for a created window as a number or percentage. (default: 1, see BUGS)
+Specify the y position for a created window as a number or percentage. If both the x and y offsets are specified as empty/"", do not alter the window's position. (default: 1, see BUGS)
 .TP
 \fB-s NAME\fR, \fB --session=NAME\fR
 Specify a tmuxinator, tmuxifier, or tmux session name to start. An existing tmux session has highest precedence and will be connected to with '-d', detaching other attached clients. If a there is no tmuxinator/tmuxifier/etc. session of the given name, a normal tmux session with the name will be created. If this option is not given, tmux will not be used. Note that this option requires that the program be a supported terminal. (default: none)
