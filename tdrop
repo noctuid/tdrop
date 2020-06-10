@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 MUTDROP_PATH=/tmp/tdrop_"$USER"
+LOG_FILE="$MUTDROP_PATH"/log
 # shellcheck disable=SC2174
 mkdir -p "$MUTDROP_PATH" -m 700
 
@@ -60,6 +61,7 @@ options:
 	--timeout	set the timeout (in seconds) that tdrop will wait for a window
 			to appear before giving up in case the program fails to start
 			(default: 10)
+	--debug		print debugging information to /tmp/tdrop_<user>/log
 	--help		print help
 
 See man page for more details.
@@ -67,8 +69,14 @@ See man page for more details.
 }
 
 error() {
-	echo >&2 "$@" | tee -a "$MUTDROP_PATH"/log
+	echo >&2 "Error: $@" | tee -a "$LOG_FILE"
 	exit 1
+}
+
+debug() {
+	if $debug; then
+		echo "Debug: $@" | tee -a "$LOG_FILE"
+	fi
 }
 
 # * Default Options and Option Parsing
@@ -106,6 +114,7 @@ user_set_wm=false
 class=
 name=
 timeout=10
+debug=false
 while getopts :h:w:x:y:s:n:c:C:l:L:p:P:u:U:d:S:i:f:-:amt opt
 do
 	case $opt in
@@ -131,7 +140,7 @@ do
 		m) monitor_aware=true;;
 		t) pointer_monitor_detection=true;;
 		-)
-			if [[ $OPTARG =~ ^(auto-detect-wm|monitor-aware|pointer-monitor-detection|clear|no-cancel|help)$ ]] || \
+			if [[ $OPTARG =~ ^(auto-detect-wm|monitor-aware|pointer-monitor-detection|clear|no-cancel|debug|help)$ ]] || \
 				   [[ $OPTARG == *=* ]]; then
 				OPTION=${OPTARG%%=*}
 				OPTARG=${OPTARG#*=}
@@ -170,6 +179,7 @@ do
 				clear) clearwid=true;;
 				no-cancel) cancel_auto_show=false;;
 				timeout) timeout=$OPTARG;;
+				debug) debug=true;;
 				help) print_help;;
 				*) error "Unknown option --$OPTION." \
 						 "Use --help to see available flags.";;
@@ -359,6 +369,7 @@ set_wm() {
 		wm=$(xprop -notype -id "$id" _NET_WM_NAME | head -n 1)
 		wm=${wm##* }
 		wm=${wm//\"/}
+		debug "window manager: $wm"
 	fi
 }
 
@@ -587,6 +598,9 @@ create_win_return_wid() {
 			# actual process name for me is gnome-terminal-
 			pid=$(pgrep gnome-terminal)
 		fi
+		if ((counter==0)); then
+			debug "pid: $pid"
+		fi
 		if [[ $program == discord ]]; then
 			wids=$(xdotool search --classname discord)
 			blacklist=
@@ -599,6 +613,7 @@ create_win_return_wid() {
 			wids=$(xdotool search --pid "$pid")
 		fi
 		if [[ -n $wids ]]; then
+			debug "wids: ${wids[*]}"
 			while read -r wid; do
 				if [[ ! $blacklist =~ (^|$'\n')$wid($|$'\n') ]] && \
 					   [[ $(get_visibility "$wid") == IsViewable ]]; then
@@ -624,6 +639,7 @@ create_win_return_wid() {
 			program_wid=$maybe_program_wid
 		fi
 	fi
+	debug "picked wid: $program_wid"
 	echo -n "$program_wid"
 }
 
@@ -883,17 +899,23 @@ set_class
 
 # ** Primary Action
 if $clearwid; then
+	debug "command: clear wid for $program$num"
 	# shellcheck disable=SC2188
 	> "$MUTDROP_PATH/$program$num"
 elif [[ $program == toggle_auto_hide ]]; then
+	debug "command: toggle auto hide"
 	toggle_auto_hide
 elif [[ $program == auto_hide ]]; then
+	debug "command: auto hide"
 	auto_hide
 elif [[ $program == auto_show ]]; then
+	debug "command: auto show"
 	auto_show
 elif [[ $program == hide_all ]]; then
+	debug "command: hide all"
 	hide_all
 else
+	debug "command: toggle $program$num"
 	wid_toggle
 fi
 
