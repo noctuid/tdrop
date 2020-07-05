@@ -78,6 +78,18 @@ Some window managers allow querying what the current monitor is (e.g. bspwm and 
 
 See the manpage for more information.
 
+** Flatpak
+
+As [[https://www.flatpak.org/][Flatpak]] jails applications, the PID cannot be used to find the attached window. A class name has to be given in order to find it, with =--class=.
+
+As Flatpak is considered by tdrop as the program to run, tdrop cannot differentiate 2 different flatpak applications. Use the =-n= option for this purpose.
+
+Example:
+#+BEGIN_EXAMPLE
+tdrop -ma -n signal --class=signal flatpak run org.signal.Signal
+tdrop -ma -n firefox --class=firefox flatpak run org.mozilla.firefox
+#+END_EXAMPLE
+
 ** Flicker
 For some window managers that require a window to be repositioned after re-mapping it, some flicker may be noticeable. This flicker has been mostly fixed for some window managers (e.g. in the Gnome Shell and Cinnamon DEs) and improved for others. It is usually worse on tiling managers where the window must be re-floated every time it is mapped. The way around this is to use rules to either always have the class or name (see =--name=) floated or one-time rules to only float the next instance of a class. For example, since bspwm has oneshot rules and generally doesn't alter the size/position of a window, there isn't any movement flicker.
 
