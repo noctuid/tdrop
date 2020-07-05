@@ -412,6 +412,10 @@ set_class() {
 			class=xiate
 		elif [[ $program == alacritty ]]; then
 			class=Alacritty
+		elif [[ $program == flatpak ]]; then
+			# flatpak jails the application, the PID cannot be used to find
+			# the window. A specific class has to be given by the user.
+			error "--class is required with flatpak but was not given."
 		elif [[ $program == current ]]; then
 			class=$(cat "$MUTDROP_PATH"/current"$num"_class  2> /dev/null)
 		else
@@ -609,6 +613,8 @@ create_win_return_wid() {
 			wids=$(xdotool search --classname qutebrowser)
 		elif [[ $program =~ ^emacsclient ]]; then
 			wids=$(xdotool search --classname emacs)
+		elif [[ $program == flatpak ]]; then
+			wids=$(xdotool search --classname "$class")
 		else
 			wids=$(xdotool search --pid "$pid")
 		fi
