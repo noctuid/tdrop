@@ -108,6 +108,7 @@ clearwid=false
 cancel_auto_show=true
 auto_detect_wm=false
 monitor_aware=false
+monitor=
 pointer_monitor_detection=false
 wm=
 user_set_wm=false
@@ -172,6 +173,7 @@ do
 				auto-detect-wm) auto_detect_wm=true;;
 				monitor-aware) monitor_aware=true;;
 				pointer-monitor-detection) pointer_monitor_detection=true;;
+				monitor) monitor=$OPTARG;;
 				wm) wm=$OPTARG
 					user_set_wm=true;;
 				class) class=$OPTARG;;
@@ -281,7 +283,9 @@ update_geometry_settings_for_monitor() {
 	# it is conceivable that a user may want to use -m but not -a, so
 	# get the wm from within this function
 	local current_monitor
-	if [[ $wm == bspwm ]]; then
+	if [[ -n $monitor ]]; then
+		current_monitor=$monitor
+	elif [[ $wm == bspwm ]]; then
 		current_monitor=$(bspc query --names --monitors --monitor)
 	elif [[ $wm == i3 ]]; then
 		# TODO use jq if installed

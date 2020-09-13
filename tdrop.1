@@ -93,6 +93,9 @@ This option only applies for dropdowns (not auto-hiding and auto-showing). Speci
 \fB-t\fR, \fB --pointer-monitor-detection\fR
 Use mouse pointer location for detecting which monitor is the current one so terminal will be displayed on it. Without this option, the monitor with currently active window is considered the current one. This option is only effective if -m / --monitor-aware option is enabled.
 .TP
+\fB--monitor=NAME\fR
+Specify the monitor to base geometry calculations on when using -m / --monitor-aware instead of detecting the monitor by the actively focused window or mouse pointer.
+.TP
 \fB --wm=NAME\fR
 Specify the window manager name (which determines the default settings when -a is specified). This may be useful if you've change the name of your window manager using wmname as this will prevent tdrop from correctly detecting the real window manager name. This could also potentially be useful if the all the default -a settings for another window manager work with the current one (e.g. if using a similar but differently named fork of some window manager). (default: automatically detected)
 .TP
