@@ -418,6 +418,8 @@ set_class() {
 			error "--class is required with flatpak but was not given."
 		elif [[ $program == current ]]; then
 			class=$(cat "$MUTDROP_PATH"/current"$num"_class  2> /dev/null)
+		elif [[ $program == brave ]]; then
+			class=brave-browser
 		else
 			class=$program
 		fi
@@ -584,6 +586,8 @@ create_win_return_wid() {
 		pid=$(pgrep -xa chromium-browse | gawk '!/--type/ {print $1}')
 	elif [[ $program =~ ^google-chrome ]]; then
 		pid=$(pgrep -xa chrome | gawk '!/--type/ {print $1}')
+	elif [[ $program == firefox ]]; then
+		blacklist=$(xdotool search --name firefox)
 	elif [[ $program =~ ^emacsclient ]]; then
 		blacklist=$(xdotool search --classname emacs)
 	fi
@@ -608,13 +612,15 @@ create_win_return_wid() {
 		if [[ $program == discord ]]; then
 			wids=$(xdotool search --classname discord)
 			blacklist=
-		elif [[ $program == qutebrowser ]]; then
+		elif [[ $program =~ ^(qutebrowser|brave)$ ]]; then
 			# one pid, but can't use for getting wids with xdotool
-			wids=$(xdotool search --classname qutebrowser)
+			wids=$(xdotool search --classname "$program")
 		elif [[ $program =~ ^emacsclient ]]; then
 			wids=$(xdotool search --classname emacs)
 		elif [[ $program == flatpak ]]; then
 			wids=$(xdotool search --classname "$class")
+		elif [[ $program == firefox ]]; then
+			wids=$(xdotool search --name firefox)
 		else
 			wids=$(xdotool search --pid "$pid")
 		fi
