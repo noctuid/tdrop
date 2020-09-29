@@ -681,7 +681,7 @@ program_start() {
 		elif [[ $program == kitty ]]; then
 			program_command+=(bash -c "$tmux_command")
 		else
-			program_command+=(-e "\"bash -c $tmux_command\"")
+			program_command+=(-e "bash -c $tmux_command")
 		fi
 	fi
 	wid=$(create_win_return_wid "${program_command[@]}")
