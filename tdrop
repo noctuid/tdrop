@@ -717,7 +717,7 @@ wid_toggle() {
 	# deal with percentages/negatives when no -m
 	if ! $monitor_aware; then
 		local total_geo total_width total_height
-		total_geo=$(xwininfo -root | gawk '/geometry/ {gsub("+*",""); print $2}')
+		total_geo=$(xwininfo -root | gawk '/geometry/ {gsub("+.*",""); print $2}')
 		# total_width=$(echo "$total_geo" | gawk -F 'x' '{print $1}')
 		total_width=${total_geo%x*}
 		# total_height=$(echo "$total_geo" | gawk -F 'x' '{print $2}')
