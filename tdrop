@@ -290,7 +290,7 @@ update_geometry_settings_for_monitor() {
 	elif [[ $wm == i3 ]]; then
 		# TODO use jq if installed
 		# I'd rather not make jq a dependency
-		current_monitor=$(i3-msg -t get_workspaces | sed 's/{"num"/\n/g' | \
+		current_monitor=$(i3-msg -t get_workspaces | sed 's/"num"/\n/g' | \
 							  gawk -F ',' '/focused":true/ {sub(".*output",""); gsub("[:\"]",""); print $1}')
 	fi
 
