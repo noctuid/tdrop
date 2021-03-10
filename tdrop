@@ -288,10 +288,13 @@ update_geometry_settings_for_monitor() {
 	elif [[ $wm == bspwm ]]; then
 		current_monitor=$(bspc query --names --monitors --monitor)
 	elif [[ $wm == i3 ]]; then
-		# TODO use jq if installed
-		# I'd rather not make jq a dependency
-		current_monitor=$(i3-msg -t get_workspaces | sed 's/{"num"/\n/g' | \
-							  gawk -F ',' '/focused":true/ {sub(".*output",""); gsub("[:\"]",""); print $1}')
+		# Use jq if installed
+		if command -v jq &>/dev/null; then
+			current_monitor=$( i3-msg -t get_workspaces | jq '.[] | select(.focused==true) | .output' -r )
+		else
+			current_monitor=$(i3-msg -t get_workspaces | sed 's/{"num"/\n/g' | \
+									gawk -F ',' '/focused":true/ {sub(".*output",""); gsub("[:\"]",""); print $1}')
+		fi
 	fi
 
 	local monitor_geo x_begin y_begin x_width y_height
