@@ -1,3 +1,9 @@
+# Change(s) in this fork:
+
+- Use `jq` if installed (the main repo has a bug when using `i3`)
+
+---
+
 [[https://github.com/noctuid/tdrop/actions?query=workflow%3Alint][https://github.com/noctuid/tdrop/workflows/lint/badge.svg]]
 
 * Demos
