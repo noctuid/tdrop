@@ -1,0 +1,27 @@
+* 0.4.0
+- Deprecate -f flag and allow specifying program arguments after the program
+- Fix -a for emacslient
+- Add hide_all command
+- Add --timeout flag
+- Give more specific error message for unknown flags
+- Add github actions shellcheck workflow
+- Silence irrelevant errors
+- Allow specifying empty values for -w, -h, -x, and -y to not alter the window size
+- Add --debug flag
+- Add workaround for using flatpack applications
+- Add support for firefox and brave
+- Add --monitor flag to specify monitor name to create dropdown on
+- Fix -s flag for termite, xterm, etc. 
+- Fix for latest alacritty
+- Fix for latest i3
+- Add support for tabbed
+- Add -A / --activate flag to always activate/show dropdown if it is unfocused
+
+* 0.3.0
+- Significant performance improvements, especially with -m
+- Optionally detect current screen for -m based on pointer position
+- Discord support
+- Emacsclient support
+- Qutebsrowser support
+- Trinity Konsole support
+- Other minor fixes/improvements
