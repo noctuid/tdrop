@@ -50,6 +50,7 @@ options:
 			the monitor changes (default: false)
 	-t		use mouse pointer location for detecting which monitor is the current
 			one
+	-A		always show/activate the window if it is not focused
 	--wm		set the window manager name to mimic another window manager
 			(for use with -a)
 	--class name	manually specify the class of the window (can be obtained with xprop)
@@ -107,6 +108,7 @@ program_flags=()
 clearwid=false
 cancel_auto_show=true
 auto_detect_wm=false
+always_activate=false
 monitor_aware=false
 monitor=
 pointer_monitor_detection=false
@@ -116,7 +118,7 @@ class=
 name=
 timeout=10
 debug=false
-while getopts :h:w:x:y:s:n:c:C:l:L:p:P:u:U:d:S:i:f:-:amt opt
+while getopts :h:w:x:y:s:n:c:C:l:L:p:P:u:U:d:S:i:f:-:aAmt opt
 do
 	case $opt in
 		h) height=$OPTARG;;
@@ -138,6 +140,7 @@ do
 		i) is_floating=$OPTARG;;
 		f) eval "program_flags=($OPTARG)";;
 		a) auto_detect_wm=true;;
+		A) always_activate=true;;
 		m) monitor_aware=true;;
 		t) pointer_monitor_detection=true;;
 		-)
@@ -171,6 +174,7 @@ do
 				is-floating) is_floating=$OPTARG;;
 				program-flags) eval "program_flags=($OPTARG)";;
 				auto-detect-wm) auto_detect_wm=true;;
+				activate) always_activate=true;;
 				monitor-aware) monitor_aware=true;;
 				pointer-monitor-detection) pointer_monitor_detection=true;;
 				monitor) monitor=$OPTARG;;
@@ -740,7 +744,9 @@ wid_toggle() {
 		exists=false
 	fi
 	if $exists; then
-		if [[ $visibility =~ ^(IsUnMapped|IsUnviewable)$ ]]; then
+		if [[ $visibility =~ ^(IsUnMapped|IsUnviewable)$ ]] \
+			   || $always_activate  && [[ $(xdotool getactivewindow) != $wid ]]
+		then
 			# visibility will be IsUnMapped on most WMs if the dropdown is open
 			# on another desktop; may also be IsUnviewable
 			xdotool set_desktop_for_window "$wid" "$(xdotool get_desktop)"

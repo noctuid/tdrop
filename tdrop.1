@@ -93,6 +93,9 @@ This option only applies for dropdowns (not auto-hiding and auto-showing). Speci
 \fB-t\fR, \fB --pointer-monitor-detection\fR
 Use mouse pointer location for detecting which monitor is the current one so terminal will be displayed on it. Without this option, the monitor with currently active window is considered the current one. This option is only effective if -m / --monitor-aware option is enabled.
 .TP
+\fB-A\fR, \fB --activate\fR
+Always activate/show the dropdown if it is not currently focused. Only hide the dropdown if it is currently focused.
+.TP
 \fB--monitor=NAME\fR
 Specify the monitor to base geometry calculations on when using -m / --monitor-aware instead of detecting the monitor by the actively focused window or mouse pointer.
 .TP
