@@ -75,7 +75,7 @@ error() {
 
 debug() {
 	if $debug; then
-		echo "Debug: $@" | tee -a "$LOG_FILE"
+		echo >&2 "Debug: $@" | tee -a "$LOG_FILE"
 	fi
 }
 
@@ -596,7 +596,7 @@ create_win_return_wid() {
 		blacklist=$(xdotool search --classname emacs)
 	fi
 	# need to redirect stdout or function won't return
-	"$@" > /dev/null &
+	"$@" > "$MUTDROP_PATH/program-output" &
 	if [[ -z $pid ]]; then
 		# for normal programs
 		# also for when one of the programs above hadn't already been started
@@ -625,6 +625,8 @@ create_win_return_wid() {
 			wids=$(xdotool search --classname "$class")
 		elif [[ $program == firefox ]]; then
 			wids=$(xdotool search --name firefox)
+		elif [[ $program == tabbed ]]; then
+			wids=$(head -n 1 "$MUTDROP_PATH/program-output")
 		else
 			wids=$(xdotool search --pid "$pid")
 		fi
