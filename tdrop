@@ -460,6 +460,8 @@ pre_float() {
 		else
 			bspc rule -a \*:"$class" -o state=floating
 		fi
+	elif [[ $wm == herbstluftwm ]]; then
+		herbstclient rule once class="$class" floating=on
 	fi
 }
 
@@ -469,8 +471,6 @@ post_float() {
 			awesome-client
 	elif [[ $wm == i3 ]]; then
 		i3-msg "[id=$wid] floating enable" > /dev/null
-	elif [[ $wm == herbstluftwm ]]; then
-		herbstclient fullscreen on
 	fi
 }
 
@@ -531,15 +531,8 @@ post_unmap() {
 }
 
 unmap() {
-	hide=$1
 	pre_unmap
 	xdotool windowunmap "$wid"
-	if [[ -z $hide ]]; then
-		if [[ $wm == herbstluftwm ]]; then
-			# TODO should only happen if wasn't previously fullscreen
-			herbstclient fullscreen off
-		fi
-	fi
 	post_unmap
 }
 
@@ -881,7 +874,7 @@ auto_hide() {
 		echo "$wid" > "$MUTDROP_PATH"/auto_hidden/wid
 		get_class_name "$wid" > "$MUTDROP_PATH"/auto_hidden/class
 		get_geometry "$wid" > "$MUTDROP_PATH"/auto_hidden/geometry
-		unmap hide
+		unmap
 	fi
 }
 

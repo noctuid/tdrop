@@ -228,8 +228,7 @@ If your terminal doesn't work with tdrop, feel free to make an issue. Please fol
 The primary goal of tdrop is to "just work" with any window manager. The primary differences between how tdrop deals with different window managers is the strategy it takes for floating only the dropdown (as opposed to all instances of the class that the dropdown is). There are three types of window managers as far as tdrop is concerned:
 
 *** Tiling without Floating Support
-If your window manager does not support floating, there's nothing to worry about. Binding a key to =tdrop <flags> terminal= should work. Options for resizing and movement that work only with floating window managers are not supported. One can, however, add post-map and post-unmap commands to do something like change the layout to fullscreen when showing a dropdown then revert the layout when hiding the dropdown. Automatic settings exist to do this for the following window managers (=-a=):
-- herbstluftwm
+If your window manager does not support floating, there's nothing to worry about. Binding a key to =tdrop <flags> terminal= should work. Options for resizing and movement that work only with floating window managers are not supported. One can, however, add post-map and post-unmap commands to do something like change the layout to fullscreen when showing a dropdown then revert the layout when hiding the dropdown. Previously (=-a=) would automatically do this for herbstluftwm, but it now supports floating.
 
 *** Floating/Stacking
 For floating window managers, tdrop should also generally "just work", but you may need to add the =-a= option for auto-showing to correctly restore the previous geometry.
@@ -255,6 +254,7 @@ If your dropdown moves out of place when being shown, make an issue, and I will 
 *** Tiling with Floating Support
 These window managers currently will work with =-a= for a floating (instead of tiled) dropdown:
 - bspwm (support for versions prior to 0.9.1 was dropped on 2016/09/22)
+- herbstluftwm (v0.8.0 or higher)
 - i3
 - awesome
 
