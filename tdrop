@@ -16,7 +16,7 @@ options:
 	-w width	specify a width for a newly created term (default: 100%)
 	-x pos		specify x offset for a newly created term (default: 0)
 	-y pos		specify y offset for a newly created term (default: 1, see man)
-	-s name		name for tmux/tmuxinator/tmuxifier session (supported
+	-s name		name for tmux/tmuxinator/tmuxifier/tmuxp session (supported
 			terminal required)
 	-n num		num or extra text; only needed if for the purpose of using
 			multiple dropdowns of same program
@@ -674,6 +674,7 @@ program_start() {
 		tmux_command="tmux attach-session -dt $session_name 2> /dev/null || \
 			tmuxifier load-session $session_name 2> /dev/null || \
 			tmuxinator start $session_name 2> /dev/null || \
+			tmuxp load $session_name 2> /dev/null || \
 			tmux new-session -s $session_name"
 		# note: st will work with or without the -e flag (like kitty)
 		# note: regular console works with or without quotes, but trinity's

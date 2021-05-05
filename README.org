@@ -18,7 +18,7 @@ This is a basic demo where tdrop is used to turn the current window (emacs) into
 - Supports floating dropdown instances without requiring the user to create a rule to float all program instances (for some window managers that support both tiling and floating)
 - Supports using multiple dropdowns of the same program (see =-n=)
 - Supports automatically hiding a dropdown when opening a new window from it (and then optionally re-showing the dropdown when the window is closed)
-- Supports automatically starting programs and tmux, tmuxinator, or tmuxifier sessions
+- Supports automatically starting programs and tmux, tmuxinator, tmuxifier or tmuxp sessions
 - Supports automatically resizing dropdowns based on the current monitor's size
 - Has hooks for executing user commands
 
@@ -38,6 +38,7 @@ Optional:
 - tmux (required for -s)
 - tmuxinator (optional for -s)
 - tmuxifier (optional for -s)
+- tmuxp (optional for -s)
 
 * Installation and Usage
 ** Installation
@@ -57,7 +58,7 @@ The positional argument should be the name of a program in =$PATH= (as opposed t
 
 By default, tdrop will hide the dropdown if it is shown anywhere. =-A= / =--activate= can be used to always activate/show the dropdown if it is not focused.
 
-=-s= / =--session= should only be used for supported terminals and if the user wants to start/attach to a tmux or tmuxinator session.
+=-s= / =--session= should only be used for supported terminals and if the user wants to start/attach to a tmux, tmuxinator, tmuxifier or tmxup session.
 
 Tdrop has basic checks to print errors for malformed commands (e.g. to require one positional argument). If a tdrop command does not work, please run it in a terminal or check =/tmp/tdrop/log= for error messages and consult the manpage before making an issue. For more information, see the [[#troubleshooting][Troubleshooting]] section.
 
