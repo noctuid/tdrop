@@ -358,23 +358,23 @@ update_geometry_settings_for_monitor() {
 
 	# update x and y offsets, so that will appear on correct screen
 	# (required for some WMs apparently, but not for others)
-	((xoff+=x_begin))
-	((yoff+=y_begin))
+	[[ -n $xoff ]] && ((xoff+=x_begin))
+	[[ -n $yoff ]] && ((yoff+=y_begin))
 }
 
 map_and_reset_geometry() {
 	if [[ -n $width ]] && [[ -n $height ]] && [[ -n $xoff ]] \
 		   && [[ -n $yoff ]]; then
-		xdotool windowmap "$wid" windowmove "$wid" "$xoff" "$yoff" \
+		xdotool windowmap "$wid" windowactivate "$wid" windowmove "$wid" "$xoff" "$yoff" \
 				windowsize "$wid" "$width" "$height" 2> /dev/null
 	elif [[ -n $width ]] && [[ -n $height ]]; then
-		xdotool windowmap "$wid" windowsize "$wid" "$width" "$height" \
+		xdotool windowmap "$wid" windowactivate "$wid" windowsize "$wid" "$width" "$height" \
 				2> /dev/null
 	elif [[ -n $xoff ]] && [[ -n $yoff ]]; then
-		xdotool windowmap "$wid" windowmove "$wid" "$xoff" "$yoff" \
+		xdotool windowmap "$wid" windowactivate "$wid" windowmove "$wid" "$xoff" "$yoff" \
 				2> /dev/null
 	else
-		xdotool windowmap "$wid" 2> /dev/null
+		xdotool windowmap "$wid" windowactivate "$wid" 2> /dev/null
 	fi
 }
 
@@ -757,8 +757,6 @@ wid_toggle() {
 			xdotool set_desktop_for_window "$wid" "$(xdotool get_desktop)"
 			if [[ $(get_visibility "$wid") == IsUnMapped ]]; then
 				pre_map
-			else
-				xdotool windowactivate "$wid"
 			fi
 			# update here if possible so this doesn't cause a delay
 			# between the window being remapped and resized
