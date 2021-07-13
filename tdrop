@@ -299,7 +299,18 @@ update_geometry_settings_for_monitor() {
 	fi
 
 	local monitor_geo x_begin y_begin x_width y_height
-	if [[ -n $current_monitor ]]; then
+	if [[ $wm == herbstluftwm ]]; then
+		# fine if no monitor; will use current
+		monitor_geo=$(herbstclient monitor_rect "$monitor")
+		# not using read because behavior depends on bash version
+		x_begin=${monitor_geo%% *}
+		y_begin=${monitor_geo#* }
+		y_begin=${y_begin%% *}
+		x_width=${monitor_geo#* }
+		x_width=${x_width#* }
+		x_width=${x_width%% *}
+		y_height=${monitor_geo##* }
+	elif [[ -n $current_monitor ]]; then
 		monitor_geo=$(xrandr --current | \
 						  gawk "/^$current_monitor/ {gsub(\"primary \",\"\"); print \$3}")
 		split_geometry "$monitor_geo"
@@ -444,8 +455,8 @@ is_floating() {
 				gawk '/focused":true.*floating":"user_on/ {print $1}'
 		elif [[ $wm == bspwm ]]; then
 			bspc query -T -n | grep '"state":"floating"'
-		else
-			return 0
+		elif [[ $wm == herbstluftwm ]]; then
+			herbstclient or , compare tags.focus.floating = on , compare clients.focus.floating = on
 		fi
 	else
 		return 0
