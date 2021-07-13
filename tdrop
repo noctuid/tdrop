@@ -69,16 +69,27 @@ See man page for more details.
 "
 }
 
+first_message=true
+msg() {
+	if $first_message; then
+		echo "--------------------------------------------------" >> "$LOG_FILE"
+		first_message=false
+	fi
+	echo "$(date "+%F %T") $*" > >(tee -a "$LOG_FILE" >&2)
+}
+
 error() {
-	echo >&2 "Error: $@" | tee -a "$LOG_FILE"
+	msg "Error: $*"
 	exit 1
 }
 
 debug() {
 	if $debug; then
-		echo >&2 "Debug: $@" | tee -a "$LOG_FILE"
+		msg "Debug $*"
 	fi
 }
+
+debug "command: tdrop $*"
 
 # * Default Options and Option Parsing
 # xdotool can take percentages; cannot take decimal percentages though
@@ -209,7 +220,7 @@ fi
 # check that the program is in PATH
 if [[ ! $program =~ ^(current|auto_hide|auto_show|toggle_auto_hide|hide_all)$ ]] && \
 	   ! type "$program" &> /dev/null; then
-	error "The program should be in PATH."
+	error "The program ($program) should be in PATH."
 fi
 
 # validate options that require number values
@@ -645,6 +656,7 @@ create_win_return_wid() {
 			wids=$(xdotool search --pid "$pid")
 		fi
 		if [[ -n $wids ]]; then
+			debug "blacklist: $blacklist"
 			debug "wids: ${wids[*]}"
 			while read -r wid; do
 				if [[ ! $blacklist =~ (^|$'\n')$wid($|$'\n') ]] && \
