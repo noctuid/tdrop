@@ -56,6 +56,8 @@ The positional argument should be the name of a program in =$PATH= (as opposed t
 ** Basic Flags
 =-w= / =--width=, =-h= / =--height=, =-x= / =--xoff=, and =-y= / =--yoff= can be used to set the window size/position. The argument to any of these can be a number (e.g. =-w 800=) or a percentage (e.g. =-w 100%=) or empty (e.g. =-w "" -h ""= to prevent altering the window's size). Negative numbers correspond to that many pixels less than 100% of the screen width (e.g. =-w -4=).
 
+If you want to be able to resize the dropdown after creating it, you can use the =-r= / =--remember= flag to store/restore the dropdown geometry.
+
 By default, tdrop will hide the dropdown if it is shown anywhere. =-A= / =--activate= can be used to always activate/show the dropdown if it is not focused.
 
 =-s= / =--session= should only be used for supported terminals and if the user wants to start/attach to a tmux, tmuxinator, tmuxifier or tmxup session.

@@ -2,8 +2,19 @@
 
 MUTDROP_PATH=/tmp/tdrop_"$USER"
 LOG_FILE="$MUTDROP_PATH"/log
+NOAUTOHIDE_FILE="$MUTDROP_PATH"/no_autohide
+GEO_DIR="$MUTDROP_PATH"/geometries
+WID_DIR="$MUTDROP_PATH"/wids
+CLASS_DIR="$MUTDROP_PATH"/classes
+HIDE_DIR="$MUTDROP_PATH"/auto_hidden
 # shellcheck disable=SC2174
-mkdir -p "$MUTDROP_PATH" -m 700
+mkdir -m 700 -p "$MUTDROP_PATH"/{auto_hidden,classes,geometries,wids}
+
+FLOATING_WMS_REGEXP='Openbox|pekwm|Fluxbox|Blackbox|xfwm4|Metacity|FVWM|Sawfish|GoomwW|Mutter|GNOME Shell|Mutter \(Muffin\)|KWin|Metacity \(Marco\)|[Cc]ompiz'
+GEO_REGEXP='^xoff=-?[0-9]+
+yoff=-?[0-9]+
+width=?[0-9]+
+height=?[0-9]+$'
 
 print_help() {
 	echo "
@@ -129,7 +140,8 @@ class=
 name=
 timeout=10
 debug=false
-while getopts :h:w:x:y:s:n:c:C:l:L:p:P:u:U:d:S:i:f:-:aAmt opt
+remember_geometry=false
+while getopts :h:w:x:y:s:n:c:C:l:L:p:P:u:U:d:S:i:f:-:aAmtr opt
 do
 	case $opt in
 		h) height=$OPTARG;;
@@ -154,8 +166,9 @@ do
 		A) always_activate=true;;
 		m) monitor_aware=true;;
 		t) pointer_monitor_detection=true;;
+		r) remember_geometry=true;;
 		-)
-			if [[ $OPTARG =~ ^(auto-detect-wm|monitor-aware|pointer-monitor-detection|clear|no-cancel|debug|help)$ ]] || \
+			if [[ $OPTARG =~ ^(auto-detect-wm|monitor-aware|pointer-monitor-detection|clear|no-cancel|debug|remember|help)$ ]] || \
 				   [[ $OPTARG == *=* ]]; then
 				OPTION=${OPTARG%%=*}
 				OPTARG=${OPTARG#*=}
@@ -197,6 +210,7 @@ do
 				no-cancel) cancel_auto_show=false;;
 				timeout) timeout=$OPTARG;;
 				debug) debug=true;;
+				remember) remember_geometry=true;;
 				help) print_help;;
 				*) error "Unknown option --$OPTION." \
 						 "Use --help to see available flags.";;
@@ -387,6 +401,7 @@ map_and_reset_geometry() {
 	else
 		xdotool windowmap "$wid" 2> /dev/null
 	fi
+	# windowmap does not activate for all window managers
 	xdotool windowactivate "$wid" 2> /dev/null
 }
 
@@ -452,11 +467,11 @@ set_class() {
 			# flatpak jails the application, the PID cannot be used to find
 			# the window. A specific class has to be given by the user.
 			error "--class is required with flatpak but was not given."
-		elif [[ $program == current ]]; then
-			class=$(cat "$MUTDROP_PATH"/current"$num"_class  2> /dev/null)
 		elif [[ $program == brave ]]; then
 			class=brave-browser
-		else
+		elif ! [[ $program =~ ^(current|auto_show)$ ]]; then
+			# TODO maybe instead store based on program name/number so don't
+			# have to wait for wid
 			class=$program
 		fi
 	fi
@@ -465,6 +480,8 @@ set_class() {
 is_floating() {
 	if [[ -n $is_floating ]]; then
 		eval "$is_floating $1"
+	elif [[ $wm =~ FLOATING_WMS_REGEXP ]]; then
+		return
 	elif $auto_detect_wm; then
 		if [[ $wm == i3 ]]; then
 			# TODO make sure this returns 1 on failure
@@ -514,7 +531,7 @@ post_create() {
 	fi
 }
 
-pre_map() {
+pre_map() { # float
 	float=${1:-true}
 	if [[ $float != false ]]; then
 		if [[ -n $pre_float ]]; then
@@ -528,7 +545,7 @@ pre_map() {
 	fi
 }
 
-map_and_post_map() {
+map_and_post_map() { # float
 	# always reset geometry
 	map_and_reset_geometry
 	float=${1:-true}
@@ -559,6 +576,9 @@ post_unmap() {
 }
 
 unmap() {
+	if $remember_geometry; then
+		store_geometry true
+	fi
 	pre_unmap
 	xdotool windowunmap "$wid"
 	post_unmap
@@ -571,12 +591,22 @@ unmap() {
 # Openbox
 
 # * General Helper Functions
-get_class_name() {
+get_class_name() { # wid
 	local class
 	class=$(xprop -id "$1" WM_CLASS 2> /dev/null)
 	class=${class##* }
 	class=${class//\"/}
-	echo "$class"
+	echo -n "$class"
+}
+
+store_class() {
+	get_class_name "$wid" > "$CLASS_DIR/$wid"
+}
+
+restore_class() {
+	if [[ -z $class ]]; then
+		class=$(< "$CLASS_DIR/$wid")
+	fi
 }
 
 get_visibility() {
@@ -585,9 +615,64 @@ get_visibility() {
 
 maybe_cancel_auto_show() {
 	if $cancel_auto_show && \
-			[[ $1 == $(cat "$MUTDROP_PATH"/auto_hidden/wid 2> /dev/null) ]]; then
+			[[ $1 == $(cat "$HIDE_DIR"/wid 2> /dev/null) ]]; then
 		# shellcheck disable=SC2188
-		> "$MUTDROP_PATH"/auto_hidden/wid
+		> "$HIDE_DIR"/wid
+	fi
+}
+
+get_geometry() { # wid
+	# so that won't float a tiled window later when showing
+	if is_floating "$1" &> /dev/null; then
+		local wininfo x y rel_x rel_y width height
+		wininfo=$(xwininfo -id "$1")
+		x=$(echo "$wininfo" | gawk '/Absolute.*X/ {print $4}')
+		y=$(echo "$wininfo" | gawk '/Absolute.*Y/ {print $4}')
+		rel_x=$(echo "$wininfo" | gawk '/Relative.*X/ {print $4}')
+		rel_y=$(echo "$wininfo" | gawk '/Relative.*Y/ {print $4}')
+		if [[ $subtract_when_same != false ]]; then
+			# behavior works for most WMs (at least floating ones)
+			x=$((x-rel_x))
+			y=$((y-rel_y))
+		else
+			# don't subtract when abs and rel values are the same
+			# necessary for WMs like bspwm and i3
+			if [[ $x -ne $rel_x ]]; then
+				x=$((x-rel_x))
+			fi
+			if [[ $y -ne $rel_y ]]; then
+				y=$((y-rel_y))
+			fi
+		fi
+		width=$(xwininfo -id "$(xdotool getactivewindow)" | \
+					gawk '/Width/ {print $2}')
+		height=$(xwininfo -id "$(xdotool getactivewindow)" | \
+					 gawk '/Height/ {print $2}')
+		echo -n -e "xoff=$x\nyoff=$y\nwidth=$width\nheight=$height"
+	else
+		# window is not floating; don't bother saving geometry
+		echo -n "false"
+	fi
+}
+
+store_geometry() {
+	get_geometry "$wid" > "$GEO_DIR/$wid"
+}
+
+# set global xoff, yoff, width, and height based on stored values
+restore_geometry() {
+	local geo x_fix y_fix
+	geo="$(cat "$GEO_DIR/$wid" 2> /dev/null)"
+	if [[ $geo =~ $GEO_REGEXP ]]; then
+		eval "$geo"
+	fi
+	if [[ -n $dec_fix ]]; then
+		# x_fix=$(echo "$dec_fix" | gawk -F "x" '{print $1}')
+		x_fix=${dec_fix%x*}
+		# y_fix=$(echo "$dec_fix" | gawk -F "x" '{print $2}')
+		y_fix=${dec_fix#*x}
+		xoff=$((xoff-x_fix))
+		yoff=$((yoff-y_fix))
 	fi
 }
 
@@ -713,7 +798,7 @@ program_start() {
 	if [[ -n $name ]]; then
 		xdotool set_window --name "$name" "$wid"
 	fi
-	echo "$wid" > "$MUTDROP_PATH/$program$num"
+	echo "$wid" > "$WID_DIR/$program$num"
 	echo -n "$wid"
 }
 
@@ -721,8 +806,8 @@ current_create() {
 	# turns active window into a dropdown
 	local wid
 	wid=$(xdotool getactivewindow)
-	echo "$wid" > "$MUTDROP_PATH"/current"$num"
-	get_class_name "$wid" > "$MUTDROP_PATH"/current"$num"_class
+	echo "$wid" > "$WID_DIR"/current"$num"
+	store_class
 	if [[ -n $name ]]; then
 		xdotool set_window --name "$name" "$wid"
 	fi
@@ -752,7 +837,7 @@ wid_toggle() {
 	# get saved window id if already created
 	local exists visibility
 	# cat to silence error
-	wid=$(cat "$MUTDROP_PATH/$program$num" 2> /dev/null)
+	wid=$(cat "$WID_DIR/$program$num" 2> /dev/null)
 	exists=true
 	if [[ -n $wid ]]; then
 		visibility=$(get_visibility "$wid")
@@ -761,14 +846,17 @@ wid_toggle() {
 			# window no longer exists
 			exists=false
 			# shellcheck disable=SC2188
-			> "$MUTDROP_PATH/$program$num"
+			> "$WID_DIR/$program$num"
 		fi
 	else
 		exists=false
 	fi
 	if $exists; then
+		if [[ $program == current ]]; then
+			restore_class
+		fi
 		if [[ $visibility =~ ^(IsUnMapped|IsUnviewable)$ ]] \
-			   || $always_activate  && [[ $(xdotool getactivewindow) != $wid ]]
+			   || $always_activate  && [[ $(xdotool getactivewindow) != "$wid" ]]
 		then
 			# visibility will be IsUnMapped on most WMs if the dropdown is open
 			# on another desktop; may also be IsUnviewable
@@ -776,9 +864,11 @@ wid_toggle() {
 			if [[ $(get_visibility "$wid") == IsUnMapped ]]; then
 				pre_map
 			fi
-			# update here if possible so this doesn't cause a delay
-			# between the window being remapped and resized
-			if $monitor_aware; then
+			if $remember_geometry; then
+				restore_geometry
+			elif $monitor_aware; then
+				# update here if possible so this doesn't cause a delay
+				# between the window being remapped and resized
 				update_geometry_settings_for_monitor || \
 					focused_window_exists=false
 			fi
@@ -833,74 +923,29 @@ wid_toggle() {
 }
 
 # * Helper Functions for Auto Hiding/Showing
-get_geometry() {
-	# so that won't float a tiled window later when showing
-	if is_floating "$1" &> /dev/null; then
-		local wininfo x y rel_x rel_y width height
-		wininfo=$(xwininfo -id "$1")
-		x=$(echo "$wininfo" | gawk '/Absolute.*X/ {print $4}')
-		y=$(echo "$wininfo" | gawk '/Absolute.*Y/ {print $4}')
-		rel_x=$(echo "$wininfo" | gawk '/Relative.*X/ {print $4}')
-		rel_y=$(echo "$wininfo" | gawk '/Relative.*Y/ {print $4}')
-		if [[ $subtract_when_same != false ]]; then
-			# behaviour works for most WMs (at least floating ones)
-			x=$((x-rel_x))
-			y=$((y-rel_y))
-		else
-			# don't subtract when abs and rel values are the same
-			# necessary for WMs like bspwm and i3
-			if [[ $x -ne $rel_x ]]; then
-				x=$((x-rel_x))
-			fi
-			if [[ $y -ne $rel_y ]]; then
-				y=$((y-rel_y))
-			fi
-		fi
-		width=$(xwininfo -id "$(xdotool getactivewindow)" | \
-					gawk '/Width/ {print $2}')
-		height=$(xwininfo -id "$(xdotool getactivewindow)" | \
-					 gawk '/Height/ {print $2}')
-		echo -n -e "xoff=$x\nyoff=$y\nwidth=$width\nheight=$height"
-	else
-		# window is not floating; don't bother saving geometry
-		echo -n "false"
-	fi
-}
-
-# set global xoff, yoff, width, and height based on stored values
-restore_geometry() {
-	local x_fix y_fix
-	eval "$(< "$MUTDROP_PATH"/auto_hidden/geometry)"
-	if [[ -n $dec_fix ]]; then
-		x_fix=$(echo "$dec_fix" | gawk -F "x" '{print $1}')
-		y_fix=$(echo "$dec_fix" | gawk -F "x" '{print $2}')
-		xoff=$((xoff-x_fix))
-		yoff=$((yoff-y_fix))
-	fi
-}
-
 toggle_auto_hide() {
 	local no_hide
-	no_hide=$(cat "$MUTDROP_PATH"/auto_hidden/no_hide 2> /dev/null)
-	mkdir -p "$MUTDROP_PATH"/auto_hidden
+	no_hide=$(cat "$NOAUTOHIDE_FILE" 2> /dev/null)
 	if [[ -z $no_hide ]]; then
-		echo "true" > "$MUTDROP_PATH"/auto_hidden/no_hide
+		echo "true" > "$NOAUTOHIDE_FILE"
 	else
 		# shellcheck disable=SC2188
-		> "$MUTDROP_PATH"/auto_hidden/no_hide
+		> "$NOAUTOHIDE_FILE"
 	fi
 }
 
 # * Auto Hiding/Showing
+# TODO if considered useful, nesting auto_hide could be supported by having the
+# users pass a key as an extra argument to use to store the wid (e.g. script
+# that calls could use the time)
 auto_hide() {
 	local no_hide
-	no_hide=$(cat "$MUTDROP_PATH"/auto_hidden/no_hide 2> /dev/null)
+	no_hide=$(cat "$NOAUTOHIDE_FILE" 2> /dev/null)
 	if [[ -z $no_hide ]]; then
 		wid=$(xdotool getactivewindow)
-		mkdir -p "$MUTDROP_PATH"/auto_hidden
-		echo "$wid" > "$MUTDROP_PATH"/auto_hidden/wid
-		get_class_name "$wid" > "$MUTDROP_PATH"/auto_hidden/class
-		get_geometry "$wid" > "$MUTDROP_PATH"/auto_hidden/geometry
+		echo "$wid" > "$HIDE_DIR"/wid
+		store_class
+		store_geometry
 		unmap
 	fi
 }
@@ -910,10 +955,10 @@ auto_show() {
 	no_hide=$(cat "$MUTDROP_PATH"/auto_hidden/no_hide 2> /dev/null)
 	if [[ -z $no_hide ]]; then
 		local was_floating
-		wid=$(< "$MUTDROP_PATH"/auto_hidden/wid)
-		class=$(< "$MUTDROP_PATH"/auto_hidden/class)
-		was_floating=$(< "$MUTDROP_PATH"/auto_hidden/geometry)
+		wid=$(< "$HIDE_DIR"/wid)
+		restore_class "$wid"
 		restore_geometry "$wid"
+		was_floating=$(< "$GEO_DIR/$wid")
 		pre_map "$was_floating"
 		map_and_post_map "$was_floating"
 	fi
@@ -923,7 +968,7 @@ auto_show() {
 hide_all() {
 	shopt -s nullglob dotglob
 	local dropdowns
-	dropdowns=("$MUTDROP_PATH"/*)
+	dropdowns=("$WID_DIR"/*)
 	for dropdown in "${dropdowns[@]}"; do
 		# cat to silence errors
 		wid=$(cat "$dropdown" 2> /dev/null)
@@ -942,7 +987,7 @@ set_class
 if $clearwid; then
 	debug "command: clear wid for $program$num"
 	# shellcheck disable=SC2188
-	> "$MUTDROP_PATH/$program$num"
+	> "$WID_DIR/$program$num"
 elif [[ $program == toggle_auto_hide ]]; then
 	debug "command: toggle auto hide"
 	toggle_auto_hide
