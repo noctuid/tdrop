@@ -48,7 +48,7 @@ Tdrop is in the AUR as =tdrop-git= and is packaged for Void Linux as =tdrop=. It
 #+BEGIN_EXAMPLE
 # negative -w arg to account for a border width (default: 100%)
 alt + s
-    tdrop -ma -w -4 -y "$PANEL_HEIGHT" -s dropdown termite
+    tdrop -ma -w -4 -y "$PANEL_HEIGHT" -s dropdown kitty
 #+END_EXAMPLE
 
 The positional argument should be the name of a program in =$PATH= (as opposed to the full path to a program). It should always come after any tdrop flags. Flags for the program can come after it (e.g. ~tdrop urxvt -title foo~).
