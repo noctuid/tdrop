@@ -507,7 +507,11 @@ pre_float() {
 			bspc rule -a \*:"$class" -o state=floating
 		fi
 	elif [[ $wm == herbstluftwm ]]; then
-		herbstclient rule once class="$class" floating=on
+		if [[ $class =~ [A-Z] ]]; then
+			herbstclient rule once class="$class" floating=on
+		else
+			herbstclient rule once instance="$class" floating=on
+		fi
 	fi
 }
 
