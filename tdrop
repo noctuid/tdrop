@@ -22,6 +22,7 @@ usage: tdrop [options] <program> [program options ...]
                        or 'current'
                        or one of 'auto_show'/'auto_hide'/'toggle_auto_hide'
                        or 'hide_all'
+                       or 'foreach'
 options:
 	-h height	specify a height for a newly created term (default: 45%)
 	-w width	specify a width for a newly created term (default: 100%)
@@ -76,7 +77,7 @@ options:
 	--debug		print debugging information to /tmp/tdrop_<user>/log
 	--help		print help
 
-See man page for more details.
+See man page for more options and details.
 "
 }
 
@@ -232,7 +233,7 @@ if [[ -z $program ]]; then
 fi
 
 # check that the program is in PATH
-if [[ ! $program =~ ^(current|auto_hide|auto_show|toggle_auto_hide|hide_all)$ ]] && \
+if [[ ! $program =~ ^(current|auto_hide|auto_show|toggle_auto_hide|hide_all|foreach)$ ]] && \
 	   ! type "$program" &> /dev/null; then
 	error "The program ($program) should be in PATH."
 fi
@@ -977,6 +978,18 @@ hide_all() {
 	shopt -u nullglob dotglob
 }
 
+# * Run Command For Each
+foreach() {
+	shopt -s nullglob dotglob
+	local dropdowns wid
+	dropdowns=("$WID_DIR"/*)
+	for dropdown in "${dropdowns[@]}"; do
+		# cat to silence errors
+		wid=$(cat "$dropdown" 2> /dev/null)
+		eval "$1"
+	done
+}
+
 # * Main
 # ** Setup
 set_wm
@@ -1000,6 +1013,9 @@ elif [[ $program == auto_show ]]; then
 elif [[ $program == hide_all ]]; then
 	debug "command: hide all"
 	hide_all
+elif [[ $program == foreach ]]; then
+	debug "command: foreach"
+	foreach "$2"
 else
 	debug "command: toggle $program$num"
 	wid_toggle

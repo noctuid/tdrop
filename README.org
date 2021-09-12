@@ -192,6 +192,15 @@ mime ^video, has mpv, X, flag f = tdrop -a auto_hide && mpv -- "$@" && tdrop -a 
 ** Other Commands
 If =hide_all= is given instead of a program name, tdrop will hide all visible dropdowns.
 
+If =foreach= is specified, tdrop will evaluate the following command for each dropdown. Here are some example commands:
+#+begin_src sh
+# same as hide_all 
+tdrop foreach 'unmap $wid'
+
+# hide only floating dropdowns on herbstluftwm
+tdrop foreach 'herbstclient compare clients.$(printf 0x%x $wid).floating = on && unmap $wid'
+#+end_src
+
 * Tested With
 ** Terminals
 These terminals have been tested with tdrop and support the =-s= and =-a= flags unless otherwise specified:

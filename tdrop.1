@@ -10,9 +10,17 @@ tdrop [\fIOPTIONS\fR] [program name or cmd] [program options ...]
 
 	It also has the ability to automatically hide and automatically show dropdowns. For example, it can be used to automatically hide a terminal when opening something from it, e.g. an image viewer, video player, etc. Tdrop can         then automatically bring back the terminal whenever the image view, video player, etc. is closed. See the Examples section for more information.
 .SH Commands
-Tdrop expects the name of a program or 'current' (to use the current window) as the last argument to create a dropdown (optionally followed by any flags to that program). Alternatively, it can take one of auto_show, auto_hide, toggle_auto_hide, or hide_all. If hide_all is given instead of a program name, tdrop will hide all visible dropdowns.
+Tdrop expects the name of a program or 'current' (to use the current window) as the last argument to create a dropdown (optionally followed by any flags to that program). Alternatively, it can take one of auto_show, auto_hide, toggle_auto_hide, hide_all, or foreach. If hide_all is given instead of a program name, tdrop will hide all visible dropdowns.
 
-Tdrop's functionality is not particularly useful called directly from the command line. Commands should either be bound to a key, used in shell functions/aliases, or used with a file opener (e.g. in the rifle.conf).
+Foreach will run a run a command for each dropdown. For example, you can do the equivalent of hide_all with the following:
+
+tdrop foreach 'unmap $wid'
+
+To hide floating dropdowns only on herbstluftwm:
+
+tdrop foreach 'herbstclient compare clients.$(printf 0x%x $wid).floating = on && unmap $wid'
+
+Tdrop's functionality (except potentially foreach) is not particularly useful called directly from the command line. Commands should either be bound to a key, used in shell functions/aliases, or used with a file opener (e.g. in the rifle.conf).
 
 .SH OPTIONS
 .br
