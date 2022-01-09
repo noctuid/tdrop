@@ -319,7 +319,7 @@ update_geometry_settings_for_monitor() {
 		if ! $pointer_monitor_detection; then
 			# determine current monitor using active window
 			local wid wininfo
-			wid=$(xdotool getactivewindow)
+			wid=$(xdotool getwindowfocus)
 			if [[ -z $wid ]]; then
 				# will try again after remapping or creating the dropdown
 				return 1
@@ -703,7 +703,7 @@ program_start() {
 current_create() {
 	# turns active window into a dropdown
 	local wid
-	wid=$(xdotool getactivewindow)
+	wid=$(xdotool getwindowfocus)
 	echo "$wid" > "$MUTDROP_PATH"/current"$num"
 	get_class_name "$wid" > "$MUTDROP_PATH"/current"$num"_class
 	if [[ -n $name ]]; then
@@ -751,7 +751,7 @@ wid_toggle() {
 	fi
 	if $exists; then
 		if [[ $visibility =~ ^(IsUnMapped|IsUnviewable)$ ]] \
-			   || $always_activate  && [[ $(xdotool getactivewindow) != $wid ]]
+			   || $always_activate  && [[ $(xdotool getwindowfocus) != $wid ]]
 		then
 			# visibility will be IsUnMapped on most WMs if the dropdown is open
 			# on another desktop; may also be IsUnviewable
@@ -839,9 +839,9 @@ get_geometry() {
 				y=$((y-rel_y))
 			fi
 		fi
-		width=$(xwininfo -id "$(xdotool getactivewindow)" | \
+		width=$(xwininfo -id "$(xdotool getwindowfocus)" | \
 					gawk '/Width/ {print $2}')
-		height=$(xwininfo -id "$(xdotool getactivewindow)" | \
+		height=$(xwininfo -id "$(xdotool getwindowfocus)" | \
 					 gawk '/Height/ {print $2}')
 		echo -n -e "xoff=$x\nyoff=$y\nwidth=$width\nheight=$height"
 	else
@@ -879,7 +879,7 @@ auto_hide() {
 	local no_hide
 	no_hide=$(cat "$MUTDROP_PATH"/auto_hidden/no_hide 2> /dev/null)
 	if [[ -z $no_hide ]]; then
-		wid=$(xdotool getactivewindow)
+		wid=$(xdotool getwindowfocus)
 		mkdir -p "$MUTDROP_PATH"/auto_hidden
 		echo "$wid" > "$MUTDROP_PATH"/auto_hidden/wid
 		get_class_name "$wid" > "$MUTDROP_PATH"/auto_hidden/class
