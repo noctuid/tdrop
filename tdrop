@@ -412,6 +412,11 @@ decoration_settings() {
 			dec_fix="-10x-8"
 		elif [[ $wm =~ ^(Mutter \(Muffin\))$ ]]; then
 			dec_fix="-9x-8"
+		elif [[ $wm == herbstluftwm ]]; then
+			# alternatively could just not subtract when storing (though this
+			# will also work if border changes after hiding but before showing)
+			border_width=$(herbstclient get window_border_width)
+			dec_fix="-${border_width}x-${border_width}"
 		fi
 	fi
 }
