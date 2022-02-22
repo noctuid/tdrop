@@ -262,8 +262,9 @@ wid=
 
 # * Multiple Monitor Automatic Re-Sizing
 percent_of_total() { # percent total
-	# gawk "BEGIN {printf(\"%.0f\", 0.01*${1%\%}*$2)}"
-	echo $((${1%\%} * ${2} / 100))
+	# use gawk to allow floating point percentages
+	gawk "BEGIN {printf(\"%.0f\", 0.01*${1%\%}*$2)}"
+	# echo $((${1%\%} * ${2} / 100))
 }
 
 # acts on globals
