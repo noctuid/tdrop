@@ -819,6 +819,25 @@ create_win_return_wid() {
 	echo -n "$program_wid"
 }
 
+# clear all stored wids matching wid; necessary if wid no longer exists to
+# prevent two dropdowns from getting thes same wid
+invalidate_wid() { # wid
+	shopt -s nullglob dotglob
+	for f in {"$HIDE_DIR"/wid,"$WID_DIR"/*}; do
+		if [[ $(< "$f") == "$wid" ]]; then
+			debug "Clearing stored wid from $f since wid $wid no longer exists"
+			rm "$f"
+		fi
+	done
+	for f in {"$CLASS_DIR","$GEO_DIR"}/*; do
+		if [[ $(basename "$f") == "$wid" ]]; then
+			debug "Removing $f since wid $wid no longer exists"
+			rm "$f"
+		fi
+	done
+	shopt -u nullglob dotglob
+}
+
 program_start() {
 	local program_command tmux_command wid
 	program_command=("$program")
@@ -845,6 +864,9 @@ program_start() {
 	if [[ -n $name ]]; then
 		xdotool set_window --name "$name" "$wid"
 	fi
+	# this is a newly created wid, but it could match an old stored one if that
+	# window was closed; ensure 1 wid per program/num by clearing old stored wid
+	invalidate_wid "$wid"
 	echo "$wid" > "$WID_DIR/$program$num"
 	echo -n "$wid"
 }
