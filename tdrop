@@ -287,7 +287,11 @@ convert_geometry_to_pixels() {
 	fi
 }
 
-# meant to set non-local variables
+# meant to set variables for calling function given geometry:
+# - x_begin
+# - y_begin
+# - x_width
+# - x_height
 split_geometry() { # <monitor geometry>
 	monitor_geo=$1
 	# x_begin=$(echo "$monitor_geo" | gawk -F '+' '{print $2}')
@@ -302,16 +306,16 @@ split_geometry() { # <monitor geometry>
 	y_height=${y_height%%+*}
 }
 
-update_geometry_settings_for_monitor() {
-	# 1. Correctly interpret width/height percentages when there exist multiple
-	#    monitors so an initially created dropdown is the correct size (xdotool
-	#    would create a dropdown the width of all screens for 100% width)
-	# 2. Force resize the dropdown to the correct percentage of the current
-	#    monitor IF the monitor has changed since the last time the dropdown
-	#    was used
-
+# sets these variables for the calling function to use:
+# - x_begin
+# - y_begin
+# - x_width
+# - y_height
+populate_current_monitor_geometry() {
 	# it is conceivable that a user may want to use -m but not -a, so
 	# get the wm from within this function
+
+    # get current monitor
 	local current_monitor
 	if [[ -n $monitor ]]; then
 		current_monitor=$monitor
@@ -322,25 +326,7 @@ update_geometry_settings_for_monitor() {
 		# I'd rather not make jq a dependency
 		current_monitor=$(i3-msg -t get_workspaces | sed 's/"num"/\n/g' | \
 							  gawk -F ',' '/focused":true/ {sub(".*output",""); gsub("[:\"]",""); print $1}')
-	fi
-
-	local monitor_geo x_begin y_begin x_width y_height
-	if [[ $wm == herbstluftwm ]]; then
-		# fine if no monitor; will use current
-		monitor_geo=$(herbstclient monitor_rect "$monitor")
-		# not using read because behavior depends on bash version
-		x_begin=${monitor_geo%% *}
-		y_begin=${monitor_geo#* }
-		y_begin=${y_begin%% *}
-		x_width=${monitor_geo#* }
-		x_width=${x_width#* }
-		x_width=${x_width%% *}
-		y_height=${monitor_geo##* }
-	elif [[ -n $current_monitor ]]; then
-		monitor_geo=$(xrandr --current | \
-						  gawk "/^$current_monitor/ {gsub(\"primary \",\"\"); print \$3}")
-		split_geometry "$monitor_geo"
-	else
+	elif [[ $wm != herbstluftwm ]]; then
 		local current_x current_y monitors_info x_end y_end
 		if ! $pointer_monitor_detection; then
 			# determine current monitor using active window
@@ -378,6 +364,36 @@ update_geometry_settings_for_monitor() {
 			fi
 		done <<< "$monitors_info"
 	fi
+
+	local monitor_geo
+	if [[ $wm == herbstluftwm ]]; then
+		# fine if no monitor; will use current
+		monitor_geo=$(herbstclient monitor_rect "$monitor")
+		# not using read because behavior depends on bash version
+		x_begin=${monitor_geo%% *}
+		y_begin=${monitor_geo#* }
+		y_begin=${y_begin%% *}
+		x_width=${monitor_geo#* }
+		x_width=${x_width#* }
+		x_width=${x_width%% *}
+		y_height=${monitor_geo##* }
+	else
+		monitor_geo=$(xrandr --current | \
+						  gawk "/^$current_monitor/ {gsub(\"primary \",\"\"); print \$3}")
+		split_geometry "$monitor_geo"
+	fi
+}
+
+update_geometry_settings_for_monitor() {
+	# 1. Correctly interpret width/height percentages when there exist multiple
+	#    monitors so an initially created dropdown is the correct size (xdotool
+	#    would create a dropdown the width of all screens for 100% width)
+	# 2. Force resize the dropdown to the correct percentage of the current
+	#    monitor IF the monitor has changed since the last time the dropdown
+	#    was used
+
+	local x_begin y_begin x_width y_height
+	populate_current_monitor_geometry
 
 	# convert w/h/x/y percentages/negatives to pixels
 	convert_geometry_to_pixels "$x_width" "$y_height"
@@ -653,6 +669,14 @@ get_geometry() { # wid
 					gawk '/Width/ {print $2}')
 		height=$(xwininfo -id "$(xdotool getactivewindow)" | \
 					 gawk '/Height/ {print $2}')
+
+		if $monitor_aware; then
+			local x_begin y_begin x_width y_height
+			populate_current_monitor_geometry
+			((x-=x_begin))
+			((y-=y_begin))
+		fi
+
 		echo -n -e "xoff=$x\nyoff=$y\nwidth=$width\nheight=$height"
 	else
 		# window is not floating; don't bother saving geometry
@@ -678,6 +702,12 @@ restore_geometry() {
 		y_fix=${dec_fix#*x}
 		xoff=$((xoff-x_fix))
 		yoff=$((yoff-y_fix))
+	fi
+	if $monitor_aware; then
+		local x_begin y_begin x_width y_height
+		populate_current_monitor_geometry
+		((xoff+=x_begin))
+		((yoff+=y_begin))
 	fi
 }
 
