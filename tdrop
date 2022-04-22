@@ -716,10 +716,9 @@ restore_geometry() {
 # (something like xtoolwait) could be used to return the wid
 create_win_return_wid() {
 	local blacklist program_command pid visible_wid wids wid program_wid
-	# blacklist all existing wids of program
-	# (for programs where one pid shares all wids)
-	blacklist=$(xdotool search --classname "$program")
-	# for programs where $! won't always work (e.g. one pid for all windows)
+	# save blacklist all existing wids of program
+	# change pid for programs where $! won't always work (e.g. one pid for all
+	# windows)
 	if [[ $program =~ ^(tilix|xfce4-terminal)$ ]]; then
 		pid=$(pgrep -x "$program")
 	elif [[ $program == urxvtc ]]; then
@@ -739,6 +738,8 @@ create_win_return_wid() {
 		blacklist=$(xdotool search --name firefox)
 	elif [[ $program =~ ^emacsclient ]]; then
 		blacklist=$(xdotool search --classname emacs)
+	else
+		blacklist=$(xdotool search --classname "$program")
 	fi
 	# need to redirect stdout or function won't return
 	"$@" > "$MUTDROP_PATH/program-output" &
