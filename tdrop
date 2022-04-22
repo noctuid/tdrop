@@ -53,7 +53,7 @@ options:
 			to execute a program (usually -e for terminal programs) is
 			implicitly added by tdrop
 	-a		automatically detect window manager and set relevant options
-			(e.g. this makes specifying -l/-L, -d, and -i uneccessary
+			(e.g. this makes specifying -l/-L, -d, and -i unnecessary
 			for supported WMs) (default: false)
 	-m		for use with multiple monitors and only with dropdowns
 			(i.e. not for auto_show or auto_hide); convert percentages used
@@ -63,6 +63,8 @@ options:
 	-t		use mouse pointer location for detecting which monitor is the current
 			one
 	-A		always show/activate the window if it is not focused
+	-r		save geometry when hiding, restore geometry when showing
+	-N		same as -x '' -y '' -w '' -h '' (do not use with those options)
 	--wm		set the window manager name to mimic another window manager
 			(for use with -a)
 	--class name	manually specify the class of the window (can be obtained with xprop)
@@ -142,7 +144,7 @@ name=
 timeout=10
 debug=false
 remember_geometry=false
-while getopts :h:w:x:y:s:n:c:C:l:L:p:P:u:U:d:S:i:f:-:aAmtr opt
+while getopts :h:w:x:y:s:n:c:C:l:L:p:P:u:U:d:S:i:f:-:aAmNtr opt
 do
 	case $opt in
 		h) height=$OPTARG;;
@@ -168,8 +170,12 @@ do
 		m) monitor_aware=true;;
 		t) pointer_monitor_detection=true;;
 		r) remember_geometry=true;;
+		N) xoff=
+		   yoff=
+		   width=
+		   height=;;
 		-)
-			if [[ $OPTARG =~ ^(auto-detect-wm|monitor-aware|pointer-monitor-detection|clear|no-cancel|debug|remember|help)$ ]] || \
+			if [[ $OPTARG =~ ^(auto-detect-wm|monitor-aware|pointer-monitor-detection|clear|no-cancel|debug|remember|no-manage|help)$ ]] || \
 				   [[ $OPTARG == *=* ]]; then
 				OPTION=${OPTARG%%=*}
 				OPTARG=${OPTARG#*=}
@@ -212,6 +218,10 @@ do
 				timeout) timeout=$OPTARG;;
 				debug) debug=true;;
 				remember) remember_geometry=true;;
+				no-manage) xoff=
+						   yoff=
+						   width=
+						   height=;;
 				help) print_help;;
 				*) error "Unknown option --$OPTION." \
 						 "Use --help to see available flags.";;
