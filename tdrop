@@ -138,6 +138,7 @@ monitor_aware=false
 monitor=
 pointer_monitor_detection=false
 wm=
+wm_wid=
 user_set_wm=false
 class=
 name=
@@ -342,7 +343,7 @@ populate_current_monitor_geometry() {
 		if ! $pointer_monitor_detection; then
 			# determine current monitor using active window
 			local wid wininfo
-			wid=$(xdotool getactivewindow)
+			wid=$(get_active_wid_or_empty)
 			if [[ -z $wid ]]; then
 				# will try again after remapping or creating the dropdown
 				return 1
@@ -435,12 +436,11 @@ map_and_reset_geometry() {
 
 # * WM Detection and Hooks
 set_wm() {
+	wm_wid=$(xprop -root -notype _NET_SUPPORTING_WM_CHECK)
+	wm_wid=${wm_wid##* }
 	if ! $user_set_wm && $auto_detect_wm; then
-		local id
-		id=$(xprop -root -notype _NET_SUPPORTING_WM_CHECK)
-		id=${id##* }
 		# xfwm4 and fvwm at least will give two names (hence piping into head)
-		wm=$(xprop -notype -id "$id" _NET_WM_NAME | head -n 1)
+		wm=$(xprop -notype -id "$wm_wid" _NET_WM_NAME | head -n 1)
 		wm=${wm##* }
 		wm=${wm//\"/}
 		debug "window manager: $wm"
@@ -623,6 +623,23 @@ unmap() {
 # Openbox
 
 # * General Helper Functions
+# use when there may not be a focused window
+get_active_wid_or_empty() {
+	if [[ $wm == Openbox ]]; then
+		# on empty openbox desktop, getactivewindow will return the last active
+		# window, and getwindowfocus will return the wm window id
+		local wid
+		wid=$(xdotool getwindowfocus)
+		if [[ "$(printf 0x%x "$wid")" == "$wm_wid" ]]; then
+			echo -n ""
+		else
+			echo -n "$wid"
+		fi
+	else
+		xdotool getactivewindow
+	fi
+}
+
 get_tdrop_name() {
 	if tdrop_name=$(xprop -id "$1" TDROP_NAME 2> /dev/null); then
 		# remove to first quote then remove closing quote
@@ -949,7 +966,8 @@ wid_toggle() {
 			restore_class
 		fi
 		if [[ $visibility =~ ^(IsUnMapped|IsUnviewable)$ ]] \
-			   || $always_activate  && [[ $(xdotool getactivewindow) != "$wid" ]]
+			   || { $always_activate \
+						&& [[ $(get_active_wid_or_empty) != "$wid" ]]; }
 		then
 			# visibility will be IsUnMapped on most WMs if the dropdown is open
 			# on another desktop; may also be IsUnviewable
