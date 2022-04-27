@@ -623,6 +623,31 @@ unmap() {
 # Openbox
 
 # * General Helper Functions
+get_tdrop_name() {
+	if tdrop_name=$(xprop -id "$1" TDROP_NAME 2> /dev/null); then
+		# remove to first quote then remove closing quote
+		tdrop_name=${tdrop_name#*\"}
+		echo -n "${tdrop_name%\"*}"
+	else
+		echo -n ""
+	fi
+}
+
+# check that the window is actually the correct tdrop dropdown instead of a
+# newly created window that is reusing the window id of a previously closed
+# tdrop window
+check_tdrop_name() { # wid
+	[[ "$(get_tdrop_name "$1")" == "tdrop $program$num" ]]
+}
+
+store_wid() {  # wid
+	wid=$1
+	# give it a name to uniquely recognize the window (since window ids can be
+	# reused later if the window is closed)
+	xprop -format TDROP_NAME 8u -id "$wid" -set TDROP_NAME "tdrop $program$num"
+	echo "$wid" > "$WID_DIR/$program$num"
+}
+
 get_class_name() { # wid
 	local class
 	class=$(xprop -id "$1" WM_CLASS 2> /dev/null)
@@ -864,10 +889,7 @@ program_start() {
 	if [[ -n $name ]]; then
 		xdotool set_window --name "$name" "$wid"
 	fi
-	# this is a newly created wid, but it could match an old stored one if that
-	# window was closed; ensure 1 wid per program/num by clearing old stored wid
-	invalidate_wid "$wid"
-	echo "$wid" > "$WID_DIR/$program$num"
+	store_wid "$wid"
 	echo -n "$wid"
 }
 
@@ -875,7 +897,7 @@ current_create() {
 	# turns active window into a dropdown
 	local wid
 	wid=$(xdotool getactivewindow)
-	echo "$wid" > "$WID_DIR"/current"$num"
+	store_wid "$wid"
 	store_class
 	if [[ -n $name ]]; then
 		xdotool set_window --name "$name" "$wid"
@@ -910,12 +932,14 @@ wid_toggle() {
 	exists=true
 	if [[ -n $wid ]]; then
 		visibility=$(get_visibility "$wid")
-		# sometimes xwininfo will still report a window as existing hence xprop check
-		if [[ -z $visibility ]] || ! xprop -id "$wid" &> /dev/null; then
-			# window no longer exists
+		# sometimes xwininfo will still report a window as existing, so an xprop
+		# check is required; check_tdrop_name ensures both that the window
+		# actually exists (if xwininfo is wrong) and that it is the correct
+		# window (by checking the TDROP_NAME window property)
+		if [[ -z $visibility ]] || ! check_tdrop_name "$wid"; then
+			# window no longer exists; clear all stored information about it
+			invalidate_wid "$wid"
 			exists=false
-			# shellcheck disable=SC2188
-			> "$WID_DIR/$program$num"
 		fi
 	else
 		exists=false
