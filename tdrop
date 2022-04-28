@@ -245,7 +245,7 @@ fi
 
 # check that the program is in PATH
 if [[ ! $program =~ ^(current|auto_hide|auto_show|toggle_auto_hide|hide_all|foreach)$ ]] && \
-	   ! type "$program" &> /dev/null; then
+	   ! hash "$program" 2> /dev/null; then
 	error "The program ($program) should be in PATH."
 fi
 
@@ -256,6 +256,27 @@ fi
 if [[ -n $dec_fix ]] && [[ ! $dec_fix =~ ^-?[0-9]+x-?[0-9]+$ ]]; then
 	error "The decoration fix value must have form 'num'x'num'." \
 		  "The numbers can be negative or zero."
+fi
+
+# check that dependencies are installed
+if ! hash xprop xwininfo xdotool; then
+	error "Xprop, xwininfo, and xdotool must all be installed."
+fi
+
+if ! hash gawk; then
+	error "Gawk must be installed."
+fi
+
+if ! hash pgrep; then
+	error "Pgrep must be installed."
+fi
+
+if [[ -n $monitor_aware ]] && ! hash xrandr 2> /dev/null; then
+	error "Xrandr must be installed to use -m / --monitor-aware."
+fi
+
+if [[ -n $session_name ]] && ! hash tmux 2> /dev/null; then
+	error "Tmux must be installed to use -s / --session."
 fi
 
 # non-user-settable global vars
