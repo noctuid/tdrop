@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MUTDROP_PATH=/tmp/tdrop_"$USER"
+MUTDROP_PATH=/tmp/tdrop_"$USER"_"$DISPLAY"
 LOG_FILE="$MUTDROP_PATH"/log
 NOAUTOHIDE_FILE="$MUTDROP_PATH"/no_autohide
 GEO_DIR="$MUTDROP_PATH"/geometries
