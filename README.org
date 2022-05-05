@@ -17,7 +17,7 @@ This is a basic demo where tdrop is used to turn the current window (emacs) into
 - Supports tiled and floating dropdowns
 - Supports floating dropdown instances without requiring the user to create a rule to float all program instances (for some window managers that support both tiling and floating)
 - Supports using multiple dropdowns of the same program (see =-n=)
-- Supports automatically hiding a dropdown when opening a new window from it (and then optionally re-showing the dropdown when the window is closed)
+- Supports automatically hiding a dropdown when opening a new window from it and then optionally re-showing the dropdown when the window is closed (this is somewhat comparable to "swallowing", e.g. in dwm)
 - Supports automatically starting programs and tmux, tmuxinator, tmuxifier or tmuxp sessions
 - Supports automatically resizing dropdowns based on the current monitor's size
 - Has hooks for executing user commands
@@ -54,13 +54,15 @@ alt + s
 The positional argument should be the name of a program in =$PATH= (as opposed to the full path to a program). It should always come after any tdrop flags. Flags for the program can come after it (e.g. ~tdrop urxvt -title foo~).
 
 ** Basic Flags
-=-w= / =--width=, =-h= / =--height=, =-x= / =--xoff=, and =-y= / =--yoff= can be used to set the window size/position. The argument to any of these can be a number (e.g. =-w 800=) or a percentage (e.g. =-w 100%=) or empty (e.g. =-w "" -h ""= to prevent altering the window's size). Negative numbers correspond to that many pixels less than 100% of the screen width (e.g. =-w -4=).
+For a full list of flags and documentation, see the manpage.
 
-If you want to be able to resize the dropdown after creating it, you can use the =-r= / =--remember= flag to store/restore the dropdown geometry.
+=-w= / =--width=, =-h= / =--height=, =-x= / =--xoff=, and =-y= / =--yoff= can be used to set the window size/position. The argument to any of these can be a number (e.g. =-w 800=) or a percentage (e.g. =-w 100%= or =-w 33.3%=) or empty (e.g. =-w "" -h ""= to prevent altering the window's size). Negative numbers correspond to that many pixels less than 100% of the screen width (e.g. =-w -4=). To unmanage all geometry settings, you can specify =-N= / =--no-manage=. This is the same as =-w "" -h "" -x "" -y ""= and should not be used with any other geometry flags.
+
+If you want to be able to resize the dropdown after creating it, you can use the =-r= / =--remember= flag to store/restore the dropdown geometry when hiding/showing.
 
 By default, tdrop will hide the dropdown if it is shown anywhere. =-A= / =--activate= can be used to always activate/show the dropdown if it is not focused.
 
-=-s= / =--session= should only be used for supported terminals and if the user wants to start/attach to a tmux, tmuxinator, tmuxifier or tmxup session.
+=-s= / =--session= should only be used for supported terminals and if the user wants to start/attach to a tmux, tmuxinator, tmuxifier or tmxup session.  Note that you do not need to use =-s= to start tmux.  You can always pass arguments/flags to the program that tdrop runs, e.g. =tdrop kitty tmux=.
 
 Tdrop has basic checks to print errors for malformed commands (e.g. to require one positional argument). If a tdrop command does not work, please run it in a terminal or check =/tmp/tdrop/log= for error messages and consult the manpage before making an issue. For more information, see the [[#troubleshooting][Troubleshooting]] section.
 
@@ -84,21 +86,20 @@ Some window managers allow querying what the current monitor is or directly for 
 See the manpage for more information.
 
 ** Flatpak
-
 As [[https://www.flatpak.org/][Flatpak]] jails applications, the PID cannot be used to find the attached window. A class name has to be given in order to find it, with =--class=.
 
 As Flatpak is considered by tdrop as the program to run, tdrop cannot differentiate 2 different flatpak applications. Use the =-n= option for this purpose.
 
 Example:
-#+BEGIN_EXAMPLE
+#+begin_example
 tdrop -ma -n signal --class=signal flatpak run org.signal.Signal
 tdrop -ma -n firefox --class=firefox flatpak run org.mozilla.firefox
-#+END_EXAMPLE
+#+end_example
 
 ** Flicker
 For some window managers that require a window to be repositioned after re-mapping it, some flicker may be noticeable. This flicker has been mostly fixed for some window managers (e.g. in the Gnome Shell and Cinnamon DEs) and improved for others. It is usually worse on tiling managers where the window must be re-floated every time it is mapped. The way around this is to use rules to either always have the class or name (see =--name=) floated or one-time rules to only float the next instance of a class. For example, since bspwm has oneshot rules and generally doesn't alter the size/position of a window, there isn't any movement flicker.
 
-A more consistent workaround to improve visual flickering regardless of the window manager is to enable fade-in for the compositor. For compton this can be done by setting =fading = true;= and adjusting the =fade-delta= in the =~/.config/compton.conf= accordingly.
+A more consistent workaround to improve visual flickering regardless of the window manager is to enable fade-in for the compositor. For picom this can be done by setting =fading = true;= and adjusting the =fade-delta= in the =~/.config/picom.conf= accordingly.
 
 ** Hooks
 Tdrop provides hook flags that the user can specify to run commands at various stages during execution. These commands can make use of any global, internal tdrop variable, such as =$width=, =$height=, =$xoff=, =$yoff=, =$class=, and =$wid= (to prevent evaluation of these variables, the user can specify the hook command in single quotes). For example, to set a dropdown as always on top, the user could specify =-P 'wmctrl -i -r $wid -b add,above'=.
@@ -108,32 +109,32 @@ Note that for =--pre-map-hook= and =--pre-map-float-command=, the window id is n
 *** Pre Create
 =-c= / =--pre-create-hook=
 
-*Program* The command will run before the program is started.
+*Program* The command will run once before the program is started.
 
-*Current* The command will run before unmapping the current window.
+*Current* The command will run once before unmapping the current window.
 
 *Hide and Show* No effect.
 
 *** Post Create
 =-C= / =--post-create-hook=
 
-*Program* The command will run after the program is started and its window is active.
+*Program* The command will run once after the program is started and its window is active.
 
-*Current* The command will run after unmapping the current window.
+*Current* The command will run once after unmapping the current window.
 
 *Hide and Show* No effect.
 
 *** Pre Map
 =-p= / =--pre-map-hook=
 
-*Program* / *Current* / *Show* The command will run before mapping the window.
+*Program* / *Current* / *Show* The command will run before creating the window and before subsequently mapping the window.
 
 *Hide* No effect.
 
 *** Post Map
 =-P= / =--post-map-hook=
 
-*Program* / *Current* / *Show* The command will run after mapping the window.
+*Program* / *Current* / *Show* The command will run after creating the window and after subsequently mapping the window. Note that unlike the pre-map hook, this will always run when showing the window, even if it was not previously unmapped (e.g. it is just being activated if =-A= is specified, or it is just being moved from another desktop). If you need different behavior (e.g. you need newly added distinct =--(pre|post)-show-hook= flags), please comment on [[https://github.com/noctuid/tdrop/issues/354][this issue]].
 
 *Hide* No effect.
 
@@ -284,6 +285,8 @@ Maybe in the future. The only advantage I can see over xdotool is that it can to
 :PROPERTIES:
 :CUSTOM_ID: troubleshooting
 :END:
+
+You can specify the =--debug= flag to have tdrop print more verbose debugging output.  Tdrop will automatically also save this output in =/tmp/tdrop_"$USER"_"$DISPLAY"/log=.  If tdrop does not appear at all, or there is some error, you can add the =--debug= flag and examine the log file or run the tdrop command in a terminal to see if the issue is obvious (e.g. tdrop will error if you do not have the required dependencies installed).
 
 ** Tdrop does not work with some terminal/program
 Please make an issue. Including the following information would help resolve the problem more quickly.

@@ -1,3 +1,18 @@
+* 0.5.0
+- Add tmuxp support for =-s= / =--session=
+- Add herbstluftwm =-a= floating and =-m= / =--monitor-aware= support
+- Allow unmanaging geometry by setting =-x=, =-y=, =-w=, and =-h= to empty strings
+- Add =-N= / =--no-manage= as a shorthand for setting all geometry settings to empty strings
+- Improve debug logging
+- Add =-r= / =--remember= flag to save geometry when hiding and restore when showing
+- Add ~foreach~ command
+- Fix support for floating point geometry percentages
+- Fix long time issue where tdrop could incorrectly grab the wrong window if it had been reassigned the window id of a previously closed dropdown
+- Fix Openbox support on empty desktops
+- Error if dependencies are not installed
+- Allow using tdrop with multiple open X sessions
+- Make other minor bug fixes
+
 * 0.4.0
 - Deprecate -f flag and allow specifying program arguments after the program
 - Fix -a for emacslient
@@ -11,7 +26,7 @@
 - Add workaround for using flatpack applications
 - Add support for firefox and brave
 - Add --monitor flag to specify monitor name to create dropdown on
-- Fix -s flag for termite, xterm, etc. 
+- Fix -s flag for termite, xterm, etc.
 - Fix for latest alacritty
 - Fix for latest i3
 - Add support for tabbed

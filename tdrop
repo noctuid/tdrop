@@ -42,7 +42,7 @@ options:
 	-U cmd		provide a post-unmap command
 	-d XxY		give decoration/border size to accurately restore window
 			position; only applicable with auto_show
-	-S cmd		can be used to fix saved geometry with auto_hide; see manpage
+	-S		can be used to fix saved geometry with auto_hide; see manpage
 	-i cmd		provide a command to detect whether the current window is a
 			floating window; on applicable with auto_hide
 	-f flags	specify flags/options to be used when creating the term or
@@ -451,7 +451,9 @@ map_and_reset_geometry() {
 	else
 		xdotool windowmap "$wid" 2> /dev/null
 	fi
-	# windowmap does not activate for all window managers
+	# windowmap does not activate for all window managers; windowactivate should
+	# be run separately or can activate window on another desktop on some window
+	# managers (e.g. bspwm)
 	xdotool windowactivate "$wid" 2> /dev/null
 }
 
