@@ -223,7 +223,7 @@ do
 						   yoff=
 						   width=
 						   height=;;
-				help) print_help;;
+				help) print_help; exit;;
 				*) error "Unknown option --$OPTION." \
 						 "Use --help to see available flags.";;
 			esac;;
@@ -240,7 +240,7 @@ fi
 
 if [[ -z $program ]]; then
 	error "Program to run is required as a positional argument." \
-		  "For help use -h or --help or see the manpage."
+		  "For help use --help or see the manpage."
 fi
 
 # check that the program is in PATH
