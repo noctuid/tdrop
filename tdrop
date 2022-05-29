@@ -97,6 +97,7 @@ error() {
 	exit 1
 }
 
+debug=false
 debug() {
 	if $debug; then
 		msg "Debug $*"
@@ -143,7 +144,6 @@ user_set_wm=false
 class=
 name=
 timeout=10
-debug=false
 remember_geometry=false
 while getopts :h:w:x:y:s:n:c:C:l:L:p:P:u:U:d:S:i:f:-:aAmNtr opt
 do
