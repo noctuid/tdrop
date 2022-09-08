@@ -849,6 +849,13 @@ create_win_return_wid() {
 			wids=$(xdotool search --name firefox)
 		elif [[ $program == tabbed ]]; then
 			wids=$(head -n 1 "$MUTDROP_PATH/program-output")
+		elif [[ $program == todoist ]]; then
+			# todoist creates multiple wids
+			# print only wids that are both for todoist and have browser-window
+			# role
+			wids=$(comm -12 \
+						<(xdotool search --classname 'todoist' | sort) \
+						<(xdotool search --role 'browser-window' | sort))
 		else
 			wids=$(xdotool search --pid "$pid")
 		fi

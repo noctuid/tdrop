@@ -235,6 +235,8 @@ If your terminal doesn't work with tdrop, feel free to make an issue. Please fol
 - Emacs and emacsclient
 - Discord
 - Tabbed
+- Todoist
+- etc.
 
 ** Window Managers
 The primary goal of tdrop is to "just work" with any window manager. The primary differences between how tdrop deals with different window managers is the strategy it takes for floating only the dropdown (as opposed to all instances of the class that the dropdown is). There are three types of window managers as far as tdrop is concerned:
