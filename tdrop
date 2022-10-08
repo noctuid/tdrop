@@ -521,8 +521,8 @@ set_class() {
 		elif [[ $program == brave ]]; then
 			class=brave-browser
 		elif ! [[ $program =~ ^(current|auto_show)$ ]]; then
-			# TODO maybe instead store based on program name/number so don't
-			# have to wait for wid
+			# NOTE: current/auto_show will use restore_class to set class to the
+			# recorded class later
 			class=$program
 		fi
 	fi
@@ -549,15 +549,17 @@ is_floating() {
 }
 
 pre_float() {
+	# TODO why is this an exception?
+	lowercase_classes="firefox"
 	if [[ $wm == bspwm ]]; then
 		# newest (using "instance" names)
-		if [[ $class =~ [A-Z] ]]; then
+		if [[ $class =~ [A-Z] ]] || [[ $class =~ $lowercase_classes ]]; then
 			bspc rule -a "$class" -o state=floating
 		else
 			bspc rule -a \*:"$class" -o state=floating
 		fi
 	elif [[ $wm == herbstluftwm ]]; then
-		if [[ $class =~ [A-Z] ]]; then
+		if [[ $class =~ [A-Z] ]] || [[ $class =~ $lowercase_classes ]]; then
 			herbstclient rule once class="$class" floating=on
 		else
 			herbstclient rule once instance="$class" floating=on
@@ -691,8 +693,8 @@ store_wid() {  # wid
 get_class_name() { # wid
 	local class
 	class=$(xprop -id "$1" WM_CLASS 2> /dev/null)
-	class=${class##* }
-	class=${class//\"/}
+	class=${class%\"}
+	class=${class##*\"}
 	echo -n "$class"
 }
 
@@ -992,6 +994,7 @@ wid_toggle() {
 		exists=false
 	fi
 	if $exists; then
+		debug "Window exists, visibility: $visibility"
 		if [[ $program == current ]]; then
 			restore_class
 		fi
