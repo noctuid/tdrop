@@ -236,6 +236,7 @@ If your terminal doesn't work with tdrop, feel free to make an issue. Please fol
 - Discord
 - Tabbed
 - Todoist
+- Postman
 - etc.
 
 ** Window Managers
