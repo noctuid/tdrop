@@ -454,7 +454,9 @@ map_and_reset_geometry() {
 	# windowmap does not activate for all window managers; windowactivate should
 	# be run separately or can activate window on another desktop on some window
 	# managers (e.g. bspwm)
-	# xdotool windowactivate "$wid" 2> /dev/null # THIS BROKEN BSPWM
+	if [[ $wm != bspwm ]]; then
+	    xdotool windowactivate "$wid" 2> /dev/null
+	fi
 }
 
 # * WM Detection and Hooks
