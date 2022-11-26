@@ -187,7 +187,7 @@ alias gc='hide_on_open git commit'
 The most useful application of this functionality is probably when opening videos, images, etc. in an external program from a file manager like ranger. For example, in the =rifle.conf=:
 
 #+BEGIN_EXAMPLE
-mime ^video, has mpv, X, flag f = tdrop -a auto_hide && mpv -- "$@" && tdrop -a auto_show
+mime ^video, has mpv, X, flag f = tdrop -a auto_hide ; mpv -- "$@" && tdrop -a auto_show
 #+END_EXAMPLE
 
 ** Other Commands
