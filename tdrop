@@ -931,6 +931,8 @@ program_start() {
 			program_command+=(-e bash -c "$tmux_command")
 		elif [[ $program == kitty ]]; then
 			program_command+=(bash -c "$tmux_command")
+		elif [[ $program == wezterm || $class == wezterm ]]; then
+			program_command+=(start -- bash -c "$tmux_command")
 		else
 			program_command+=(-e "bash -c '$tmux_command'")
 		fi

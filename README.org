@@ -222,6 +222,7 @@ These terminals have been tested with tdrop and support the =-s= and =-a= flags 
 - Tilix (previously terminix)
 - tinyterm/minyterm
 - URxvt (including urxvtd)
+- Wezterm
 - Xfce4-terminal (XFCE)
 - xiate
 - XTerm
