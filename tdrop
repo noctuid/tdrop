@@ -514,6 +514,9 @@ set_class() {
 			class=xiate
 		elif [[ $program == alacritty ]]; then
 			class=Alacritty
+		elif [[ $program == wezterm ]]; then
+			# wezterm is normally installed through flatpak
+			class=org.wezfurlong.wezterm
 		elif [[ $program == flatpak ]]; then
 			# flatpak jails the application, the PID cannot be used to find
 			# the window. A specific class has to be given by the user.
@@ -802,6 +805,9 @@ create_win_return_wid() {
 	elif [[ $program == urxvtc ]]; then
 		blacklist=$(xdotool search --classname urxvtd)
 		pid=$(pgrep -x urxvtd)
+	elif [[ $program == wezterm ]]; then
+		blacklist=$(xdotool search --classname wezterm)
+		pid=$(pgrep -x wezterm-gui)
 	elif [[ $program == xiatec ]]; then
 		pid=$(pgrep -x xiate)
 	elif [[ $program == chromium ]]; then
@@ -931,7 +937,7 @@ program_start() {
 			program_command+=(-e bash -c "$tmux_command")
 		elif [[ $program == kitty ]]; then
 			program_command+=(bash -c "$tmux_command")
-		elif [[ $program == wezterm || $class == wezterm ]]; then
+		elif [[ $program == wezterm || $class =~ ^(org\.wezfurlong\.)?wezterm$ ]]; then
 			program_command+=(start -- bash -c "$tmux_command")
 		else
 			program_command+=(-e "bash -c '$tmux_command'")
