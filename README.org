@@ -238,6 +238,7 @@ If your terminal doesn't work with tdrop, feel free to make an issue. Please fol
 - Tabbed
 - Todoist
 - Postman
+- Spotify
 - etc.
 
 ** Window Managers

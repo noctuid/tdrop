@@ -846,8 +846,9 @@ create_win_return_wid() {
 		if [[ $program == discord ]]; then
 			wids=$(xdotool search --classname discord)
 			blacklist=
-		elif [[ $program =~ ^(qutebrowser|brave)$ ]]; then
-			# one pid, but can't use for getting wids with xdotool
+		elif [[ $program =~ ^(qutebrowser|brave|spotify)$ ]]; then
+			# one pid, but can't use for getting wids with xdotool or pid gives
+			# extra incorrect wid in the case of spotify
 			wids=$(xdotool search --classname "$program")
 		elif [[ $program =~ ^emacsclient ]]; then
 			wids=$(xdotool search --classname emacs)
