@@ -85,6 +85,16 @@ Some window managers allow querying what the current monitor is or directly for 
 
 See the manpage for more information.
 
+** Wayland support
+Tdrop does not support programs that use Wayland directly, but it does work under Wayland if the program uses XWayland. If your program defaults to using Wayland, you can generally force it to use XWayland by setting the environment variable =WAYLAND_DISPLAY=no=.
+
+Also note that certain tdrop features don't work under Wayland due to limitations of =xdotool=. For instance, =-m= / =--monitor-aware= only works when combined with =-t= / =--pointer-monitor-detection=.
+
+Example:
+#+begin_example
+WAYLAND_DISPLAY=no tdrop -mta alacritty
+#+end_example
+
 ** Flatpak
 As [[https://www.flatpak.org/][Flatpak]] jails applications, the PID cannot be used to find the attached window. A class name has to be given in order to find it, with =--class=.
 
