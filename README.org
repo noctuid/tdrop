@@ -249,6 +249,7 @@ If your terminal doesn't work with tdrop, feel free to make an issue. Please fol
 - Todoist
 - Postman
 - Spotify
+- Clementine and Strawberry
 - etc.
 
 ** Window Managers

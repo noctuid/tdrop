@@ -822,6 +822,8 @@ create_win_return_wid() {
 		blacklist=$(xdotool search --name firefox)
 	elif [[ $program =~ ^emacsclient ]]; then
 		blacklist=$(xdotool search --classname emacs)
+	elif [[ $program =~ ^(strawberry|clementine)$ ]]; then
+		pid=$(pgrep -xa $program | gawk '!/--type/ {print $1}')
 	else
 		blacklist=$(xdotool search --classname "$program")
 	fi
@@ -866,6 +868,8 @@ create_win_return_wid() {
 			wids=$(comm -12 \
 						<(xdotool search --classname "$program" | sort) \
 						<(xdotool search --role 'browser-window' | sort))
+		elif [[ $program == strawberry ]]; then
+			wids=$(xdotool search --all --pid "$pid" --name "Strawberry Music Player")
 		else
 			wids=$(xdotool search --pid "$pid")
 		fi
