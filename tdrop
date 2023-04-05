@@ -910,7 +910,7 @@ create_win_return_wid() {
 invalidate_wid() { # wid
 	shopt -s nullglob dotglob
 	for f in {"$HIDE_DIR"/wid,"$WID_DIR"/*}; do
-		if [[ $(< "$f") == "$wid" ]]; then
+		if [[ -f $f ]] && [[ $(< "$f") == "$wid" ]]; then
 			debug "Clearing stored wid from $f since wid $wid no longer exists"
 			rm "$f"
 		fi
