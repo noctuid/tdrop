@@ -870,6 +870,9 @@ create_win_return_wid() {
 						<(xdotool search --role 'browser-window' | sort))
 		elif [[ $program == strawberry ]]; then
 			wids=$(xdotool search --all --pid "$pid" --name "Strawberry Music Player")
+		elif [[ $program == wezterm ]]; then
+			# Refresh Wezterm wids in case our window belongs to a newly spawned process
+			wids=$(xdotool search --classname wezterm)
 		else
 			wids=$(xdotool search --pid "$pid")
 		fi
