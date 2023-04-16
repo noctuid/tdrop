@@ -807,7 +807,6 @@ create_win_return_wid() {
 		pid=$(pgrep -x urxvtd)
 	elif [[ $program == wezterm ]]; then
 		blacklist=$(xdotool search --classname wezterm)
-		pid=$(pgrep -x wezterm-gui)
 	elif [[ $program == xiatec ]]; then
 		pid=$(pgrep -x xiate)
 	elif [[ $program == chromium ]]; then
@@ -848,9 +847,13 @@ create_win_return_wid() {
 		if [[ $program == discord ]]; then
 			wids=$(xdotool search --classname discord)
 			blacklist=
-		elif [[ $program =~ ^(qutebrowser|brave|spotify)$ ]]; then
-			# one pid, but can't use for getting wids with xdotool or pid gives
-			# extra incorrect wid in the case of spotify
+		elif [[ $program =~ ^(qutebrowser|brave|spotify|wezterm)$ ]]; then
+			# can't rely on pid for these programs
+			# - wezterm - can have multiple processes with multiple windows each
+		    #   $! is not correct, and pgrep would need to be delayed; easier to
+			#   just search for new window ids
+			# - spotify - pid gives extra incorrect wid (want main window)
+			# - others - one pid, but can't use for getting wids with xdotool
 			wids=$(xdotool search --classname "$program")
 		elif [[ $program =~ ^emacsclient ]]; then
 			wids=$(xdotool search --classname emacs)
