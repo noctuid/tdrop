@@ -947,6 +947,8 @@ program_start() {
 			program_command+=(bash -c "$tmux_command")
 		elif [[ $program == wezterm || $class =~ ^(org\.wezfurlong\.)?wezterm$ ]]; then
 			program_command+=(start -- bash -c "$tmux_command")
+		elif [[ $program == gnome-terminal ]]; then
+			program_command+=(-- bash -c "$tmux_command")
 		else
 			program_command+=(-e "bash -c '$tmux_command'")
 		fi
