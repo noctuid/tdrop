@@ -836,15 +836,15 @@ create_win_return_wid() {
 	visible_wid=false
 	counter=0
 	while : ; do
-		if [[ $program == gnome-terminal ]]; then
-			# only 1 pid; changes at some point after first run
-			# actual process name for me is gnome-terminal-
-			pid=$(pgrep gnome-terminal)
-		fi
 		if ((counter==0)); then
 			debug "pid: $pid"
 		fi
-		if [[ $program == discord ]]; then
+		if [[ $program == gnome-terminal ]]; then
+			wids=""
+			for pid in $(pgrep gnome-terminal); do
+				wids+=$(xdotool search --pid "$pid")
+			done
+		elif [[ $program == discord ]]; then
 			wids=$(xdotool search --classname discord)
 			blacklist=
 		elif [[ $program =~ ^(qutebrowser|brave|spotify|wezterm)$ ]]; then
