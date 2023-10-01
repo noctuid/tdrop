@@ -440,20 +440,20 @@ update_geometry_settings_for_monitor() {
 map_and_reset_geometry() {
 	if [[ -n $width ]] && [[ -n $height ]] && [[ -n $xoff ]] \
 		   && [[ -n $yoff ]]; then
-		xdotool windowmap "$wid" windowmove "$wid" "$xoff" "$yoff" \
+		xdotool windowmap --sync "$wid" windowmove "$wid" "$xoff" "$yoff" \
 				windowsize "$wid" "$width" "$height" 2> /dev/null
 	elif [[ -n $width ]] && [[ -n $height ]]; then
-		xdotool windowmap "$wid" windowsize "$wid" "$width" "$height" \
+		xdotool windowmap --sync "$wid" windowsize "$wid" "$width" "$height" \
 				2> /dev/null
 	elif [[ -n $xoff ]] && [[ -n $yoff ]]; then
-		xdotool windowmap "$wid" windowmove "$wid" "$xoff" "$yoff" \
+		xdotool windowmap --sync "$wid" windowmove "$wid" "$xoff" "$yoff" \
 				2> /dev/null
 	else
-		xdotool windowmap "$wid" 2> /dev/null
+		xdotool windowmap --sync "$wid" 2> /dev/null
 	fi
-	# windowmap does not activate for all window managers; windowactivate should
-	# be run separately or can activate window on another desktop on some window
-	# managers (e.g. bspwm)
+	# windowmap does not activate the window for all window managers;
+	# windowactivate should be run separately after windowmap --sync or it can
+	# activate a window on another desktop on some window managers (e.g. bspwm)
 	xdotool windowactivate "$wid" 2> /dev/null
 }
 
