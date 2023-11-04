@@ -360,7 +360,9 @@ populate_current_monitor_geometry() {
 		current_monitor=$(i3-msg -t get_workspaces | sed 's/"num"/\n/g' | \
 							  gawk -F ',' '/focused":true/ {sub(".*output",""); gsub("[:\"]",""); print $1}')
 	elif [[ $wm != herbstluftwm ]]; then
-		local current_x current_y monitors_info x_end y_end
+		local current_x current_y current_x_end current_y_end current_height current_width monitors_info x_end y_end
+		current_width=1
+		current_height=1
 		if ! $pointer_monitor_detection; then
 			# determine current monitor using active window
 			local wid wininfo
@@ -373,6 +375,8 @@ populate_current_monitor_geometry() {
 			wininfo=$(xwininfo -id "$wid")
 			current_x=$(echo "$wininfo" | gawk '/Absolute.*X/ {print $4}')
 			current_y=$(echo "$wininfo" | gawk '/Absolute.*Y/ {print $4}')
+			current_width=$(echo "$wininfo" | gawk '/Width.*/ {print $2}')
+			current_height=$(echo "$wininfo" | gawk '/Height.*/ {print $2}')
 		else
 			# shellcheck disable=SC2034
 			local X Y SCREEN WINDOW
@@ -381,16 +385,27 @@ populate_current_monitor_geometry() {
 			current_x=X
 			current_y=Y
 		fi
+		current_x_end=$((current_x + current_width))
+		current_y_end=$((current_y + current_height))
 		monitors_info=$(xrandr --current | gawk '/ connected/ {gsub("primary ",""); print}')
 		while read -r monitor; do
 			monitor_geo=$(echo "$monitor" | gawk '{print $3}')
 			if [[ $monitor_geo =~ ^[0-9]+x[0-9]+\+[0-9]+\+[0-9]+$ ]]; then
+				local x_overlap y_overlap min_right max_left min_bottom max_top
 				split_geometry "$monitor_geo"
 				x_end=$((x_begin+x_width))
 				y_end=$((y_begin+y_height))
-				if [[ $current_x -ge $x_begin ]] && [[ $current_x -lt $x_end ]] && \
-					   [[ $current_y -ge $y_begin ]] && [[ $current_y -lt $y_end ]]; then
-					# current_monitor=$(echo "$monitor" | gawk '{print $1}')
+				# compute intersection area
+				min_right=$((x_end < current_x_end ? x_end : current_x_end))
+				max_left=$((x_begin > current_x ? x_begin : current_x))
+				min_bottom=$((y_end < current_y_end ? y_end : current_y_end))
+				max_top=$((y_begin > current_y ? y_begin : current_y))
+				x_overlap=$((min_right - max_left))
+				x_overlap=$((0 > x_overlap ? 0 : x_overlap))
+				y_overlap=$((min_bottom - max_top))
+				y_overlap=$((0 > y_overlap ? 0 : y_overlap))
+				overlapArea=$((x_overlap * y_overlap))
+				if [[ $overlapArea > 0 ]]; then
 					current_monitor=${monitor%% *}
 					break
 				fi
