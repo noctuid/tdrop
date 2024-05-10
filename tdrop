@@ -456,7 +456,7 @@ update_geometry_settings_for_monitor() {
 
 map_and_reset_geometry() {
 	if $no_titlebar; then
-		xprop -id "$wid" -format _MOTIF_WM_HINTS 32c -set _MOTIF_WM_HINTS "2, 0, 0, 0, 0"
+		xprop -id "$wid" -format _MOTIF_WM_HINTS 32c -set _MOTIF_WM_HINTS "2, 0, 2, 0, 0"
 	fi
 	if $skip_taskbar; then
 		wmctrl -i -r "$wid" -b add,skip_taskbar
