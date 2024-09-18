@@ -95,7 +95,11 @@ Example:
 WAYLAND_DISPLAY=no tdrop -mta alacritty
 #+end_example
 
-If you are using [[https://github.com/hyprwm/][Hyprland]] then [[https://github.com/Schweber/hdrop/tree/main][hdrop]] can emulate the main feature of tdrop, namely running, showing and hiding a given program depending on its current state.
+The following projects emulate the main features of =tdrop=:
+
+| Project | Window Manager |
+| [[https://github.com/Schweber/hdrop][hdrop]] | [[https://github.com/hyprwm/Hyprland][Hyprland]] |
+| [[https://github.com/Schweber/ndrop][ndrop]] | [[https://github.com/YaLTeR/niri][niri]] |
 
 ** Flatpak
 As [[https://www.flatpak.org/][Flatpak]] jails applications, the PID cannot be used to find the attached window. A class name has to be given in order to find it, with =--class=.
