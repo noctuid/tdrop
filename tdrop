@@ -517,6 +517,10 @@ set_class() {
 		elif [[ $program == wezterm ]]; then
 			# wezterm is normally installed through flatpak
 			class=org.wezfurlong.wezterm
+		elif [[ $program == firefoxpwa ]]; then
+			# firefoxpwa sets a custom class
+			# I don't know why it doesn't work if you don't set a class
+			error "--class is required with firefoxpwa but was not given."
 		elif [[ $program == flatpak ]]; then
 			# flatpak jails the application, the PID cannot be used to find
 			# the window. A specific class has to be given by the user.
@@ -819,6 +823,8 @@ create_win_return_wid() {
 		pid=$(pgrep -xa chrome | gawk '!/--type/ {print $1}')
 	elif [[ $program == firefox ]]; then
 		blacklist=$(xdotool search --name firefox)
+	elif [[ $program == firefoxpwa ]]; then
+		blacklist=$(xdotool search --classname "$class")
 	elif [[ $program =~ ^emacsclient ]]; then
 		blacklist=$(xdotool search --classname emacs)
 	elif [[ $program =~ ^(strawberry|clementine)$ ]]; then
@@ -861,6 +867,8 @@ create_win_return_wid() {
 			wids=$(xdotool search --classname "$class")
 		elif [[ $program == firefox ]]; then
 			wids=$(xdotool search --name firefox)
+		elif [[ $program == firefoxpwa ]]; then
+			wids=$(xdotool search --classname "$class")
 		elif [[ $program == tabbed ]]; then
 			wids=$(head -n 1 "$MUTDROP_PATH/program-output")
 		elif [[ $program =~ ^(postman|todoist)$ ]]; then

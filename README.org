@@ -112,6 +112,14 @@ tdrop -ma -n signal --class=signal flatpak run org.signal.Signal
 tdrop -ma -n firefox --class=firefox flatpak run org.mozilla.firefox
 #+end_example
 
+** Firefoxpwa
+
+Tdrop finds the wrong pid when running firefoxpwa applications with the [Firefox pwa extension](https://addons.mozilla.org/en-US/firefox/addon/pwas-for-firefox/). Use the `--class` to find the correct window.
+
+#+begin_example
+tdrop --class "FFPWA-01JGKHRGAFKGFRJZ99Z0GTKNX4" firefoxpwa site launch 01JGKHRGAFKGFRJZ99Z0GTKNX4
+#+end_example
+
 ** Flicker
 For some window managers that require a window to be repositioned after re-mapping it, some flicker may be noticeable. This flicker has been mostly fixed for some window managers (e.g. in the Gnome Shell and Cinnamon DEs) and improved for others. It is usually worse on tiling managers where the window must be re-floated every time it is mapped. The way around this is to use rules to either always have the class or name (see =--name=) floated or one-time rules to only float the next instance of a class. For example, since bspwm has oneshot rules and generally doesn't alter the size/position of a window, there isn't any movement flicker.
 
