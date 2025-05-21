@@ -95,11 +95,31 @@ Example:
 WAYLAND_DISPLAY=no tdrop -mta alacritty
 #+end_example
 
-The following projects emulate the main features of =tdrop=:
+In general, I do not recommend using tdrop in Wayland.  The following projects emulate the main features of =tdrop=:
 
 | Project | Window Manager |
 | [[https://github.com/Schweber/hdrop][hdrop]] | [[https://github.com/hyprwm/Hyprland][Hyprland]] |
 | [[https://github.com/Schweber/ndrop][ndrop]] | [[https://github.com/YaLTeR/niri][niri]] |
+
+For hyprland, pyrprland also has [[https://hyprland-community.github.io/pyprland/scratchpads.html][scratchpad functionality]].  Hyprland's special workspaces can also achieve the main functionality of tdrop without any external scripts:
+
+#+begin_example
+bind = $hotkey, t, togglespecialworkspace, wezterm
+
+# automatically create the window when opening the workspace
+# works well with close_special_on_empty = true (default)
+workspace = special:wezterm, on-created-empty:wezterm connect --workspace dropdown unix
+
+# optional: float and control size and position if you don't want it to take up the full space
+windowrule = float, onworkspace:name:special:wezterm, class:^org.wezfurlong.wezterm$
+windowrule = move 0.9% 5%, onworkspace:name:special:wezterm, class:^org.wezfurlong.wezterm$
+windowrule = size 98.2% 45%, onworkspace:name:special:wezterm, class:^org.wezfurlong.wezterm$
+
+# open new windows outside the special workspace; useful for e.g. opening apps from yazi
+windowrule = workspace +0, onworkspace:name:special:wezterm
+#+end_example
+
+Hyprland has swallow builtin, which could be used to replace tdrop's auto hide functionality, but I prefer to just call a script to run ~hyprctl dispatch workspace +0~ to hide special workspaces when opening new windows (with =hide_special_on_workspace_change= true).
 
 ** Flatpak
 As [[https://www.flatpak.org/][Flatpak]] jails applications, the PID cannot be used to find the attached window. A class name has to be given in order to find it, with =--class=.
