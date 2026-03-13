@@ -65,6 +65,7 @@ options:
 	-A		always show/activate the window if it is not focused
 	-r		save geometry when hiding, restore geometry when showing
 	-N		same as -x '' -y '' -w '' -h '' (do not use with those options)
+	-q		same as --sticky --no-titlebar --skip-taskbar --above
 	--wm		set the window manager name to mimic another window manager
 			(for use with -a)
 	--class name	manually specify the class of the window (can be obtained with xprop)
@@ -76,6 +77,10 @@ options:
 	--timeout	set the timeout (in seconds) that tdrop will wait for a window
 			to appear before giving up in case the program fails to start
 			(default: 10)
+	--sticky		always show window on the visible workspace
+	--no-titlebar		remove titlebar from window
+	--skip-taskbar		do not show window on the window manager's taskbar
+	--above		set window to be always on top
 	--debug		print debugging information to /tmp/tdrop_<user>/log
 	--help		print help
 
@@ -145,7 +150,11 @@ class=
 name=
 timeout=10
 remember_geometry=false
-while getopts :h:w:x:y:s:n:c:C:l:L:p:P:u:U:d:S:i:f:-:aAmNtr opt
+sticky=false
+above=false
+no_titlebar=false
+skip_taskbar=false
+while getopts :h:w:x:y:s:n:c:C:l:L:p:P:u:U:d:S:i:f:-:aAmNtrq opt
 do
 	case $opt in
 		h) height=$OPTARG;;
@@ -175,8 +184,12 @@ do
 		   yoff=
 		   width=
 		   height=;;
+		q) sticky=true
+		   above=true
+		   no_titlebar=true
+		   skip_taskbar=true;;
 		-)
-			if [[ $OPTARG =~ ^(auto-detect-wm|monitor-aware|pointer-monitor-detection|clear|no-cancel|debug|remember|no-manage|help)$ ]] || \
+			if [[ $OPTARG =~ ^(auto-detect-wm|monitor-aware|pointer-monitor-detection|clear|no-cancel|debug|remember|no-manage|sticky|above|no-titlebar|skip-taskbar|help)$ ]] || \
 				   [[ $OPTARG == *=* ]]; then
 				OPTION=${OPTARG%%=*}
 				OPTARG=${OPTARG#*=}
@@ -223,6 +236,10 @@ do
 						   yoff=
 						   width=
 						   height=;;
+				no-titlebar) no_titlebar=true;;
+				sticky) sticky=true;;
+				above) above=true;;
+				skip-taskbar) skip_taskbar=true;;
 				help) print_help; exit;;
 				*) error "Unknown option --$OPTION." \
 						 "Use --help to see available flags.";;
@@ -438,6 +455,18 @@ update_geometry_settings_for_monitor() {
 }
 
 map_and_reset_geometry() {
+	if $no_titlebar; then
+		xprop -id "$wid" -format _MOTIF_WM_HINTS 32c -set _MOTIF_WM_HINTS "2, 0, 2, 0, 0"
+	fi
+	if $skip_taskbar; then
+		wmctrl -i -r "$wid" -b add,skip_taskbar
+	fi
+	if $above; then
+		wmctrl -i -r "$wid" -b add,above
+	fi
+	if $sticky; then
+		wmctrl -i -r "$wid" -b add,sticky
+	fi
 	if [[ -n $width ]] && [[ -n $height ]] && [[ -n $xoff ]] \
 		   && [[ -n $yoff ]]; then
 		xdotool windowmap --sync "$wid" windowmove "$wid" "$xoff" "$yoff" \
@@ -942,6 +971,9 @@ program_start() {
 		# note: regular console works with or without quotes, but trinity's
 		# konsole only works without quotes
 		if [[ $program =~ ^(urxvt|alacritty|xiatec|st|lxterminal|qterminal|cool-retro-term|lilyterm|konsole$) ]]; then
+			if [[ $no_titlebar && $program == "alacritty" ]]; then
+				program_command+=(-o window.decorations=none)
+			fi
 			program_command+=(-e bash -c "$tmux_command")
 		elif [[ $program == kitty ]]; then
 			program_command+=(bash -c "$tmux_command")

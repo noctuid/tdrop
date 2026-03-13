@@ -104,6 +104,9 @@ Use mouse pointer location for detecting which monitor is the current one so ter
 \fB-A\fR, \fB --activate\fR
 Always activate/show the dropdown if it is not currently focused. Only hide the dropdown if it is currently focused.
 .TP
+\fB-q\fR
+Same as \fB--sticky\fR \fB--no-titlebar\fR \fB--skip-taskbar\fR \fB--above\fR.
+.TP
 \fB--monitor=NAME\fR
 Specify the monitor to base geometry calculations on when using -m / --monitor-aware instead of detecting the monitor by the actively focused window or mouse pointer.
 .TP
@@ -126,6 +129,22 @@ Specifies that manually re-showing an auto-hidden window with tdrop should not c
 .TP
 \fB --timeout\fR
 Specifies the timeout in to wait for a window to appear when starting a program before giving up. This prevents a tdrop process from sticking around forever if a program fails to start. (default: 10)
+.TP
+.B
+\fB--sticky\fR
+Always show window on the visible workspace.
+.TP
+.B
+\fB--no-titlebar\fR
+Remove titlebar from window.
+.TP
+.B
+\fB--skip-taskbar\fR
+Do not show window on the window manager's taskbar.
+.TP
+.B
+\fB--above\fR
+Set window to be always on top.
 .TP
 \fB --debug\fR
 Print information for debugging to stdout and to /tmp/tdrop_<user>/log. Takes no argument. (default: false)
